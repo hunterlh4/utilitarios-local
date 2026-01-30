@@ -271,8 +271,8 @@ CREATE TABLE Person (
     createdAt DATETIME DEFAULT GETDATE()
 );
 
--- Transaction table (transacciones de dinero)
-CREATE TABLE [Transaction] (
+-- Payment table (pagos/deudas de dinero)
+CREATE TABLE Payment (
     id INT IDENTITY(1,1) PRIMARY KEY,
     personId INT NOT NULL, -- ID de la persona
     type CHAR(1) NOT NULL, -- 1: deuda, 2: pago, 3: interes_deuda, 4: interes_pago
@@ -328,6 +328,36 @@ CREATE TABLE PostContentItem (
     orderIndex INT NOT NULL
 );  
 
+-- TaskList table (listas de tareas)
+CREATE TABLE TaskList (
+    id NVARCHAR(50) PRIMARY KEY, -- timestamp como string
+    title NVARCHAR(500) NOT NULL,
+    status CHAR(1) NOT NULL, -- 1: en proceso, 2: completado
+    createdAt DATETIME NOT NULL,
+    updatedAt DATETIME
+);
+
+-- Task table (tareas individuales)
+CREATE TABLE Task (
+    id NVARCHAR(50) PRIMARY KEY,
+    taskListId NVARCHAR(50) NOT NULL, -- FK a TaskList
+    title NVARCHAR(500) NOT NULL,
+    completed BIT NOT NULL DEFAULT 0, -- 0 = false, 1 = true
+    FOREIGN KEY (taskListId) REFERENCES TaskList(id) ON DELETE CASCADE
+);
+
+-- Event table (eventos de calendario)
+CREATE TABLE Event (
+    id NVARCHAR(50) PRIMARY KEY,
+    title NVARCHAR(500) NOT NULL,
+    startDate DATE NOT NULL,
+    endDate DATE NOT NULL,
+    type CHAR(1) NOT NULL, -- 1: festivo, 2: personal
+    allDay BIT NOT NULL DEFAULT 1, -- 0 = false, 1 = true
+    color NVARCHAR(20), -- #ef4444
+    createdAt DATETIME DEFAULT GETDATE()
+);
+
 -- Indexes para mejorar rendimiento de consultas
 
 -- Filtrar por status (proximamente/completado)
@@ -376,9 +406,9 @@ CREATE INDEX IX_AccountRelation_Parent ON AccountRelation(parentAccountId);
 CREATE INDEX IX_AccountRelation_Child ON AccountRelation(childAccountId);
 CREATE INDEX IX_AccountProperty_Account ON AccountProperty(accountId);
 
--- Índices para Money (Person, Transaction)
-CREATE INDEX IX_Transaction_PersonId ON [Transaction](personId);
-CREATE INDEX IX_Transaction_Date ON [Transaction](date DESC);
+-- Índices para Money (Person, Payment)
+CREATE INDEX IX_Payment_PersonId ON Payment(personId);
+CREATE INDEX IX_Payment_Date ON Payment(date DESC);
 
 -- Índices para Post
 CREATE INDEX IX_Post_Category ON Post(category);
@@ -386,3 +416,14 @@ CREATE INDEX IX_Post_Slug ON Post(slug);
 CREATE INDEX IX_Post_Date ON Post(date DESC);
 CREATE INDEX IX_PostContent_PostId ON PostContent(postId);
 CREATE INDEX IX_PostContentItem_PostContentId ON PostContentItem(postContentId);
+
+-- Índices para TaskList y Task
+CREATE INDEX IX_TaskList_Status ON TaskList(status);
+CREATE INDEX IX_TaskList_CreatedAt ON TaskList(createdAt DESC);
+CREATE INDEX IX_Task_TaskListId ON Task(taskListId);
+CREATE INDEX IX_Task_Completed ON Task(completed);
+
+-- Índices para Event
+CREATE INDEX IX_Event_Type ON Event(type);
+CREATE INDEX IX_Event_StartDate ON Event(startDate);
+CREATE INDEX IX_Event_EndDate ON Event(endDate);
