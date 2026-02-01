@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { ApiException } from '@/common/models/api-error.model';
+import { ApiException } from '@/config/models/api-error.model';
 import { toast } from 'sonner';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';

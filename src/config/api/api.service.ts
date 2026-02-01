@@ -1,4 +1,4 @@
-import { apiClient } from '@/config/api/axios.config';
+import { apiClient } from '@/config/interceptors/axios.config';
 
 export class ApiService {
   static async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
