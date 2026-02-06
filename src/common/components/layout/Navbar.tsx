@@ -90,7 +90,7 @@ export const Navbar = () => {
           {menuItems.map((menu) => (
             <DropdownMenu key={menu.label}>
               <DropdownMenuTrigger
-                className={`px-3 py-2 rounded-md hover:bg-accent transition-colors flex items-center gap-1 ${
+                className={`px-3 py-2 rounded-md hover:bg-accent transition-colors flex items-center gap-1 outline-none focus:outline-none focus-visible:ring-0 ${
                   isActiveSection(menu.label.toLowerCase()) ? 'bg-accent font-semibold' : ''
                 }`}
               >

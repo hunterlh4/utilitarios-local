@@ -1,3 +1,5 @@
+import { ContentStatus } from '@/common/enums/ver.enum';
+
 export interface Series {
   id: number;
   imdbId: string;
@@ -6,6 +8,6 @@ export interface Series {
   year?: number;
   rating?: number;
   type?: string;
-  status: '1' | '2'; // 1: proximamente, 2: completado
-  createdAt: string;
+  status: ContentStatus;
+  createdAt?: string;
 }

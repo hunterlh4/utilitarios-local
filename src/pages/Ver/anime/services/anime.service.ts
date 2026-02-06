@@ -1,32 +1,31 @@
 import { apiClient } from '@/config/api/api-client';
 import { CreateAnimeDto, UpdateAnimeDto } from '../models/anime-request.dto';
-import { GetAllAnimeResponse, GetAnimeByIdResponse } from '../models/anime-response.dto';
+import { Anime } from '../models/anime.model';
 
 const BASE_URL = '/anime';
 
 export const animeService = {
-  getAll: async () => {
-    const response = await apiClient.get<GetAllAnimeResponse>(BASE_URL);
-    return response.data;
+  getAll: async (): Promise<Anime[]> => {
+    return await apiClient.get<Anime[]>(BASE_URL);
   },
 
-  getById: async (id: number) => {
-    const response = await apiClient.get<GetAnimeByIdResponse>(`${BASE_URL}/${id}`);
-    return response.data;
+  getById: async (id: number): Promise<Anime> => {
+    return await apiClient.get<Anime>(`${BASE_URL}/${id}`);
   },
 
   create: async (data: CreateAnimeDto) => {
-    const response = await apiClient.post(BASE_URL, data);
-    return response.data;
+    return await apiClient.post(BASE_URL, data);
   },
 
   update: async (id: number, data: UpdateAnimeDto) => {
-    const response = await apiClient.put(`${BASE_URL}/${id}`, data);
-    return response.data;
+    return await apiClient.put(`${BASE_URL}/${id}`, data);
   },
 
   delete: async (id: number) => {
-    const response = await apiClient.delete(`${BASE_URL}/${id}`);
-    return response.data;
+    return await apiClient.delete(`${BASE_URL}/${id}`);
+  },
+
+  updateStatus: async (id: number, status: number) => {
+    return await apiClient.patch(`${BASE_URL}/${id}/status`, { status });
   },
 };

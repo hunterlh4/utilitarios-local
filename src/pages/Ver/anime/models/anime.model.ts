@@ -1,8 +1,11 @@
+import { ContentStatus } from '@/common/enums/ver.enum';
+
 export interface Anime {
   id: number;
+  apiId: number; // mal_id de MyAnimeList API
   title: string;
   image: string;
   episodes: number;
-  status: '1' | '2'; // 1: proximamente, 2: completado
+  status: ContentStatus;
   createdAt: string;
 }

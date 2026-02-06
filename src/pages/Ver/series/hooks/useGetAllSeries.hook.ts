@@ -4,6 +4,6 @@ import { seriesService } from '../services/series.service';
 export const useGetAllSeries = () => {
   return useQuery({
     queryKey: ['series'],
-    queryFn: seriesService.getAll,
+    queryFn: () => seriesService.getAll(),
   });
 };

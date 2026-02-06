@@ -1,9 +1,11 @@
-import type { BaseEntity } from '@/config/models/base.model';
 import { ContentStatus } from '@/common/enums/ver.enum';
 
-export interface Hentai extends BaseEntity {
+export interface Hentai {
+  id: number;
+  apiId: number; // mal_id de MyAnimeList API
   title: string;
   image: string;
   episodes: number;
   status: ContentStatus;
+  createdAt: string;
 }

@@ -7,7 +7,7 @@ export const useDeleteAnimeGalery = () => {
   return useMutation({
     mutationFn: (id: number) => animeGaleryService.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['anime-galery'] });
+      queryClient.invalidateQueries({ queryKey: ['animeGalery'] });
     },
   });
 };

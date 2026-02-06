@@ -4,14 +4,14 @@ import { motion } from 'framer-motion';
 
 export const Layout = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       <motion.main
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
-        className="container mx-auto px-4 py-8"
+        className="flex-1"
       >
         <Outlet />
       </motion.main>

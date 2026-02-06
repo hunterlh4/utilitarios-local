@@ -1,3 +1,5 @@
+import { ContentStatus } from '@/common/enums/ver.enum';
+
 export interface CreateSeriesDto {
   imdbId: string;
   title: string;
@@ -5,7 +7,6 @@ export interface CreateSeriesDto {
   year?: number;
   rating?: number;
   type?: string;
-  status: '1' | '2';
 }
 
 export interface UpdateSeriesDto extends Partial<CreateSeriesDto> {}

@@ -1,32 +1,38 @@
 import { apiClient } from '@/config/api/api-client';
-import { CreateSeriesDto, UpdateSeriesDto } from '../models/series-request.dto';
-import { GetAllSeriesResponse, GetSeriesByIdResponse } from '../models/series-response.dto';
+import type { CreateSeriesDto, UpdateSeriesDto } from '../models/series-request.dto';
+import type { Series } from '../models/series.model';
 
 const BASE_URL = '/series';
 
 export const seriesService = {
-  getAll: async () => {
-    const response = await apiClient.get<GetAllSeriesResponse>(BASE_URL);
-    return response.data;
+  getAll: async (): Promise<Series[]> => {
+    return await apiClient.get(BASE_URL);
   },
 
-  getById: async (id: number) => {
-    const response = await apiClient.get<GetSeriesByIdResponse>(`${BASE_URL}/${id}`);
-    return response.data;
+  getById: async (id: number): Promise<Series> => {
+    return await apiClient.get(`${BASE_URL}/${id}`);
   },
 
   create: async (data: CreateSeriesDto) => {
-    const response = await apiClient.post(BASE_URL, data);
-    return response.data;
+    return await apiClient.post(BASE_URL, data);
   },
 
   update: async (id: number, data: UpdateSeriesDto) => {
-    const response = await apiClient.put(`${BASE_URL}/${id}`, data);
-    return response.data;
+    return await apiClient.put(`${BASE_URL}/${id}`, data);
   },
 
   delete: async (id: number) => {
-    const response = await apiClient.delete(`${BASE_URL}/${id}`);
-    return response.data;
+    return await apiClient.delete(`${BASE_URL}/${id}`);
+  },
+
+  updateStatus: async (id: number, status: number) => {
+    return await apiClient.patch(`${BASE_URL}/${id}/status`, { status });
+  },
+
+  searchImdb: async (query: string) => {
+    const response = await fetch(
+      `https://api.imdbapi.dev/search/titles?query=${encodeURIComponent(query)}&limit=50`
+    );
+    return await response.json();
   },
 };

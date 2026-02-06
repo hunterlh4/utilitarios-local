@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { seriesService } from '../services/series.service';
-import { UpdateSeriesDto } from '../models/series-request.dto';
+import type { UpdateSeriesDto } from '../models/series-request.dto';
 
 export const useUpdateSeries = () => {
   const queryClient = useQueryClient();

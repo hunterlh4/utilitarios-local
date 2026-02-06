@@ -3,7 +3,7 @@ import { animeGaleryService } from '../services/anime-galery.service';
 
 export const useGetAllAnimeGalery = () => {
   return useQuery({
-    queryKey: ['anime-galery'],
-    queryFn: animeGaleryService.getAll,
+    queryKey: ['animeGalery'],
+    queryFn: () => animeGaleryService.getAll(),
   });
 };

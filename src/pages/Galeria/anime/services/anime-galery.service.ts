@@ -1,32 +1,36 @@
 import { apiClient } from '@/config/api/api-client';
-import { CreateAnimeGaleryDto, UpdateAnimeGaleryDto } from '../models/anime-galery-request.dto';
-import { GetAllAnimeGaleryResponse, GetAnimeGaleryByIdResponse } from '../models/anime-galery-response.dto';
+import type { AnimeGalery, Media } from '../models/anime-galery.model';
 
-const BASE_URL = '/anime-galery';
+const BASE_URL = '/animegalery';
+const UPLOAD_URL = '/upload';
 
 export const animeGaleryService = {
-  getAll: async () => {
-    const response = await apiClient.get<GetAllAnimeGaleryResponse>(BASE_URL);
-    return response.data;
+  getAll: async (): Promise<AnimeGalery[]> => {
+    return await apiClient.get(BASE_URL);
   },
 
-  getById: async (id: number) => {
-    const response = await apiClient.get<GetAnimeGaleryByIdResponse>(`${BASE_URL}/${id}`);
-    return response.data;
-  },
-
-  create: async (data: CreateAnimeGaleryDto) => {
-    const response = await apiClient.post(BASE_URL, data);
-    return response.data;
-  },
-
-  update: async (id: number, data: UpdateAnimeGaleryDto) => {
-    const response = await apiClient.put(`${BASE_URL}/${id}`, data);
-    return response.data;
+  create: async (name: string): Promise<{ id: number }> => {
+    return await apiClient.post(BASE_URL, { name });
   },
 
   delete: async (id: number) => {
-    const response = await apiClient.delete(`${BASE_URL}/${id}`);
-    return response.data;
+    return await apiClient.delete(`${BASE_URL}/${id}`);
+  },
+
+  getMediaByRefId: async (refId: number): Promise<Media[]> => {
+    return await apiClient.get(`${BASE_URL}/${refId}/media`);
+  },
+
+  uploadImage: async (file: File, refId: number) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('type', '2'); // 2 = AnimeGalery
+    formData.append('refId', refId.toString());
+
+    return await apiClient.post(`${UPLOAD_URL}/image`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   },
 };
