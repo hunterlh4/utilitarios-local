@@ -6,6 +6,7 @@ import { HentaiPage } from '@/pages/Ver/hentai/HentaiPage';
 import { JavPage } from '@/pages/Ver/jav/JavPage';
 import { SeriesPage } from '@/pages/Ver/series/SeriesPage';
 import { ActressPage } from '@/pages/Ver/actress/ActressPage';
+import { ActressAdultPage } from '@/pages/Ver/actressAdult/ActressAdultPage';
 import { YouTubePage } from '@/pages/Ver/youtube/YouTubePage';
 import { AnimeGaleryPage } from '@/pages/Galeria/anime/AnimeGaleryPage';
 import { GirlGaleryPage } from '@/pages/Galeria/girl/GirlGaleryPage';
@@ -24,6 +25,7 @@ import { ProjectPage } from '@/pages/Utilitarios/project/ProjectPage';
 import { PostPage } from '@/pages/Utilitarios/post/PostPage';
 import { TaskPage } from '@/pages/Utilitarios/task/TaskPage';
 import { EventPage } from '@/pages/Utilitarios/event/EventPage';
+import { OGamePage } from '@/pages/Utilitarios/ogame/OGamePage';
 
 export const router = createBrowserRouter([
   {
@@ -54,6 +56,10 @@ export const router = createBrowserRouter([
       {
         path: 'ver/actress',
         element: <ActressPage />,
+      },
+      {
+        path: 'ver/actress-adult',
+        element: <ActressAdultPage />,
       },
       {
         path: 'ver/youtube',
@@ -131,6 +137,10 @@ export const router = createBrowserRouter([
       {
         path: 'utilitarios/event',
         element: <EventPage />,
+      },
+      {
+        path: 'utilitarios/ogame',
+        element: <OGamePage />,
       },
     ],
   },

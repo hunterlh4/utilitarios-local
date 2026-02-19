@@ -15,15 +15,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/common/components/ui/tooltip';
-import { Search, Plus, Trash2, Edit, Eye, Check, Download, Info } from 'lucide-react';
+import { Search, Plus, Trash2, Edit, Eye, Check, Download, Info, Code } from 'lucide-react';
 import { toast } from 'sonner';
 import { JavDialog } from './components/form';
+import { ExtractCodesDialog } from './components/ExtractCodesDialog';
 import type { Jav } from './models/jav.model';
 import { javsPorVer } from './services/javs';
 
 export const JavPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [extractCodesOpen, setExtractCodesOpen] = useState(false);
   const [editingJav, setEditingJav] = useState<Jav | null>(null);
   const [showCompleted, setShowCompleted] = useState(false);
 
@@ -178,6 +180,13 @@ export const JavPage = () => {
         <Button onClick={handleOpenDialog} size="icon" className="bg-green-600 hover:bg-green-700">
           <Plus className="h-4 w-4" />
         </Button>
+        <Button 
+          onClick={() => setExtractCodesOpen(true)} 
+          size="icon" 
+          className="bg-purple-600 hover:bg-purple-700"
+        >
+          <Code className="h-4 w-4" />
+        </Button>
         <TooltipProvider delayDuration={200}>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -322,6 +331,11 @@ export const JavPage = () => {
         onOpenChange={setDialogOpen}
         editingJav={editingJav}
         onSave={handleSave}
+      />
+
+      <ExtractCodesDialog
+        open={extractCodesOpen}
+        onOpenChange={setExtractCodesOpen}
       />
     </div>
   );

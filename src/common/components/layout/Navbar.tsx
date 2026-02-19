@@ -24,6 +24,7 @@ export const Navbar = () => {
         { label: 'JAV', path: '/ver/jav' },
         { label: 'Series', path: '/ver/series' },
         { label: 'Actrices', path: '/ver/actress' },
+        { label: 'Actrices Porno', path: '/ver/actress-adult' },
         { label: 'YouTube', path: '/ver/youtube' },
       ],
     },
@@ -67,6 +68,7 @@ export const Navbar = () => {
         { label: 'Posts', path: '/utilitarios/post' },
         { label: 'Tareas', path: '/utilitarios/task' },
         { label: 'Eventos', path: '/utilitarios/event' },
+        { label: 'OGame', path: '/utilitarios/ogame' },
       ],
     },
   ];

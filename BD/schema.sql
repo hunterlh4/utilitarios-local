@@ -72,7 +72,7 @@ CREATE TABLE AnimeGalery (
 -- Media table (solo imágenes para galerías)
 CREATE TABLE Media (
     id INT IDENTITY(1,1) PRIMARY KEY,
-    type CHAR(1) NOT NULL, -- 1: GirlGalery, 2: AnimeGalery, 3: Project
+    type CHAR(1) NOT NULL, -- 1: GirlGalery, 2: AnimeGalery, 3: Project, 4: Actress, 5: ActressAdult
     refId INT NOT NULL,
     url NVARCHAR(1000) NOT NULL,
     thumbnail NVARCHAR(1000),
@@ -125,8 +125,35 @@ CREATE TABLE Tag (
 CREATE TABLE Actress (
     id INT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(200) NOT NULL,
-    image NVARCHAR(1000),
     createdAt DATETIME DEFAULT GETDATE()
+);
+
+-- ActressAdult table (actrices porno)
+CREATE TABLE ActressAdult (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    name NVARCHAR(200) NOT NULL,
+    createdAt DATETIME DEFAULT GETDATE()
+);
+
+-- VideoAdult table (videos porno)
+CREATE TABLE VideoAdult (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    source VARCHAR(20) NOT NULL,        -- pornhub, xvideos
+    external_id VARCHAR(100) NOT NULL,  -- viewkey / video id
+    video_url NVARCHAR(500) NOT NULL,
+    title NVARCHAR(255),
+    thumbnail_url NVARCHAR(1000),
+    embed_html NVARCHAR(MAX),
+    status CHAR(1) NOT NULL DEFAULT '0', -- 0: proximamente, 1: completado
+    createdAt DATETIME DEFAULT GETDATE(),
+    UNIQUE (source, external_id)
+);
+
+-- ActressVideo table (relación N:N entre actrices y videos)
+CREATE TABLE ActressVideo (
+    actress_id INT NOT NULL,
+    video_id INT NOT NULL,
+    PRIMARY KEY (actress_id, video_id),
 );
 
 -- Jav table (videos JAV)
@@ -261,7 +288,7 @@ CREATE TABLE AccountRelation (
 CREATE TABLE AccountProperty (
     id INT IDENTITY(1,1) PRIMARY KEY,
     accountId INT NOT NULL,
-    device CHAR(1) NOT NULL, -- 1: hasDota2, 2: hasCS2, 3: hasSteamMobile, 4: vacBanned
+    device CHAR(1) NOT NULL, -- 1: hasDota2, 2: hasCS2, 3: hasSteamMobile, 4: vacBanned, 5 kiro 500$, 6 kiro 50$
     value BIT default 0, -- 0 = false, 1 = true
     createdAt DATETIME DEFAULT GETDATE()
 );

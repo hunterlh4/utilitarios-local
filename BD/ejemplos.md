@@ -390,7 +390,7 @@
 | 6 | 6 | 2 | 0 | 2025-01-11 09:34:00 |
 | 7 | 6 | 4 | 0 | 2025-01-11 09:35:00 |
 
-**Key (CHAR):** 1=hasDota2, 2=hasCS2, 3=hasSteamMobile, 4=vacBanned  
+**Key (CHAR):** 1=hasDota2, 2=hasCS2, 3=hasSteamMobile, 4=vacBanned , 5= kiro 500$, 6 kiro 50$
 **Value (BIT):** 0=false, 1=true
 
 ---

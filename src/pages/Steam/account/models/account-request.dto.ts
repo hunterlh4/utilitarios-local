@@ -1,5 +1,7 @@
+import type { AccountType } from '../enums/account.enum';
+
 export interface CreateAccountDto {
-  type: '1' | '2' | '3' | '4' | '5' | '6';
+  type: AccountType;
   name: string;
   username?: string;
   password?: string;

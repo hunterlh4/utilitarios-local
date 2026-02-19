@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { animeGaleryService } from '../services/anime-galery.service';
+import { girlGaleryService } from '../services/girl.service';
 
 export const useGetMediaByRefId = (refId: number | null) => {
   return useQuery({
-    queryKey: ['animeGaleryDetail', refId],
-    queryFn: () => animeGaleryService.getById(refId!),
+    queryKey: ['girlGaleryDetail', refId],
+    queryFn: () => girlGaleryService.getById(refId!),
     enabled: refId !== null,
     select: (data) => data.media,
   });

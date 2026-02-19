@@ -1,7 +1,7 @@
 import { apiClient } from '@/config/api/api-client';
-import type { AnimeGalery, Media } from '../models/anime-galery.model';
+import type { AnimeGalery, AnimeGaleryDetail, UpdateAnimeGaleryDto } from '../models/anime-galery.model';
 
-const BASE_URL = '/animegalery';
+const BASE_URL = '/anime-galery';
 const UPLOAD_URL = '/upload';
 
 export const animeGaleryService = {
@@ -9,16 +9,20 @@ export const animeGaleryService = {
     return await apiClient.get(BASE_URL);
   },
 
+  getById: async (id: number): Promise<AnimeGaleryDetail> => {
+    return await apiClient.get(`${BASE_URL}/${id}`);
+  },
+
   create: async (name: string): Promise<{ id: number }> => {
     return await apiClient.post(BASE_URL, { name });
   },
 
-  delete: async (id: number) => {
-    return await apiClient.delete(`${BASE_URL}/${id}`);
+  update: async (id: number, payload: UpdateAnimeGaleryDto): Promise<void> => {
+    return await apiClient.put(`${BASE_URL}/${id}`, payload);
   },
 
-  getMediaByRefId: async (refId: number): Promise<Media[]> => {
-    return await apiClient.get(`${BASE_URL}/${refId}/media`);
+  delete: async (id: number) => {
+    return await apiClient.delete(`${BASE_URL}/${id}`);
   },
 
   uploadImage: async (file: File, refId: number) => {

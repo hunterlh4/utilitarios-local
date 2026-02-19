@@ -1,6 +1,8 @@
+import type { AccountType, AccountPropertyKey } from '../enums/account.enum';
+
 export interface Account {
   id: number;
-  type: '1' | '2' | '3' | '4' | '5' | '6'; // 1: Email, 2: Steam, 3: Facebook, 4: Instagram, 5: Game, 6: Other
+  type: AccountType;
   name: string;
   username?: string;
   password?: string;
@@ -8,5 +10,23 @@ export interface Account {
   phoneNumber?: string;
   recoveryEmail?: string;
   lastConnection?: string;
+  createdAt: string;
+  relations?: AccountRelation[];
+  properties?: AccountProperty[];
+}
+
+export interface AccountRelation {
+  id: number;
+  parentAccountId: number;
+  childAccountId: number;
+  childAccount?: Account;
+  createdAt: string;
+}
+
+export interface AccountProperty {
+  id: number;
+  accountId: number;
+  key: AccountPropertyKey;
+  value: boolean;
   createdAt: string;
 }
