@@ -164,9 +164,9 @@ export const ActressAdultPage = () => {
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
-                  {actress.firstImageUrl ? (
+                  {actress.image ? (
                     <img
-                      src={actress.firstImageUrl}
+                      src={actress.image}
                       alt={actress.name}
                       className="absolute inset-0 w-full h-full object-cover"
                     />

@@ -9,6 +9,21 @@ interface Resources {
   deuterium: number;
 }
 
+const PLANET_NAMES = [
+  'lorenzo',
+  'wendy',
+  'Guillermo C-',
+  'Arabe C-',
+  'Rusian C-',
+  'pedro',
+  'Alberto',
+  'Miguel',
+  'los hermanos borjes',
+  'Nocheosfera',
+  'Namekusein',
+  'Tierra 1',
+];
+
 export const OGamePage = () => {
   const [planets, setPlanets] = useState<string[]>(['']);
 
@@ -221,24 +236,29 @@ export const OGamePage = () => {
 
       <div className="flex flex-wrap gap-2">
         {planets.map((planet, index) => (
-          <div key={index} className="flex gap-1 items-start">
-            <Textarea
-              value={planet}
-              onChange={(e) => updatePlanet(index, e.target.value)}
-              onPaste={(e) => handlePaste(e, index)}
-              placeholder={`P${index + 1}`}
-              className="w-32 h-20 font-mono text-xs resize-none"
-              rows={3}
-            />
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8"
-              onClick={() => removePlanet(index)}
-              disabled={planets.length === 1}
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
+          <div key={index} className="flex flex-col gap-1">
+            <span className="text-xs font-medium text-muted-foreground px-1">
+              {PLANET_NAMES[index] || `P${index + 1}`}
+            </span>
+            <div className="flex gap-1 items-start">
+              <Textarea
+                value={planet}
+                onChange={(e) => updatePlanet(index, e.target.value)}
+                onPaste={(e) => handlePaste(e, index)}
+                placeholder={PLANET_NAMES[index] || `P${index + 1}`}
+                className="w-32 h-20 font-mono text-xs resize-none"
+                rows={3}
+              />
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8"
+                onClick={() => removePlanet(index)}
+                disabled={planets.length === 1}
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
         ))}
       </div>

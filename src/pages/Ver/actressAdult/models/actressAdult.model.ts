@@ -1,8 +1,21 @@
 export interface ActressAdult {
   id: number;
   name: string;
-  firstImageUrl?: string;
+  image?: string;
+  tags?: string[];
   createdAt?: string;
+}
+
+export interface ActressAdultBasic {
+  id: number;
+  name: string;
+  images: Media[];
+}
+
+export interface Media {
+  id: number;
+  url: string;
+  orderIndex: number;
 }
 
 export interface ActressAdultDetail {

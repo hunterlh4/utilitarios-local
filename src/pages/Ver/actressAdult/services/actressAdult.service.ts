@@ -1,5 +1,5 @@
 import { apiClient } from '@/config/api/api-client';
-import type { ActressAdult, ActressAdultDetail, CreateVideoAdultDto } from '../models/actressAdult.model';
+import type { ActressAdult, ActressAdultBasic, ActressAdultDetail, CreateVideoAdultDto } from '../models/actressAdult.model';
 
 const BASE_URL = '/actress-adult';
 const UPLOAD_URL = '/upload';
@@ -9,8 +9,12 @@ export const actressAdultService = {
     return await apiClient.get(BASE_URL);
   },
 
-  getById: async (id: number): Promise<ActressAdultDetail> => {
+  getById: async (id: number): Promise<ActressAdultBasic> => {
     return await apiClient.get(`${BASE_URL}/${id}`);
+  },
+
+  getDetailById: async (id: number): Promise<ActressAdultDetail> => {
+    return await apiClient.get(`${BASE_URL}/${id}/detail`);
   },
 
   create: async (name: string): Promise<{ id: number }> => {
