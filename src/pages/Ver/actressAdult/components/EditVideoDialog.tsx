@@ -1,41 +1,48 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/common/components/ui/dialog';
 import { Button } from '@/common/components/ui/button';
-import { Input } from '@/common/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select';
 import { Checkbox } from '@/common/components/ui/checkbox';
 import { Spinner } from '@/common/components/ui/spinner';
 import { useGetTags } from '../hooks/useGetTags.hook';
-import type { ActressAdult } from '../models/actressAdult.model';
+import type { ActressAdult, VideoAdult } from '../models/actressAdult.model';
 
-interface AddVideoDialogProps {
+interface EditVideoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  currentActressId: number;
+  video: VideoAdult | null;
   actresses: ActressAdult[];
-  onSave: (source: string, videoUrl: string, actressIds: number[], tagIds: number[]) => void;
+  onSave: (videoId: number, actressIds: number[], tagIds: number[]) => void;
 }
 
-export const AddVideoDialog = ({
+export const EditVideoDialog = ({
   open,
   onOpenChange,
-  currentActressId,
+  video,
   actresses,
   onSave,
-}: AddVideoDialogProps) => {
-  const [source, setSource] = useState('pornhub');
-  const [videoUrl, setVideoUrl] = useState('');
-  const [selectedActresses, setSelectedActresses] = useState<number[]>([currentActressId]);
+}: EditVideoDialogProps) => {
+  const [selectedActresses, setSelectedActresses] = useState<number[]>([]);
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { data: tags, isLoading: isLoadingTags } = useGetTags(6); // 6 = VideoAdult
 
-  const handleSave = () => {
-    if (!videoUrl.trim()) return;
-    onSave(source, videoUrl, selectedActresses, selectedTags);
-    setVideoUrl('');
-    setSelectedActresses([currentActressId]);
-    setSelectedTags([]);
+  useEffect(() => {
+    if (video && tags) {
+      setSelectedActresses(video.actresses.map(a => a.id));
+      // Convertir nombres de tags a IDs
+      const tagIds = video.tags
+        .map(tagName => tags.find(t => t.name === tagName)?.id)
+        .filter((id): id is number => id !== undefined);
+      setSelectedTags(tagIds);
+    }
+  }, [video, tags]);
+
+  const handleSave = async () => {
+    if (!video || selectedActresses.length === 0) return;
+    setIsLoading(true);
+    await onSave(video.id, selectedActresses, selectedTags);
+    setIsLoading(false);
   };
 
   const toggleActress = (id: number) => {
@@ -52,33 +59,27 @@ export const AddVideoDialog = ({
     );
   };
 
+  if (!video) return null;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Agregar Video</DialogTitle>
+          <DialogTitle>Editar Video</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium mb-2 block">Fuente</label>
-            <Select value={source} onValueChange={setSource}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pornhub">Pornhub</SelectItem>
-                <SelectItem value="xvideos">Xvideos</SelectItem>
-              </SelectContent>
-            </Select>
+            <p className="text-sm font-medium mb-2">URL:</p>
+            <a
+              href={video.videoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-blue-500 hover:underline break-all"
+            >
+              {video.videoUrl}
+            </a>
           </div>
-          <div>
-            <label className="text-sm font-medium mb-2 block">URL del Video</label>
-            <Input
-              placeholder="https://..."
-              value={videoUrl}
-              onChange={(e) => setVideoUrl(e.target.value)}
-            />
-          </div>
+
           <div>
             <label className="text-sm font-medium mb-2 block">Actrices (selecciona múltiples)</label>
             <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto border rounded p-2">
@@ -109,12 +110,12 @@ export const AddVideoDialog = ({
                 {tags.map((tag) => (
                   <div key={tag.id} className="flex items-center space-x-2">
                     <Checkbox
-                      id={`video-tag-${tag.id}`}
+                      id={`edit-video-tag-${tag.id}`}
                       checked={selectedTags.includes(tag.id)}
                       onCheckedChange={() => toggleTag(tag.id)}
                     />
                     <label
-                      htmlFor={`video-tag-${tag.id}`}
+                      htmlFor={`edit-video-tag-${tag.id}`}
                       className="text-sm cursor-pointer"
                     >
                       {tag.name}
@@ -129,8 +130,8 @@ export const AddVideoDialog = ({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSave} disabled={!videoUrl.trim() || selectedActresses.length === 0}>
-              Agregar
+            <Button onClick={handleSave} disabled={selectedActresses.length === 0 || isLoading}>
+              {isLoading ? <Spinner className="h-4 w-4" /> : 'Guardar'}
             </Button>
           </div>
         </div>

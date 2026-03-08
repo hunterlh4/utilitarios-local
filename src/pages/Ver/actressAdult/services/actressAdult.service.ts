@@ -17,12 +17,12 @@ export const actressAdultService = {
     return await apiClient.get(`${BASE_URL}/${id}/detail`);
   },
 
-  create: async (name: string): Promise<{ id: number }> => {
-    return await apiClient.post(BASE_URL, { name });
+  create: async (name: string, tagIds: number[] = []): Promise<{ id: number }> => {
+    return await apiClient.post(BASE_URL, { name, tagIds });
   },
 
-  update: async (id: number, name: string): Promise<void> => {
-    return await apiClient.put(`${BASE_URL}/${id}`, { name });
+  update: async (id: number, name: string, tagIds: number[]): Promise<void> => {
+    return await apiClient.put(`${BASE_URL}/${id}`, { name, tags: tagIds });
   },
 
   delete: async (id: number): Promise<void> => {
@@ -31,6 +31,18 @@ export const actressAdultService = {
 
   createVideo: async (data: CreateVideoAdultDto): Promise<void> => {
     return await apiClient.post(`${BASE_URL}/video`, data);
+  },
+
+  updateVideo: async (videoId: number, actressIds: number[], tagIds: number[]): Promise<void> => {
+    return await apiClient.put(`${BASE_URL}/video/${videoId}`, { actressIds, tagIds });
+  },
+
+  deleteVideo: async (videoId: number): Promise<void> => {
+    return await apiClient.delete(`${BASE_URL}/video/${videoId}`);
+  },
+
+  updateLinks: async (id: number, links: string[]): Promise<void> => {
+    return await apiClient.put(`${BASE_URL}/${id}/links`, links);
   },
 
   uploadImage: async (file: File, refId: number) => {
@@ -44,5 +56,9 @@ export const actressAdultService = {
         'Content-Type': 'multipart/form-data',
       },
     });
+  },
+
+  deleteMedia: async (mediaId: number): Promise<void> => {
+    return await apiClient.delete(`${UPLOAD_URL}/media/${mediaId}`);
   },
 };

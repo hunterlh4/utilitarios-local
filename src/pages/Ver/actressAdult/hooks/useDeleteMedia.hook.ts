@@ -1,12 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { actressAdultService } from '../services/actressAdult.service';
 
-export const useUpdateActressAdult = () => {
+export const useDeleteMedia = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, name, tagIds }: { id: number; name: string; tagIds: number[] }) =>
-      actressAdultService.update(id, name, tagIds),
+    mutationFn: (mediaId: number) => actressAdultService.deleteMedia(mediaId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['actressAdult'] });
     },

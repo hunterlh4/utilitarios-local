@@ -1,35 +1,59 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useGetAllActressAdult } from './hooks/useGetAllActressAdult.hook';
 import { useCreateActressAdult } from './hooks/useCreateActressAdult.hook';
 import { useDeleteActressAdult } from './hooks/useDeleteActressAdult.hook';
+import { useUpdateActressAdult } from './hooks/useUpdateActressAdult.hook';
 import { useCreateVideo } from './hooks/useCreateVideo.hook';
-import { useGetVideos } from './hooks/useGetVideos.hook';
+import { useUpdateVideo } from './hooks/useUpdateVideo.hook';
+import { useDeleteVideo } from './hooks/useDeleteVideo.hook';
+import { useGetActressDetail } from './hooks/useGetActressDetail.hook';
 import { useUpdateVideoStatus } from './hooks/useUpdateVideoStatus.hook';
 import { useUploadImage } from './hooks/useUploadImage.hook';
+import { useDeleteMedia } from './hooks/useDeleteMedia.hook';
+import { useUpdateLinks } from './hooks/useUpdateLinks.hook';
 import { Button } from '@/common/components/ui/button';
+import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
-import { Plus, Upload, Trash2, Check, Eye } from 'lucide-react';
+import { Plus, Upload, Trash2, Check, Eye, Edit, Search, Link as LinkIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { CreateActressDialog } from './components/CreateActressDialog';
+import { EditActressDialog } from './components/EditActressDialog';
 import { AddVideoDialog } from './components/AddVideoDialog';
+import { EditVideoDialog } from './components/EditVideoDialog';
+import type { VideoAdult } from './models/actressAdult.model';
 
 export const ActressAdultPage = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [videoDialogOpen, setVideoDialogOpen] = useState(false);
+  const [editVideoDialogOpen, setEditVideoDialogOpen] = useState(false);
   const [selectedActress, setSelectedActress] = useState<number | null>(null);
+  const [editingActress, setEditingActress] = useState<number | null>(null);
+  const [editingVideo, setEditingVideo] = useState<VideoAdult | null>(null);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTagFilters, setSelectedTagFilters] = useState<string[]>([]);
+  const [editingLinks, setEditingLinks] = useState(false);
+  const [linksInput, setLinksInput] = useState<string[]>([]);
 
   const { data: actresses, isLoading } = useGetAllActressAdult();
   const createActress = useCreateActressAdult();
+  const updateActress = useUpdateActressAdult();
   const deleteActress = useDeleteActressAdult();
   const createVideo = useCreateVideo();
-  const { data: videos, isLoading: isLoadingVideos } = useGetVideos(selectedActress);
+  const updateVideo = useUpdateVideo();
+  const deleteVideo = useDeleteVideo();
+  const { data: actressDetail, isLoading: isLoadingDetail } = useGetActressDetail(selectedActress);
   const updateVideoStatus = useUpdateVideoStatus();
   const uploadImage = useUploadImage();
+  const deleteMedia = useDeleteMedia();
+  const updateLinks = useUpdateLinks();
 
-  const handleCreateActress = async (name: string, image: File | null) => {
+  const videos = actressDetail?.videos || [];
+
+  const handleCreateActress = async (name: string, image: File | null, tagIds: number[]) => {
     try {
-      const result = await createActress.mutateAsync(name);
+      const result = await createActress.mutateAsync({ name, tagIds });
       
       if (image && result.id) {
         try {
@@ -50,6 +74,47 @@ export const ActressAdultPage = () => {
     }
   };
 
+  const handleEditActress = async (
+    id: number,
+    name: string,
+    tagIds: number[],
+    newImage: File | null,
+    imagesToDelete: number[]
+  ) => {
+    try {
+      await updateActress.mutateAsync({ id, name, tagIds });
+
+      if (imagesToDelete.length > 0) {
+        for (const mediaId of imagesToDelete) {
+          try {
+            await deleteMedia.mutateAsync(mediaId);
+          } catch (error) {
+            console.error('Error al eliminar imagen:', error);
+          }
+        }
+      }
+
+      if (newImage) {
+        try {
+          await uploadImage.mutateAsync({ file: newImage, refId: id });
+        } catch (uploadError) {
+          console.error('Error al subir imagen:', uploadError);
+          toast.error('Actriz actualizada pero error al subir la imagen');
+          setEditDialogOpen(false);
+          setEditingActress(null);
+          return;
+        }
+      }
+
+      toast.success('Actriz actualizada correctamente');
+      setEditDialogOpen(false);
+      setEditingActress(null);
+    } catch (error) {
+      console.error('Error al actualizar actriz:', error);
+      toast.error('Error al actualizar la actriz');
+    }
+  };
+
   const handleDeleteActress = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
@@ -64,19 +129,59 @@ export const ActressAdultPage = () => {
     }
   };
 
-  const handleSelectActress = (id: number) => {
-    setSelectedActress(id);
+  const handleOpenEdit = (id: number, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setEditingActress(id);
+    setEditDialogOpen(true);
   };
 
-  const handleAddVideo = async (source: string, videoUrl: string, actressIds: number[]) => {
+  const handleSelectActress = (id: number) => {
+    setSelectedActress(id);
+    setEditingLinks(false);
+  };
+
+  const handleAddVideo = async (source: string, videoUrl: string, actressIds: number[], tagIds: number[]) => {
     try {
-      await createVideo.mutateAsync({ source, videoUrl, actressIds });
+      await createVideo.mutateAsync({ source, videoUrl, actressIds, tagIds });
       toast.success('Video agregado correctamente');
       setVideoDialogOpen(false);
     } catch (error) {
       console.error('Error al agregar video:', error);
       toast.error('Error al agregar el video');
     }
+  };
+
+  const handleEditVideo = async (videoId: number, actressIds: number[], tagIds: number[]) => {
+    try {
+      await updateVideo.mutateAsync({ videoId, actressIds, tagIds });
+      toast.success('Video actualizado correctamente');
+      setEditVideoDialogOpen(false);
+      setEditingVideo(null);
+    } catch (error) {
+      console.error('Error al actualizar video:', error);
+      toast.error('Error al actualizar el video');
+    }
+  };
+
+  const handleDeleteVideo = async (videoId: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm('¿Estás seguro de eliminar este video?')) return;
+    
+    try {
+      await deleteVideo.mutateAsync(videoId);
+      toast.success('Video eliminado correctamente');
+    } catch (error) {
+      console.error('Error al eliminar video:', error);
+      toast.error('Error al eliminar el video');
+    }
+  };
+
+  const handleOpenEditVideo = (video: VideoAdult, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setEditingVideo(video);
+    setEditVideoDialogOpen(true);
   };
 
   const handleToggleVideoStatus = async (videoId: number, currentStatus: number, e: React.MouseEvent) => {
@@ -92,17 +197,79 @@ export const ActressAdultPage = () => {
     }
   };
 
+  const handleStartEditLinks = () => {
+    setLinksInput(actressDetail?.links.map(l => l.url) || []);
+    setEditingLinks(true);
+  };
+
+  const handleSaveLinks = async () => {
+    if (!selectedActress) return;
+    try {
+      await updateLinks.mutateAsync({ id: selectedActress, links: linksInput.filter(l => l.trim()) });
+      toast.success('Links actualizados correctamente');
+      setEditingLinks(false);
+    } catch (error) {
+      console.error('Error al actualizar links:', error);
+      toast.error('Error al actualizar los links');
+    }
+  };
+
+  const handleAddLink = () => {
+    setLinksInput([...linksInput, '']);
+  };
+
+  const handleRemoveLink = (index: number) => {
+    setLinksInput(linksInput.filter((_, i) => i !== index));
+  };
+
+  const handleLinkChange = (index: number, value: string) => {
+    const newLinks = [...linksInput];
+    newLinks[index] = value;
+    setLinksInput(newLinks);
+  };
+
   const selectedActressData = actresses?.find((a) => a.id === selectedActress);
 
-  const filteredVideos = videos?.filter((video) => {
-    // Si el video no tiene status definido, mostrarlo siempre
-    if (video.status === undefined || video.status === null) return true;
-    return showCompleted ? video.status === 1 : video.status === 0;
-  });
+  const toggleTagFilter = (tagName: string) => {
+    setSelectedTagFilters(prev =>
+      prev.includes(tagName) ? prev.filter(t => t !== tagName) : [...prev, tagName]
+    );
+  };
 
-  console.log('Videos data:', videos);
-  console.log('Filtered videos:', filteredVideos);
-  console.log('Show completed:', showCompleted);
+  const filteredVideos = useMemo(() => {
+    if (!videos) return [];
+
+    let result = videos.filter((video) => {
+      if (video.status === undefined || video.status === null) return true;
+      return showCompleted ? video.status === 1 : video.status === 0;
+    });
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(video =>
+        video.title?.toLowerCase().includes(query) ||
+        video.actresses.some(a => a.name.toLowerCase().includes(query)) ||
+        video.tags?.some(t => t.toLowerCase().includes(query))
+      );
+    }
+
+    if (selectedTagFilters.length > 0) {
+      result = result.filter(video =>
+        selectedTagFilters.every(filterTag => video.tags?.includes(filterTag))
+      );
+    }
+
+    return result;
+  }, [videos, showCompleted, searchQuery, selectedTagFilters]);
+
+  const availableTags = useMemo(() => {
+    if (!videos) return [];
+    const tagSet = new Set<string>();
+    videos.forEach(video => {
+      video.tags?.forEach(tag => tagSet.add(tag));
+    });
+    return Array.from(tagSet).sort();
+  }, [videos]);
 
   return (
     <div className="space-y-6">
@@ -115,19 +282,28 @@ export const ActressAdultPage = () => {
         </h1>
         <div className="flex gap-2">
           {selectedActress && (
-            <Button
-              onClick={() => setShowCompleted(!showCompleted)}
-              size="icon"
-              className="bg-cyan-500 hover:bg-cyan-600"
-            >
-              {showCompleted ? <Check className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </Button>
+            <>
+              <Button
+                onClick={() => handleOpenEdit(selectedActress)}
+                size="icon"
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => setShowCompleted(!showCompleted)}
+                size="icon"
+                className="bg-cyan-500 hover:bg-cyan-600"
+              >
+                {showCompleted ? <Check className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+            </>
           )}
           {selectedActress ? (
             <Button
               onClick={() => setVideoDialogOpen(true)}
               disabled={createVideo.isPending}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-green-600 hover:bg-green-700"
             >
               <Upload className="h-4 w-4 mr-2" />
               Agregar Video
@@ -152,14 +328,21 @@ export const ActressAdultPage = () => {
               {actresses.map((actress) => (
                 <div
                   key={actress.id}
-                  className="relative w-full cursor-pointer transition-all hover:opacity-90"
+                  className="relative w-full cursor-pointer transition-all hover:opacity-90 group"
                   style={{ paddingBottom: '150%' }}
                   onClick={() => handleSelectActress(actress.id)}
                 >
                   <Button
                     size="icon"
+                    className="absolute top-2 left-2 h-7 w-7 z-10 bg-blue-600 hover:bg-blue-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => handleOpenEdit(actress.id, e)}
+                  >
+                    <Edit className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    size="icon"
                     variant="destructive"
-                    className="absolute top-2 right-2 h-7 w-7 z-10 opacity-80 hover:opacity-100"
+                    className="absolute top-2 right-2 h-7 w-7 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={(e) => handleDeleteActress(actress.id, e)}
                   >
                     <Trash2 className="h-3 w-3" />
@@ -188,8 +371,136 @@ export const ActressAdultPage = () => {
       )}
 
       {selectedActress && (
-        <div>
-          {isLoadingVideos ? (
+        <div className="space-y-4">
+          {/* Información de la actriz */}
+          {actressDetail && (
+            <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                {actressDetail.image && (
+                  <img
+                    src={actressDetail.image}
+                    alt={actressDetail.name}
+                    className="w-20 h-20 object-cover rounded"
+                  />
+                )}
+                <div className="flex-1">
+                  <h2 className="text-xl font-semibold">{actressDetail.name}</h2>
+                  {actressDetail.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {actressDetail.tags.map((tag, idx) => (
+                        <span key={idx} className="bg-blue-500/20 text-blue-700 dark:text-blue-300 text-xs px-2 py-0.5 rounded">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Links */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium flex items-center gap-2">
+                    <LinkIcon className="h-4 w-4" />
+                    Links
+                  </p>
+                  {!editingLinks ? (
+                    <Button size="sm" variant="outline" onClick={handleStartEditLinks}>
+                      <Edit className="h-3 w-3 mr-1" />
+                      Editar
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => setEditingLinks(false)}>
+                        Cancelar
+                      </Button>
+                      <Button size="sm" onClick={handleSaveLinks}>
+                        Guardar
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {editingLinks ? (
+                  <div className="space-y-2">
+                    {linksInput.map((link, idx) => (
+                      <div key={idx} className="flex gap-2">
+                        <Input
+                          value={link}
+                          onChange={(e) => handleLinkChange(idx, e.target.value)}
+                          placeholder="https://..."
+                        />
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          onClick={() => handleRemoveLink(idx)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button size="sm" variant="outline" onClick={handleAddLink}>
+                      <Plus className="h-3 w-3 mr-1" />
+                      Agregar Link
+                    </Button>
+                  </div>
+                ) : actressDetail.links.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {actressDetail.links.map((link) => (
+                      <a
+                        key={link.id}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-500 hover:underline"
+                      >
+                        {link.url}
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No hay links</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Buscador y filtros */}
+          <div className="space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por título, actriz o tag..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            {availableTags.length > 0 && (
+              <div>
+                <p className="text-sm font-medium mb-2">Filtrar por tags:</p>
+                <div className="flex flex-wrap gap-2">
+                  {availableTags.map((tag) => (
+                    <div
+                      key={tag}
+                      onClick={() => toggleTagFilter(tag)}
+                      className={`px-3 py-1 rounded-full text-sm cursor-pointer transition-colors ${
+                        selectedTagFilters.includes(tag)
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-muted hover:bg-muted/80'
+                      }`}
+                    >
+                      {tag}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Lista de videos */}
+          {isLoadingDetail ? (
             <div className="flex justify-center py-8">
               <Spinner className="h-8 w-8" />
             </div>
@@ -224,20 +535,53 @@ export const ActressAdultPage = () => {
                         </p>
                       </div>
                     )}
+                    {video.tags && video.tags.length > 0 && (
+                      <div className="absolute top-10 left-2 flex flex-wrap gap-1">
+                        {video.tags.slice(0, 3).map((tag, idx) => (
+                          <span key={idx} className="bg-purple-500/80 text-white text-xs px-2 py-0.5 rounded">
+                            {tag}
+                          </span>
+                        ))}
+                        {video.tags.length > 3 && (
+                          <span className="bg-purple-500/80 text-white text-xs px-2 py-0.5 rounded">
+                            +{video.tags.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </a>
-                  <Button
-                    size="icon"
-                    className="absolute top-2 right-2 h-6 w-6 bg-green-600 hover:bg-green-700 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => handleToggleVideoStatus(video.id, video.status || 0, e)}
-                  >
-                    <Check className="h-3 w-3" />
-                  </Button>
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      size="icon"
+                      className="h-6 w-6 bg-blue-600 hover:bg-blue-700"
+                      onClick={(e) => handleOpenEditVideo(video, e)}
+                    >
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="h-6 w-6"
+                      onClick={(e) => handleDeleteVideo(video.id, e)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      className="h-6 w-6 bg-green-600 hover:bg-green-700"
+                      onClick={(e) => handleToggleVideoStatus(video.id, video.status || 0, e)}
+                    >
+                      <Check className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
             <p className="text-center text-muted-foreground py-8">
-              No hay videos {showCompleted ? 'completados' : 'por ver'}
+              {searchQuery || selectedTagFilters.length > 0
+                ? 'No se encontraron videos con los filtros aplicados'
+                : `No hay videos ${showCompleted ? 'completados' : 'por ver'}`}
             </p>
           )}
         </div>
@@ -249,14 +593,31 @@ export const ActressAdultPage = () => {
         onSave={handleCreateActress}
       />
 
+      <EditActressDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        actressId={editingActress}
+        onSave={handleEditActress}
+      />
+
       {selectedActress && actresses && (
-        <AddVideoDialog
-          open={videoDialogOpen}
-          onOpenChange={setVideoDialogOpen}
-          currentActressId={selectedActress}
-          actresses={actresses}
-          onSave={handleAddVideo}
-        />
+        <>
+          <AddVideoDialog
+            open={videoDialogOpen}
+            onOpenChange={setVideoDialogOpen}
+            currentActressId={selectedActress}
+            actresses={actresses}
+            onSave={handleAddVideo}
+          />
+
+          <EditVideoDialog
+            open={editVideoDialogOpen}
+            onOpenChange={setEditVideoDialogOpen}
+            video={editingVideo}
+            actresses={actresses}
+            onSave={handleEditVideo}
+          />
+        </>
       )}
     </div>
   );

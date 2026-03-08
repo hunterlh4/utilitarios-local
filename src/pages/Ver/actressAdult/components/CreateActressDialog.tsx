@@ -3,30 +3,42 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/common/compo
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
+import { Checkbox } from '@/common/components/ui/checkbox';
+import { useGetTags } from '../hooks/useGetTags.hook';
 
 interface CreateActressDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (name: string, image: File | null) => void;
+  onSave: (name: string, image: File | null, tagIds: number[]) => void;
 }
 
 export const CreateActressDialog = ({ open, onOpenChange, onSave }: CreateActressDialogProps) => {
   const [name, setName] = useState('');
   const [image, setImage] = useState<File | null>(null);
+  const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const { data: tags, isLoading: isLoadingTags } = useGetTags(5); // 5 = ActressAdult
 
   const handleSave = async () => {
     if (!name.trim()) return;
     setIsLoading(true);
-    await onSave(name, image);
+    await onSave(name, image, selectedTags);
     setIsLoading(false);
     setName('');
     setImage(null);
+    setSelectedTags([]);
+  };
+
+  const toggleTag = (tagId: number) => {
+    setSelectedTags(prev =>
+      prev.includes(tagId) ? prev.filter(id => id !== tagId) : [...prev, tagId]
+    );
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Nueva Actriz</DialogTitle>
         </DialogHeader>
@@ -41,6 +53,34 @@ export const CreateActressDialog = ({ open, onOpenChange, onSave }: CreateActres
             accept="image/*"
             onChange={(e) => setImage(e.target.files?.[0] || null)}
           />
+          
+          {isLoadingTags ? (
+            <div className="flex justify-center py-4">
+              <Spinner className="h-6 w-6" />
+            </div>
+          ) : tags && tags.length > 0 ? (
+            <div>
+              <p className="text-sm font-medium mb-2">Tags:</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {tags.map((tag) => (
+                  <div key={tag.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`tag-${tag.id}`}
+                      checked={selectedTags.includes(tag.id)}
+                      onCheckedChange={() => toggleTag(tag.id)}
+                    />
+                    <label
+                      htmlFor={`tag-${tag.id}`}
+                      className="text-sm cursor-pointer"
+                    >
+                      {tag.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
