@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { youtubeService } from '../services/youtube.service';
-import { UpdateYouTubeDto } from '../models/youtube-request.dto';
+import type { UpdateYouTubeDto } from '../models/youtube-request.dto';
 
 export const useUpdateYouTube = () => {
   const queryClient = useQueryClient();

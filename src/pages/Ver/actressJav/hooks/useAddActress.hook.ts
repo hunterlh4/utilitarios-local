@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tantml:query';
 import { actressJavService } from '../services/actressJav.service';
-import { CreateActressDto } from '../models/actress-request.dto';
+import type { CreateActressDto } from '../models/actress-request.dto';
 
 export const useAddActress = () => {
   const queryClient = useQueryClient();

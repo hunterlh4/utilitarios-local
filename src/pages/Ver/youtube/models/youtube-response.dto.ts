@@ -1,4 +1,4 @@
-import { YouTube } from './youtube.model';
+import type { YouTube } from './youtube.model';
 
 export interface GetAllYouTubeResponse {
   data: YouTube[];

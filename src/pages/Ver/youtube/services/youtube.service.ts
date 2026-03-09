@@ -1,6 +1,6 @@
 import { apiClient } from '@/config/api/api-client';
-import { CreateYouTubeDto, UpdateYouTubeDto } from '../models/youtube-request.dto';
-import { GetAllYouTubeResponse, GetYouTubeByIdResponse } from '../models/youtube-response.dto';
+import type { CreateYouTubeDto, UpdateYouTubeDto } from '../models/youtube-request.dto';
+import type { GetAllYouTubeResponse, GetYouTubeByIdResponse } from '../models/youtube-response.dto';
 
 const BASE_URL = '/youtube';
 

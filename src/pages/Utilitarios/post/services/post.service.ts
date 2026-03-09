@@ -1,6 +1,6 @@
 import { apiClient } from '@/config/api/api-client';
-import { CreatePostDto, UpdatePostDto } from '../models/post-request.dto';
-import { GetAllPostsResponse, GetPostByIdResponse } from '../models/post-response.dto';
+import type { CreatePostDto, UpdatePostDto } from '../models/post-request.dto';
+import type { GetAllPostsResponse, GetPostByIdResponse } from '../models/post-response.dto';
 
 const BASE_URL = '/post';
 

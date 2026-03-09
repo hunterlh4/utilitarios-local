@@ -1,6 +1,6 @@
 import { apiClient } from '@/config/api/api-client';
-import { CreateSteamItemPurchaseDto, UpdateSteamItemPurchaseDto } from '../models/steam-item-purchase-request.dto';
-import { GetAllSteamItemPurchasesResponse, GetSteamItemPurchaseByIdResponse } from '../models/steam-item-purchase-response.dto';
+import type { CreateSteamItemPurchaseDto, UpdateSteamItemPurchaseDto } from '../models/steam-item-purchase-request.dto';
+import type { GetAllSteamItemPurchasesResponse, GetSteamItemPurchaseByIdResponse } from '../models/steam-item-purchase-response.dto';
 
 const BASE_URL = '/steam-item-purchase';
 

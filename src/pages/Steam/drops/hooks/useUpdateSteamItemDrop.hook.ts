@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { steamItemDropService } from '../services/steam-item-drop.service';
-import { UpdateSteamItemDropDto } from '../models/steam-item-drop-request.dto';
+import type { UpdateSteamItemDropDto } from '../models/steam-item-drop-request.dto';
 
 export const useUpdateSteamItemDrop = () => {
   const queryClient = useQueryClient();

@@ -1,6 +1,6 @@
 import { apiClient } from '@/config/api/api-client';
-import { CreateDotaTreasureDto, UpdateDotaTreasureDto } from '../models/dota-treasure-request.dto';
-import { GetAllDotaTreasuresResponse, GetDotaTreasureByIdResponse } from '../models/dota-treasure-response.dto';
+import type { CreateDotaTreasureDto, UpdateDotaTreasureDto } from '../models/dota-treasure-request.dto';
+import type { GetAllDotaTreasuresResponse, GetDotaTreasureByIdResponse } from '../models/dota-treasure-response.dto';
 
 const BASE_URL = '/dota-treasure';
 

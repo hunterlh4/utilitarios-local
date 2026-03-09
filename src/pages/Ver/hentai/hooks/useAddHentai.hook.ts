@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { hentaiService } from '../services/hentai.service';
-import { CreateHentaiDto } from '../models/hentai-request.dto';
+import type { CreateHentaiDto } from '../models/hentai-request.dto';
 
 export const useAddHentai = () => {
   const queryClient = useQueryClient();

@@ -1,6 +1,6 @@
 import { apiClient } from '@/config/api/api-client';
-import { CreateAnimeDto, UpdateAnimeDto } from '../models/anime-request.dto';
-import { Anime } from '../models/anime.model';
+import type { CreateAnimeDto, UpdateAnimeDto } from '../models/anime-request.dto';
+import type { Anime } from '../models/anime.model';
 
 const BASE_URL = '/anime';
 

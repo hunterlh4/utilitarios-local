@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { dotaCacheService } from '../services/dota-cache.service';
-import { UpdateDotaCacheDto } from '../models/dota-cache-request.dto';
+import type { UpdateDotaCacheDto } from '../models/dota-cache-request.dto';
 
 export const useUpdateDotaCache = () => {
   const queryClient = useQueryClient();

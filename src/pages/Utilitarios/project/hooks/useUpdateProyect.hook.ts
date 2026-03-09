@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { proyectService } from '../services/project.service';
-import { UpdateProyectDto } from '../models/project-request.dto';
+import type { UpdateProyectDto } from '../models/project-request.dto';
 
 export const useUpdateProyect = () => {
   const queryClient = useQueryClient();

@@ -1,4 +1,4 @@
-import { Series } from './series.model';
+import type { Series } from './series.model';
 
 export interface GetAllSeriesResponse {
   data: Series[];

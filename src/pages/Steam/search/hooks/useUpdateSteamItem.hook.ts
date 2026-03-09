@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { steamItemService } from '../services/steam-item.service';
-import { UpdateSteamItemDto } from '../models/steam-item-request.dto';
+import type { UpdateSteamItemDto } from '../models/steam-item-request.dto';
 
 export const useUpdateSteamItem = () => {
   const queryClient = useQueryClient();

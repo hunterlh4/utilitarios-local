@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { girlService } from '../services/girl.service';
-import { UpdateGirlDto } from '../models/girl-request.dto';
+import type { UpdateGirlDto } from '../models/girl-request.dto';
 
 export const useUpdateGirl = () => {
   const queryClient = useQueryClient();

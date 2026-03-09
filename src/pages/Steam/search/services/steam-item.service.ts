@@ -1,6 +1,6 @@
 import { apiClient } from '@/config/api/api-client';
-import { CreateSteamItemDto, UpdateSteamItemDto } from '../models/steam-item-request.dto';
-import { GetAllSteamItemsResponse, GetSteamItemByIdResponse } from '../models/steam-item-response.dto';
+import type { CreateSteamItemDto, UpdateSteamItemDto } from '../models/steam-item-request.dto';
+import type { GetAllSteamItemsResponse, GetSteamItemByIdResponse } from '../models/steam-item-response.dto';
 
 const BASE_URL = '/steam-item';
 

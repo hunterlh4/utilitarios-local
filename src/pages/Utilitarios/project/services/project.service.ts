@@ -1,6 +1,6 @@
 import { apiClient } from '@/config/api/api-client';
-import { CreateProyectDto, UpdateProyectDto } from '../models/project-request.dto';
-import { GetAllProyectsResponse, GetProyectByIdResponse } from '../models/project-response.dto';
+import type { CreateProyectDto, UpdateProyectDto } from '../models/project-request.dto';
+import type { GetAllProyectsResponse, GetProyectByIdResponse } from '../models/project-response.dto';
 
 const BASE_URL = '/proyect';
 

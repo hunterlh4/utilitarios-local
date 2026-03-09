@@ -1,6 +1,6 @@
 import { apiClient } from '@/config/api/api-client';
-import { CreateHentaiDto, UpdateHentaiDto } from '../models/hentai-request.dto';
-import { Hentai } from '../models/hentai.model';
+import type { CreateHentaiDto, UpdateHentaiDto } from '../models/hentai-request.dto';
+import type { Hentai } from '../models/hentai.model';
 
 const BASE_URL = '/hentai';
 

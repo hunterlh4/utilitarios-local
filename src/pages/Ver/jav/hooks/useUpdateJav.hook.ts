@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { javService } from '../services/jav.service';
-import { UpdateJavDto } from '../models/jav-request.dto';
+import type { UpdateJavDto } from '../models/jav-request.dto';
 
 export const useUpdateJav = () => {
   const queryClient = useQueryClient();

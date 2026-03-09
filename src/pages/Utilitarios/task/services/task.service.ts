@@ -1,6 +1,6 @@
 import { apiClient } from '@/config/api/api-client';
-import { CreateTaskListDto, UpdateTaskListDto, CreateTaskDto, UpdateTaskDto } from '../models/task-request.dto';
-import { GetAllTaskListsResponse, GetTaskListByIdResponse } from '../models/task-response.dto';
+import type { CreateTaskListDto, UpdateTaskListDto, CreateTaskDto, UpdateTaskDto } from '../models/task-request.dto';
+import type { GetAllTaskListsResponse, GetTaskListByIdResponse } from '../models/task-response.dto';
 
 const BASE_URL = '/task-list';
 

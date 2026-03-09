@@ -1,6 +1,6 @@
 import { apiClient } from '@/config/api/api-client';
-import { CreateEventDto, UpdateEventDto } from '../models/event-request.dto';
-import { GetAllEventsResponse, GetEventByIdResponse } from '../models/event-response.dto';
+import type { CreateEventDto, UpdateEventDto } from '../models/event-request.dto';
+import type { GetAllEventsResponse, GetEventByIdResponse } from '../models/event-response.dto';
 
 const BASE_URL = '/event';
 

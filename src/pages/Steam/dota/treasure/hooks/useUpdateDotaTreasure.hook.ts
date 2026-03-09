@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { dotaTreasureService } from '../services/dota-treasure.service';
-import { UpdateDotaTreasureDto } from '../models/dota-treasure-request.dto';
+import type { UpdateDotaTreasureDto } from '../models/dota-treasure-request.dto';
 
 export const useUpdateDotaTreasure = () => {
   const queryClient = useQueryClient();

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { eventService } from '../services/event.service';
-import { CreateEventDto } from '../models/event-request.dto';
+import type { CreateEventDto } from '../models/event-request.dto';
 
 export const useAddEvent = () => {
   const queryClient = useQueryClient();

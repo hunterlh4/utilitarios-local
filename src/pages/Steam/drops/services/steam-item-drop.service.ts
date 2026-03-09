@@ -1,6 +1,6 @@
 import { apiClient } from '@/config/api/api-client';
-import { CreateSteamItemDropDto, UpdateSteamItemDropDto } from '../models/steam-item-drop-request.dto';
-import { GetAllSteamItemDropsResponse, GetSteamItemDropByIdResponse } from '../models/steam-item-drop-response.dto';
+import type { CreateSteamItemDropDto, UpdateSteamItemDropDto } from '../models/steam-item-drop-request.dto';
+import type { GetAllSteamItemDropsResponse, GetSteamItemDropByIdResponse } from '../models/steam-item-drop-response.dto';
 
 const BASE_URL = '/steam-item-drop';
 
