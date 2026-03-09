@@ -26,6 +26,7 @@ import { PostPage } from '@/pages/Utilitarios/post/PostPage';
 import { TaskPage } from '@/pages/Utilitarios/task/TaskPage';
 import { EventPage } from '@/pages/Utilitarios/event/EventPage';
 import { OGamePage } from '@/pages/Utilitarios/ogame/OGamePage';
+import { TagPage } from '@/pages/Utilitarios/tag/TagPage';
 
 export const router = createBrowserRouter([
   {
@@ -145,6 +146,10 @@ export const router = createBrowserRouter([
       {
         path: 'utilitarios/ogame',
         element: <OGamePage />,
+      },
+      {
+        path: 'utilitarios/tag',
+        element: <TagPage />,
       },
     ],
   },

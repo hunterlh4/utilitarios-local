@@ -69,6 +69,7 @@ export const Navbar = () => {
         { label: 'Tareas', path: '/utilitarios/task' },
         { label: 'Eventos', path: '/utilitarios/event' },
         { label: 'OGame', path: '/utilitarios/ogame' },
+        { label: 'Tags', path: '/utilitarios/tag' },
       ],
     },
   ];
