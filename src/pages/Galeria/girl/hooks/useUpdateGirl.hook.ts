@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { girlService } from '../services/girl.service';
+import { girlGaleryService } from '../services/girl.service';
 import type { UpdateGirlDto } from '../models/girl-request.dto';
 
 export const useUpdateGirl = () => {
@@ -7,7 +7,7 @@ export const useUpdateGirl = () => {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateGirlDto }) =>
-      girlService.update(id, data),
+      girlGaleryService.update(id, { name: data.name || '' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['girls'] });
     },

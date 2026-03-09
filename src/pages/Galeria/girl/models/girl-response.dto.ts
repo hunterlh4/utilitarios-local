@@ -1,4 +1,4 @@
-import { GirlGalery } from './girl.model';
+import type { GirlGalery } from './girl.model';
 
 export interface GetAllGirlsResponse {
   data: GirlGalery[];

@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { girlService } from '../services/girl.service';
+import { girlGaleryService } from '../services/girl.service';
 
 export const useGetAllGirls = () => {
   return useQuery({
     queryKey: ['girls'],
-    queryFn: girlService.getAll,
+    queryFn: girlGaleryService.getAll,
   });
 };

@@ -1,4 +1,4 @@
-import { Post } from './post.model';
+import type { Post } from './post.model';
 
 export interface GetAllPostsResponse {
   data: Post[];

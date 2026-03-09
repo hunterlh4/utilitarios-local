@@ -1,4 +1,4 @@
-import { DotaTreasure } from './dota-treasure.model';
+import type { DotaTreasure } from './dota-treasure.model';
 
 export interface GetAllDotaTreasuresResponse {
   data: DotaTreasure[];

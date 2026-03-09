@@ -65,15 +65,11 @@ export const EditGaleryDialog = ({
 
   // Crear lista de medias, agregando firstImageUrl al inicio si no está en la lista
   const mediaList = [...galery.media];
-  let firstImageMediaId: number | undefined;
   
   if (firstImageUrl) {
     const existingMedia = galery.media.find(m => m.url === firstImageUrl);
-    if (existingMedia) {
-      firstImageMediaId = existingMedia.id;
-    } else {
+    if (!existingMedia) {
       // Si la imagen de portada no está en la lista, agrégala con ID temporal
-      firstImageMediaId = -1;
       mediaList.unshift({
         id: -1,
         url: firstImageUrl,

@@ -1,6 +1,6 @@
 import { apiClient } from '@/config/api/api-client';
-import { CreateSalaryDto, UpdateSalaryDto } from '../models/salary-request.dto';
-import { GetSalaryResponse } from '../models/salary-response.dto';
+import type { CreateSalaryDto, UpdateSalaryDto } from '../models/salary-request.dto';
+import type { GetSalaryResponse } from '../models/salary-response.dto';
 
 const BASE_URL = '/salary';
 

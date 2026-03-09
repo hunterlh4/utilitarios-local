@@ -1,4 +1,4 @@
-import { SteamItemPurchase } from './steam-item-purchase.model';
+import type { SteamItemPurchase } from './steam-item-purchase.model';
 
 export interface GetAllSteamItemPurchasesResponse {
   data: SteamItemPurchase[];

@@ -1,6 +1,6 @@
 import { apiClient } from '@/config/api/api-client';
-import { CreateDotaHeroDto, UpdateDotaHeroDto } from '../models/dota-hero-request.dto';
-import { GetAllDotaHeroesResponse, GetDotaHeroByIdResponse } from '../models/dota-hero-response.dto';
+import type { CreateDotaHeroDto, UpdateDotaHeroDto } from '../models/dota-hero-request.dto';
+import type { GetAllDotaHeroesResponse, GetDotaHeroByIdResponse } from '../models/dota-hero-response.dto';
 
 const BASE_URL = '/dota-hero';
 

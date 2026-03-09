@@ -6,11 +6,13 @@ const BASE_URL = '/anime';
 
 export const animeService = {
   getAll: async (): Promise<Anime[]> => {
-    return await apiClient.get<Anime[]>(BASE_URL);
+    const response = await apiClient.get<Anime[]>(BASE_URL);
+    return response.data;
   },
 
   getById: async (id: number): Promise<Anime> => {
-    return await apiClient.get<Anime>(`${BASE_URL}/${id}`);
+    const response = await apiClient.get<Anime>(`${BASE_URL}/${id}`);
+    return response.data;
   },
 
   create: async (data: CreateAnimeDto) => {

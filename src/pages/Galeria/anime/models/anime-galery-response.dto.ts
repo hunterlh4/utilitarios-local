@@ -1,4 +1,4 @@
-import { AnimeGalery } from './anime-galery.model';
+import type { AnimeGalery } from './anime-galery.model';
 
 export interface GetAllAnimeGaleryResponse {
   data: AnimeGalery[];

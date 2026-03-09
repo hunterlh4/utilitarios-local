@@ -1,4 +1,4 @@
-import { SteamItem } from './steam-item.model';
+import type { SteamItem } from './steam-item.model';
 
 export interface GetAllSteamItemsResponse {
   data: SteamItem[];

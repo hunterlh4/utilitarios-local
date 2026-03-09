@@ -1,4 +1,4 @@
-import { DotaHero } from './dota-hero.model';
+import type { DotaHero } from './dota-hero.model';
 
 export interface GetAllDotaHeroesResponse {
   data: DotaHero[];

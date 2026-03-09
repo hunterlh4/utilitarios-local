@@ -1,4 +1,4 @@
-import { Seller } from './seller.model';
+import type { Seller } from './seller.model';
 
 export interface GetAllSellersResponse {
   data: Seller[];

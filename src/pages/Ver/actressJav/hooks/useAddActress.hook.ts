@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tantml:query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { actressJavService } from '../services/actressJav.service';
 import type { CreateActressDto } from '../models/actress-request.dto';
 

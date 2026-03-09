@@ -1,4 +1,4 @@
-import { Event } from './event.model';
+import type { Event } from './event.model';
 
 export interface GetAllEventsResponse {
   data: Event[];

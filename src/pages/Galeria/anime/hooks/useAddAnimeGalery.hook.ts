@@ -6,7 +6,7 @@ export const useAddAnimeGalery = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateAnimeGaleryDto) => animeGaleryService.create(data),
+    mutationFn: (data: CreateAnimeGaleryDto) => animeGaleryService.create(data.name),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['anime-galery'] });
     },

@@ -1,4 +1,4 @@
-import { DotaCache } from './dota-cache.model';
+import type { DotaCache } from './dota-cache.model';
 
 export interface GetAllDotaCachesResponse {
   data: DotaCache[];

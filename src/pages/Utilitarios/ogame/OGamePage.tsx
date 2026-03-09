@@ -118,23 +118,6 @@ export const OGamePage = () => {
     return { metal, crystal, deuterium };
   };
 
-  const formatNumber = (num: number): string => {
-    if (num >= 1_000_000) {
-      const millions = num / 1_000_000;
-      // Separar millones y miles: 2.916M → 2M 916K
-      const m = Math.floor(millions);
-      const k = Math.floor((millions - m) * 1000);
-      if (k > 0) {
-        return `${m}M ${k}K`;
-      }
-      return `${m}M`;
-    } else if (num >= 1_000) {
-      const thousands = Math.floor(num / 1_000);
-      return `${thousands}K`;
-    }
-    return Math.floor(num).toString();
-  };
-
   const formatTotal = (num: number): string => {
     if (num >= 1_000_000) {
       const millions = num / 1_000_000;
@@ -193,17 +176,13 @@ export const OGamePage = () => {
     }, { metal: 0, crystal: 0, deuterium: 0 });
   };
 
-  const addPlanet = () => {
-    setPlanets([...planets, '']);
-  };
-
   const removePlanet = (index: number) => {
     setPlanets(planets.filter((_, i) => i !== index));
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>, index: number) => {
-    // No hacer nada especial, dejar que el paste normal funcione
-    // El textarea manejará los saltos de línea automáticamente
+    const pastedText = e.clipboardData.getData('text');
+    updatePlanet(index, pastedText);
   };
 
   const updatePlanet = (index: number, value: string) => {

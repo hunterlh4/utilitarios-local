@@ -1,5 +1,5 @@
 import { apiClient } from '@/config/api/api-client';
-import type { GirlGalery, GirlGaleryDetail, UpdateGirlGaleryDto } from './girl.model';
+import type { GirlGalery, GirlGaleryDetail, UpdateGirlGaleryDto } from '../models/girl.model';
 
 const BASE_URL = '/girl-galery';
 const UPLOAD_URL = '/upload';

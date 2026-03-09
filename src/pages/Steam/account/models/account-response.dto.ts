@@ -1,4 +1,4 @@
-import { Account } from './account.model';
+import type { Account } from './account.model';
 
 export interface GetAllAccountsResponse {
   data: Account[];

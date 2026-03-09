@@ -1,4 +1,4 @@
-import { Proyect } from './project.model';
+import type { Proyect } from './project.model';
 
 export interface GetAllProyectsResponse {
   data: Proyect[];

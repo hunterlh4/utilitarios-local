@@ -1,6 +1,6 @@
 import { apiClient } from '@/config/api/api-client';
-import { CreateActressDto, UpdateActressDto } from '../models/actress-request.dto';
-import { GetAllActressesResponse, GetActressByIdResponse } from '../models/actress-response.dto';
+import type { CreateActressDto, UpdateActressDto } from '../models/actress-request.dto';
+import type { GetAllActressesResponse, GetActressByIdResponse } from '../models/actress-response.dto';
 
 const BASE_URL = '/actress-jav';
 

@@ -1,4 +1,4 @@
-import { TaskList, Task } from './task.model';
+import type { TaskList, Task } from './task.model';
 
 export interface GetAllTaskListsResponse {
   data: TaskList[];

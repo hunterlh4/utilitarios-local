@@ -1,6 +1,6 @@
 import { apiClient } from '@/config/api/api-client';
-import { CreateSellerDto, UpdateSellerDto } from '../models/seller-request.dto';
-import { GetAllSellersResponse, GetSellerByIdResponse } from '../models/seller-response.dto';
+import type { CreateSellerDto, UpdateSellerDto } from '../models/seller-request.dto';
+import type { GetAllSellersResponse, GetSellerByIdResponse } from '../models/seller-response.dto';
 
 const BASE_URL = '/seller';
 

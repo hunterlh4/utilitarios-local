@@ -6,7 +6,6 @@ import { useGetAllActressJav } from "../hooks/useGetAllActressJav.hook";
 import { Button } from "@/common/components/ui/button";
 import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
-import { Switch } from "@/common/components/ui/switch";
 import { Checkbox } from "@/common/components/ui/checkbox";
 import { Spinner } from "@/common/components/ui/spinner";
 import {
@@ -31,8 +30,6 @@ interface JavDialogProps {
 export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogProps) {
   const [nombre, setNombre] = useState("");
   const [selectedActresses, setSelectedActresses] = useState<number[]>([]);
-  const [actriz, setActriz] = useState(""); // Legacy - para metadata
-  const [actrizUrl, setActrizUrl] = useState(""); // Legacy - para metadata
   const [imagen, setImagen] = useState("");
   const [enlaces, setEnlaces] = useState<string[]>([""]);
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
@@ -78,8 +75,6 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
     if (editingJav) {
       setNombre(editingJav.code);
       setSelectedActresses(editingJav.actresses?.map(a => a.id) || []);
-      setActriz(editingJav.actress?.name || "");
-      setActrizUrl(""); // actressUrl no viene del backend, siempre vacío en edición
       setImagen(editingJav.image);
       // Convertir LinkDto[] a string[] para el formulario
       const enlacesUrls = editingJav.links && editingJav.links.length > 0 
@@ -101,8 +96,6 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
     } else {
       setNombre("");
       setSelectedActresses([]);
-      setActriz("");
-      setActrizUrl("");
       setImagen("");
       setEnlaces([""]);
       setSelectedTags([]);
@@ -236,8 +229,6 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
   const handleClose = () => {
     onOpenChange(false);
     setNombre("");
-    setActriz("");
-    setActrizUrl("");
     setImagen("");
     setEnlaces([""]);
     setVisto(false);
@@ -413,9 +404,6 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
                       if (editingJav && editingJav.code === codigoUpper) {
                         // Es el mismo JAV que está editando, permitir
                         setNombre(metadata.nombre);
-                        if (metadata.actriz) {
-                          setActriz(metadata.actriz);
-                        }
                         setImagen(metadata.imagen);
                         const nuevosEnlaces = [...enlaces];
                         nuevosEnlaces[index] = metadata.enlace;
@@ -429,9 +417,6 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
                       
                       // Si no existe, cargar los datos
                       setNombre(metadata.nombre);
-                      if (metadata.actriz) {
-                        setActriz(metadata.actriz);
-                      }
                       setImagen(metadata.imagen);
                       // Actualizar el enlace del índice clickeado
                       const nuevosEnlaces = [...enlaces];

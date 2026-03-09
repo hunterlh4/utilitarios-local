@@ -1,6 +1,6 @@
 import { apiClient } from '@/config/api/api-client';
-import { CreateDotaCacheDto, UpdateDotaCacheDto } from '../models/dota-cache-request.dto';
-import { GetAllDotaCachesResponse, GetDotaCacheByIdResponse } from '../models/dota-cache-response.dto';
+import type { CreateDotaCacheDto, UpdateDotaCacheDto } from '../models/dota-cache-request.dto';
+import type { GetAllDotaCachesResponse, GetDotaCacheByIdResponse } from '../models/dota-cache-response.dto';
 
 const BASE_URL = '/dota-cache';
 

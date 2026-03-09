@@ -55,14 +55,10 @@ export const EditGaleryDialog = ({
   if (!galery) return null;
 
   const mediaList = [...galery.media];
-  let firstImageMediaId: number | undefined;
   
   if (firstImageUrl) {
     const existingMedia = galery.media.find(m => m.url === firstImageUrl);
-    if (existingMedia) {
-      firstImageMediaId = existingMedia.id;
-    } else {
-      firstImageMediaId = -1;
+    if (!existingMedia) {
       mediaList.unshift({
         id: -1,
         url: firstImageUrl,

@@ -6,11 +6,13 @@ const BASE_URL = '/hentai';
 
 export const hentaiService = {
   getAll: async (): Promise<Hentai[]> => {
-    return await apiClient.get<Hentai[]>(BASE_URL);
+    const response = await apiClient.get<Hentai[]>(BASE_URL);
+    return response.data;
   },
 
   getById: async (id: number): Promise<Hentai> => {
-    return await apiClient.get<Hentai>(`${BASE_URL}/${id}`);
+    const response = await apiClient.get<Hentai>(`${BASE_URL}/${id}`);
+    return response.data;
   },
 
   create: async (data: CreateHentaiDto) => {

@@ -1,4 +1,4 @@
-import { ActressJav } from './actress.model';
+import type { ActressJav } from './actress.model';
 
 export type GetAllActressesResponse = ActressJav[];
 

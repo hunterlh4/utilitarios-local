@@ -1,5 +1,3 @@
-import { ContentStatus } from '@/common/enums/ver.enum';
-
 export interface CreateSeriesDto {
   imdbId: string;
   title: string;

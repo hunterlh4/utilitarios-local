@@ -1,18 +1,6 @@
 import { useState } from "react";
 import { apiClient } from "@/config/api/api-client";
 
-interface MetadataResponse {
-  status: string;
-  data: {
-    title: string;
-    description?: string;
-    image: {
-      url: string;
-    } | null;
-    url: string;
-  };
-}
-
 export function useMetadata() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
