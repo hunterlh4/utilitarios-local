@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
 import { Trash2, Sparkles } from "lucide-react";
 import { useMetadata } from "../hooks/use-metadata";
+import { useGetTags } from "../hooks/useGetTags.hook";
+import { useGetAllActressJav } from "../hooks/useGetAllActressJav.hook";
 import { Button } from "@/common/components/ui/button";
 import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { Switch } from "@/common/components/ui/switch";
+import { Checkbox } from "@/common/components/ui/checkbox";
+import { Spinner } from "@/common/components/ui/spinner";
 import {
   Dialog,
   DialogContent,
@@ -26,14 +30,20 @@ interface JavDialogProps {
 
 export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogProps) {
   const [nombre, setNombre] = useState("");
-  const [actriz, setActriz] = useState("");
-  const [actrizUrl, setActrizUrl] = useState("");
+  const [selectedActresses, setSelectedActresses] = useState<number[]>([]);
+  const [actriz, setActriz] = useState(""); // Legacy - para metadata
+  const [actrizUrl, setActrizUrl] = useState(""); // Legacy - para metadata
   const [imagen, setImagen] = useState("");
   const [enlaces, setEnlaces] = useState<string[]>([""]);
+  const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [visto, setVisto] = useState(false);
   const [checkingCode, setCheckingCode] = useState(false);
   const [codeExists, setCodeExists] = useState(false);
+  const [quickAddActressOpen, setQuickAddActressOpen] = useState(false);
+  const [quickActressName, setQuickActressName] = useState("");
   const { fetchMetadata, loading } = useMetadata();
+  const { data: tags, isLoading: isLoadingTags } = useGetTags(7); // 7 = Jav
+  const { data: actressesJav, isLoading: isLoadingActressesJav, refetch: refetchActresses } = useGetAllActressJav();
 
   // Validar código automáticamente cuando tenga 7+ caracteres
   useEffect(() => {
@@ -67,6 +77,7 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
   useEffect(() => {
     if (editingJav) {
       setNombre(editingJav.code);
+      setSelectedActresses(editingJav.actresses?.map(a => a.id) || []);
       setActriz(editingJav.actress?.name || "");
       setActrizUrl(""); // actressUrl no viene del backend, siempre vacío en edición
       setImagen(editingJav.image);
@@ -79,15 +90,73 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
         : [""];
       setEnlaces(enlacesConExtra);
       setVisto(editingJav.status === 2);
+      
+      // Convertir nombres de tags a IDs
+      if (editingJav.tags && tags) {
+        const tagIds = editingJav.tags
+          .map(tagName => tags.find(t => t.name === tagName)?.id)
+          .filter((id): id is number => id !== undefined);
+        setSelectedTags(tagIds);
+      }
     } else {
       setNombre("");
+      setSelectedActresses([]);
       setActriz("");
       setActrizUrl("");
       setImagen("");
       setEnlaces([""]);
+      setSelectedTags([]);
       setVisto(false);
     }
-  }, [editingJav, open]);
+  }, [editingJav, open, tags]);
+
+  const toggleTag = (tagId: number) => {
+    setSelectedTags(prev =>
+      prev.includes(tagId) ? prev.filter(id => id !== tagId) : [...prev, tagId]
+    );
+  };
+
+  const toggleActress = (actressId: number) => {
+    setSelectedActresses(prev =>
+      prev.includes(actressId) ? prev.filter(id => id !== actressId) : [...prev, actressId]
+    );
+  };
+
+  const handleQuickAddActress = async () => {
+    if (!quickActressName.trim()) {
+      toast.error('El nombre de la actriz es requerido');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/actress-jav', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: quickActressName.trim(), tagIds: [] }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        toast.success('Actriz agregada correctamente');
+        setQuickActressName('');
+        setQuickAddActressOpen(false);
+        
+        // Recargar lista de actrices
+        await refetchActresses();
+        
+        // Seleccionar automáticamente la nueva actriz
+        if (data.id) {
+          setSelectedActresses(prev => [...prev, data.id]);
+        }
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || 'Error al agregar la actriz');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Error al agregar la actriz');
+    }
+  };
 
   const handleRemoveEnlace = (index: number) => {
     if (enlaces.length > 1) {
@@ -129,6 +198,11 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
       return;
     }
 
+    if (selectedActresses.length === 0) {
+      alert("Debes seleccionar al menos una actriz");
+      return;
+    }
+
     // Filtrar enlaces vacíos ANTES de validar
     const enlacesFiltrados = enlaces.filter((enlace) => enlace.trim() !== "");
 
@@ -146,12 +220,15 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
     const jav: Jav = {
       id: editingJav?.id || 0,
       code: nombre.trim().toUpperCase(),
-      actressName: actriz.trim() || undefined,
-      actressUrl: actrizUrl.trim() || undefined,
       image: imagen.trim(),
       links: linksDto,
+      tags: [], // Se llenará desde el backend
       status: visto ? 2 : 1,
     };
+
+    // Agregar actressIds y tagIds para enviar al backend
+    (jav as any).actressIds = selectedActresses;
+    (jav as any).tagIds = selectedTags;
 
     onSave(jav);
   };
@@ -195,28 +272,67 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="actriz">Actriz</Label>
-            <Input
-              id="actriz"
-              placeholder="Nombre de la actriz"
-              value={actriz}
-              onChange={(e) => setActriz(e.target.value)}
-              className="focus-visible:ring-0 focus-visible:ring-offset-0"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="actrizUrl">URL de la Actriz</Label>
-            <Input
-              id="actrizUrl"
-              type="url"
-              placeholder="https://example.com/actriz"
-              value={actrizUrl}
-              onChange={(e) => setActrizUrl(e.target.value)}
-              className="focus-visible:ring-0 focus-visible:ring-offset-0"
-            />
-          </div>
+          {/* Selector de actrices */}
+          {isLoadingActressesJav ? (
+            <div className="flex justify-center py-4">
+              <Spinner className="h-6 w-6" />
+            </div>
+          ) : actressesJav && actressesJav.length > 0 ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Actrices <span className="text-red-500">* (mínimo 1)</span></Label>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setQuickAddActressOpen(!quickAddActressOpen)}
+                  className="h-7"
+                >
+                  {quickAddActressOpen ? 'Cancelar' : '+ Agregar Actriz'}
+                </Button>
+              </div>
+              
+              {quickAddActressOpen && (
+                <div className="flex gap-2 p-2 bg-muted/50 rounded">
+                  <Input
+                    placeholder="Nombre de la actriz"
+                    value={quickActressName}
+                    onChange={(e) => setQuickActressName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleQuickAddActress();
+                      }
+                    }}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleQuickAddActress}
+                  >
+                    Agregar
+                  </Button>
+                </div>
+              )}
+              
+              <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto border rounded p-2">
+                {actressesJav.map((actress) => (
+                  <div
+                    key={actress.id}
+                    onClick={() => toggleActress(actress.id)}
+                    className={`p-2 rounded cursor-pointer text-sm ${
+                      selectedActresses.includes(actress.id)
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-muted hover:bg-muted/80'
+                    }`}
+                  >
+                    {actress.name}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <div className="space-y-2">
             <Label htmlFor="imagen">
@@ -232,6 +348,33 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
               className="focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
+
+          {isLoadingTags ? (
+            <div className="flex justify-center py-4">
+              <Spinner className="h-6 w-6" />
+            </div>
+          ) : tags && tags.length > 0 ? (
+            <div className="space-y-2">
+              <Label>Tags</Label>
+              <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded p-2">
+                {tags.map((tag) => (
+                  <div key={tag.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`tag-${tag.id}`}
+                      checked={selectedTags.includes(tag.id)}
+                      onCheckedChange={() => toggleTag(tag.id)}
+                    />
+                    <label
+                      htmlFor={`tag-${tag.id}`}
+                      className="text-sm cursor-pointer"
+                    >
+                      {tag.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <div className="space-y-2">
             <Label>

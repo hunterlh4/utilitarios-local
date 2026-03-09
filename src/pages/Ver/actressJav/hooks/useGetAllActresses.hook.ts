@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { actressService } from '../services/actress.service';
+import { actressJavService } from '../services/actressJav.service';
 
 export const useGetAllActresses = () => {
   return useQuery({
     queryKey: ['actresses'],
-    queryFn: actressService.getAll,
+    queryFn: actressJavService.getAll,
   });
 };

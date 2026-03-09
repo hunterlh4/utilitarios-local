@@ -8,6 +8,7 @@ export interface Tag {
 
 export const tagService = {
   getByType: async (type: number): Promise<Tag[]> => {
-    return await apiClient.get(`/tags?type=${type}`);
+    const response = await apiClient.get(`/tag/type/${type}`);
+    return response.data;
   },
 };

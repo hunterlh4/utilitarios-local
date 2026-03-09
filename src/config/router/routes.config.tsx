@@ -5,7 +5,7 @@ import { AnimePage } from '@/pages/Ver/anime/AnimePage';
 import { HentaiPage } from '@/pages/Ver/hentai/HentaiPage';
 import { JavPage } from '@/pages/Ver/jav/JavPage';
 import { SeriesPage } from '@/pages/Ver/series/SeriesPage';
-import { ActressPage } from '@/pages/Ver/actress/ActressPage';
+import { ActressJavPage, ActressJavDetailPage } from '@/pages/Ver/actressJav';
 import { ActressAdultPage } from '@/pages/Ver/actressAdult/ActressAdultPage';
 import { YouTubePage } from '@/pages/Ver/youtube/YouTubePage';
 import { AnimeGaleryPage } from '@/pages/Galeria/anime/AnimeGaleryPage';
@@ -54,8 +54,12 @@ export const router = createBrowserRouter([
         element: <SeriesPage />,
       },
       {
-        path: 'ver/actress',
-        element: <ActressPage />,
+        path: 'ver/actress-jav',
+        element: <ActressJavPage />,
+      },
+      {
+        path: 'ver/actress-jav/:id',
+        element: <ActressJavDetailPage />,
       },
       {
         path: 'ver/actress-adult',

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGetAllJav } from './hooks/useGetAllJav.hook';
 import { useDeleteJav } from './hooks/useDeleteJav.hook';
 import { useAddJav } from './hooks/useAddJav.hook';
@@ -23,11 +24,13 @@ import type { Jav } from './models/jav.model';
 import { javsPorVer } from './services/javs';
 
 export const JavPage = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [extractCodesOpen, setExtractCodesOpen] = useState(false);
   const [editingJav, setEditingJav] = useState<Jav | null>(null);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [selectedTagFilters, setSelectedTagFilters] = useState<string[]>([]);
 
   const { data: savedJavs, isLoading, error } = useGetAllJav();
   const deleteJav = useDeleteJav();
@@ -67,29 +70,32 @@ export const JavPage = () => {
   const handleSave = async (jav: Jav) => {
     try {
       if (editingJav) {
-        // Actualizar JAV existente (sin enviar status)
-        // Convertir LinkDto[] a string[] para el backend
+        // Actualizar JAV existente
         const linksUrls = jav.links.map((link) => link.url);
+        const actressIds = (jav as any).actressIds || [];
+        const tagIds = (jav as any).tagIds || [];
         
         await updateJav.mutateAsync({
           id: jav.id,
           data: {
             code: jav.code,
-            actressName: jav.actressName,
+            actressIds: actressIds,
+            tagIds: tagIds,
             image: jav.image,
             links: linksUrls,
           },
         });
         toast.success('JAV actualizado correctamente');
       } else {
-        // Crear nuevo JAV (sin enviar status, el backend lo asigna por defecto)
-        // Convertir LinkDto[] a string[] para el backend
+        // Crear nuevo JAV
         const linksUrls = jav.links.map((link) => link.url);
+        const actressIds = (jav as any).actressIds || [];
+        const tagIds = (jav as any).tagIds || [];
         
         await addJav.mutateAsync({
           code: jav.code,
-          actressName: jav.actressName,
-          actressUrl: jav.actressUrl,
+          actressIds: actressIds,
+          tagIds: tagIds,
           image: jav.image,
           links: linksUrls,
         });
@@ -142,19 +148,45 @@ export const JavPage = () => {
     setDialogOpen(true);
   };
 
-  // Filtrar por búsqueda y estado
-  const filteredJavs = savedJavs?.filter((jav) => {
-    const matchesSearch =
-      jav.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (jav.actress?.name && jav.actress.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const toggleTagFilter = (tagName: string) => {
+    setSelectedTagFilters(prev =>
+      prev.includes(tagName) ? prev.filter(t => t !== tagName) : [...prev, tagName]
+    );
+  };
 
-    // Ajustar para status 0 (por ver) y otros valores (completado)
-    const matchesStatus = showCompleted
-      ? jav.status !== 0 && jav.status !== ContentStatus.Proximamente
-      : jav.status === 0 || jav.status === ContentStatus.Proximamente;
+  // Obtener todos los tags únicos de los JAVs actuales
+  const availableTags = useMemo(() => {
+    if (!savedJavs) return [];
+    const tagSet = new Set<string>();
+    savedJavs.forEach(jav => {
+      jav.tags?.forEach(tag => tagSet.add(tag));
+    });
+    return Array.from(tagSet).sort();
+  }, [savedJavs]);
 
-    return matchesSearch && matchesStatus;
-  });
+  // Filtrar por búsqueda, estado y tags
+  const filteredJavs = useMemo(() => {
+    if (!savedJavs) return [];
+
+    return savedJavs.filter((jav) => {
+      // Filtro de búsqueda
+      const matchesSearch =
+        jav.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (jav.actresses && jav.actresses.some(a => a.name.toLowerCase().includes(searchQuery.toLowerCase()))) ||
+        (jav.tags && jav.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase())));
+
+      // Filtro de estado
+      const matchesStatus = showCompleted
+        ? jav.status !== ContentStatus.Proximamente
+        : jav.status === ContentStatus.Proximamente;
+
+      // Filtro de tags
+      const matchesTags = selectedTagFilters.length === 0 ||
+        selectedTagFilters.every(filterTag => jav.tags?.includes(filterTag));
+
+      return matchesSearch && matchesStatus && matchesTags;
+    });
+  }, [savedJavs, searchQuery, showCompleted, selectedTagFilters]);
 
   return (
     <div className="h-full flex flex-col">
@@ -164,7 +196,7 @@ export const JavPage = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Buscar por código o actriz..."
+            placeholder="Buscar por código, actriz o tag..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -218,6 +250,40 @@ export const JavPage = () => {
           </Button>
         )}
       </div>
+
+      {/* Filtros de tags */}
+      {availableTags.length > 0 && (
+        <div className="px-1 mb-1">
+          <div className="bg-muted/30 rounded-lg p-2">
+            <p className="text-xs font-medium mb-1.5">Filtrar por tags:</p>
+            <div className="flex flex-wrap gap-1.5">
+              {availableTags.map((tag) => (
+                <div
+                  key={tag}
+                  onClick={() => toggleTagFilter(tag)}
+                  className={`px-2 py-1 rounded-full text-xs cursor-pointer transition-colors ${
+                    selectedTagFilters.includes(tag)
+                      ? 'bg-purple-500 text-white'
+                      : 'bg-muted hover:bg-muted/80'
+                  }`}
+                >
+                  {tag}
+                </div>
+              ))}
+            </div>
+            {selectedTagFilters.length > 0 && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setSelectedTagFilters([])}
+                className="mt-1.5 h-6 text-xs"
+              >
+                Limpiar filtros
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Lista de JAVs */}
       <div className="flex-1 overflow-y-auto px-1 pb-1">
@@ -294,9 +360,40 @@ export const JavPage = () => {
                       </span>
                     )}
                   </div>
+                  {jav.tags && jav.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 justify-center mt-1">
+                      {jav.tags.slice(0, 3).map((tag, idx) => (
+                        <span key={idx} className="bg-purple-500/20 text-purple-700 dark:text-purple-300 text-xs px-1.5 py-0.5 rounded">
+                          {tag}
+                        </span>
+                      ))}
+                      {jav.tags.length > 3 && (
+                        <span className="bg-purple-500/20 text-purple-700 dark:text-purple-300 text-xs px-1.5 py-0.5 rounded">
+                          +{jav.tags.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {jav.actresses && jav.actresses.length > 0 && (
+                    <div className="text-sm text-muted-foreground truncate mt-0.5">
+                      <span className="cursor-pointer hover:underline" onClick={(e) => {
+                        e.stopPropagation();
+                        if (jav.actresses && jav.actresses.length > 0) {
+                          navigate(`/ver/actress-jav/${jav.actresses[0].id}`);
+                        }
+                      }}>
+                        {jav.actresses.map(a => a.name).join(', ')}
+                      </span>
+                    </div>
+                  )}
                   {jav.actress && (
                     <div className="text-sm text-muted-foreground truncate mt-0.5">
-                      <span>{jav.actress.name}</span>
+                      <span className="cursor-pointer hover:underline" onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/ver/actress-jav/${jav.actress!.id}`);
+                      }}>
+                        {jav.actress.name}
+                      </span>
                       {jav.actress.links && jav.actress.links.length > 0 && (
                         <span className="ml-2">
                           {jav.actress.links.map((link, index) => (
@@ -321,7 +418,9 @@ export const JavPage = () => {
           </div>
         ) : (
           <p className="text-center text-muted-foreground py-8">
-            No hay JAVs {showCompleted ? 'completados' : 'por ver'}
+            {searchQuery || selectedTagFilters.length > 0
+              ? 'No se encontraron JAVs con los filtros aplicados'
+              : `No hay JAVs ${showCompleted ? 'completados' : 'por ver'}`}
           </p>
         )}
       </div>

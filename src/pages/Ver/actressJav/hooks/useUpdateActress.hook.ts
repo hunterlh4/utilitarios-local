@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { actressService } from '../services/actress.service';
+import { actressJavService } from '../services/actressJav.service';
 import { UpdateActressDto } from '../models/actress-request.dto';
 
 export const useUpdateActress = () => {
@@ -7,7 +7,7 @@ export const useUpdateActress = () => {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateActressDto }) =>
-      actressService.update(id, data),
+      actressJavService.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['actresses'] });
     },
