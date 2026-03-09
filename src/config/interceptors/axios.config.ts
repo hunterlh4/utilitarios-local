@@ -34,7 +34,7 @@ apiClient.interceptors.request.use(
 // INTERCEPTOR DE RESPONSE
 // ============================================
 apiClient.interceptors.response.use(
-  (response) => {
+  (response): any => {
     // Retornar solo la data
     return response.data;
   },

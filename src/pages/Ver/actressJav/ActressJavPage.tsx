@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGetAllActresses } from './hooks/useGetAllActresses.hook';
 import { useDeleteActress } from './hooks/useDeleteActress.hook';
@@ -9,7 +9,7 @@ import { useUploadImage } from './hooks/useUploadImage.hook';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
-import { Search, Plus, Trash2, Edit, Link as LinkIcon, Upload, Image as ImageIcon } from 'lucide-react';
+import { Search, Plus, Trash2, Edit, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { ActressDialog } from './components/form';
 import { ActressLinksDialog } from './components/ActressLinksDialog';
@@ -22,6 +22,7 @@ export const ActressJavPage = () => {
   const [linksDialogOpen, setLinksDialogOpen] = useState(false);
   const [editingActress, setEditingActress] = useState<ActressJav | null>(null);
   const [selectedTagFilters, setSelectedTagFilters] = useState<string[]>([]);
+  const [hoveredActressId, setHoveredActressId] = useState<number | null>(null);
 
   const { data: actresses, isLoading, error } = useGetAllActresses();
   const deleteActress = useDeleteActress();
@@ -29,6 +30,42 @@ export const ActressJavPage = () => {
   const updateActress = useUpdateActress();
   const updateActressLinks = useUpdateActressLinks();
   const uploadImage = useUploadImage();
+
+  // Manejar paste global
+  const handlePaste = async (e: ClipboardEvent) => {
+    if (!hoveredActressId) return;
+
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        e.preventDefault();
+        const blob = items[i].getAsFile();
+        if (!blob) continue;
+
+        try {
+          await uploadImage.mutateAsync({
+            file: blob,
+            refId: hoveredActressId,
+          });
+          toast.success('Imagen subida correctamente');
+        } catch (error) {
+          console.error('Error:', error);
+          toast.error('Error al subir la imagen');
+        }
+        break;
+      }
+    }
+  };
+
+  // Agregar y remover listener de paste
+  useEffect(() => {
+    document.addEventListener('paste', handlePaste as any);
+    return () => {
+      document.removeEventListener('paste', handlePaste as any);
+    };
+  }, [hoveredActressId]);
 
   const handleSave = async (actress: ActressJav) => {
     try {
@@ -220,66 +257,95 @@ export const ActressJavPage = () => {
             <p className="text-red-500 mb-2">Error al cargar las actrices</p>
           </div>
         ) : filteredActresses && filteredActresses.length > 0 ? (
-          <div className="grid grid-cols-1 gap-2">
-            {filteredActresses.map((actress) => (
-              <div 
-                key={actress.id} 
-                className="bg-muted/30 rounded-lg p-3 flex items-center gap-3 group hover:bg-muted/50 transition-colors cursor-pointer"
-                onClick={() => navigate(`/ver/actress-jav/${actress.id}`)}
-              >
-                {/* Imagen */}
-                <div className="relative w-16 h-16 flex-shrink-0">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-0">
+              {filteredActresses.map((actress) => (
+                <div
+                  key={actress.id}
+                  className="relative w-full group"
+                  style={{ paddingBottom: '150%' }}
+                  onMouseEnter={() => setHoveredActressId(actress.id)}
+                  onMouseLeave={() => setHoveredActressId(null)}
+                >
+                {/* Botones de acción */}
+                <Button
+                  size="icon"
+                  className="absolute top-2 left-2 h-7 w-7 z-10 bg-cyan-600 hover:bg-cyan-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditLinks(actress);
+                  }}
+                >
+                  <LinkIcon className="h-3 w-3" />
+                </Button>
+                <Button
+                  size="icon"
+                  className="absolute top-2 left-10 h-7 w-7 z-10 bg-blue-600 hover:bg-blue-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEdit(actress);
+                  }}
+                >
+                  <Edit className="h-3 w-3" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  className="absolute top-2 right-2 h-7 w-7 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(actress.id);
+                  }}
+                  disabled={deleteActress.isPending}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+
+                {/* Imagen - Click para ir al detalle */}
+                <div
+                  className="absolute inset-0 cursor-pointer transition-all hover:opacity-90"
+                  onClick={() => navigate(`/ver/actress-jav/${actress.id}`)}
+                >
                   {actress.image ? (
-                    <img 
-                      src={actress.image} 
-                      alt={actress.name} 
-                      className="w-full h-full object-cover rounded"
+                    <img
+                      src={actress.image}
+                      alt={actress.name}
+                      className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-muted rounded flex items-center justify-center">
-                      <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                    <div className="w-full h-full flex items-center justify-center bg-muted">
+                      <ImageIcon className="h-12 w-12 text-muted-foreground" />
                     </div>
                   )}
-                  <Button
-                    size="icon"
-                    className="absolute inset-0 w-full h-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleUploadImage(actress);
-                    }}
-                  >
-                    <Upload className="h-4 w-4" />
-                  </Button>
                 </div>
 
                 {/* Información */}
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="font-bold text-base">{actress.name}</p>
+                <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-2 space-y-1 z-10">
+                  <div className="flex items-center justify-center gap-2">
+                    {/* Nombre - Click para cargar imagen */}
+                    <p
+                      className="font-medium text-sm text-white text-center truncate cursor-pointer hover:text-blue-300 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleUploadImage(actress);
+                      }}
+                    >
+                      {actress.name}
+                    </p>
                     {actress.javCount !== undefined && actress.javCount > 0 && (
-                      <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
-                        {actress.javCount} JAV{actress.javCount !== 1 ? 's' : ''}
+                      <span className="bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full flex-shrink-0">
+                        {actress.javCount}
                       </span>
                     )}
                   </div>
-                  {actress.tags && actress.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {actress.tags.map((tag, idx) => (
-                        <span key={idx} className="bg-purple-500/20 text-purple-700 dark:text-purple-300 text-xs px-1.5 py-0.5 rounded">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
                   {actress.links && actress.links.length > 0 && (
-                    <div className="flex gap-2 mt-1">
-                      {actress.links.map((link, index) => (
+                    <div className="flex gap-1 justify-center">
+                      {actress.links.slice(0, 3).map((link, index) => (
                         <a
                           key={link.id}
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm text-blue-500 hover:text-blue-600 underline font-medium"
+                          className="text-xs text-blue-300 hover:text-blue-200 underline"
                           onClick={(e) => e.stopPropagation()}
                         >
                           [{index + 1}]
@@ -287,41 +353,6 @@ export const ActressJavPage = () => {
                       ))}
                     </div>
                   )}
-                </div>
-
-                {/* Botones de acción */}
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    size="icon"
-                    className="h-8 w-8 bg-cyan-600 hover:bg-cyan-700"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditLinks(actress);
-                    }}
-                  >
-                    <LinkIcon className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    className="h-8 w-8 bg-blue-600 hover:bg-blue-700"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEdit(actress);
-                    }}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    className="h-8 w-8 bg-red-600 hover:bg-red-700"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(actress.id);
-                    }}
-                    disabled={deleteActress.isPending}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
             ))}

@@ -1,4 +1,5 @@
 import { apiClient } from '@/config/api/api-client';
+import { VideoSourceMap } from '@/common/enums/video-source.enum';
 import type { ActressAdult, ActressAdultBasic, ActressAdultDetail, CreateVideoAdultDto } from '../models/actressAdult.model';
 
 const BASE_URL = '/actress-adult';
@@ -30,11 +31,23 @@ export const actressAdultService = {
   },
 
   createVideo: async (data: CreateVideoAdultDto): Promise<void> => {
-    return await apiClient.post(`${BASE_URL}/video`, data);
+    // Convertir source string a enum usando el mapa
+    const sourceEnum = VideoSourceMap[data.source.toLowerCase()];
+    
+    return await apiClient.post(`${BASE_URL}/video`, {
+      source: sourceEnum,
+      videoUrl: data.videoUrl,
+      actressIds: data.actressIds,
+      tagIds: data.tagIds,
+    });
   },
 
   updateVideo: async (videoId: number, actressIds: number[], tagIds: number[]): Promise<void> => {
     return await apiClient.put(`${BASE_URL}/video/${videoId}`, { actressIds, tagIds });
+  },
+
+  updateVideoStatus: async (videoId: number, status: number): Promise<void> => {
+    return await apiClient.patch(`${BASE_URL}/video/${videoId}/status`, { status });
   },
 
   deleteVideo: async (videoId: number): Promise<void> => {

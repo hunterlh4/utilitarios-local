@@ -5,6 +5,7 @@ import { Input } from '@/common/components/ui/input';
 import { Label } from '@/common/components/ui/label';
 import { Spinner } from '@/common/components/ui/spinner';
 import { useGetTagsByType } from '@/common/hooks/useGetTagsByType.hook';
+import { TagType } from '@/common/enums/tag.enum';
 import { actressJavService } from '../services/actressJav.service';
 import { toast } from 'sonner';
 import type { ActressJav } from '../models/actress.model';
@@ -22,7 +23,7 @@ export const ActressDialog = ({ open, onOpenChange, editingActress, onSave }: Ac
   const [checkingName, setCheckingName] = useState(false);
   const [nameExists, setNameExists] = useState(false);
 
-  const { data: tags, isLoading: isLoadingTags } = useGetTagsByType(7); // 7 = JAV tags
+  const { data: tags, isLoading: isLoadingTags } = useGetTagsByType(TagType.ActressJav);
 
   // Validar nombre automáticamente
   useEffect(() => {

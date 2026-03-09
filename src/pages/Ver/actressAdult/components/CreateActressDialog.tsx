@@ -4,6 +4,7 @@ import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
 import { Checkbox } from '@/common/components/ui/checkbox';
+import { TagType } from '@/common/enums/tag.enum';
 import { useGetTags } from '../hooks/useGetTags.hook';
 
 interface CreateActressDialogProps {
@@ -18,7 +19,7 @@ export const CreateActressDialog = ({ open, onOpenChange, onSave }: CreateActres
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { data: tags, isLoading: isLoadingTags } = useGetTags(5); // 5 = ActressAdult
+  const { data: tags, isLoading: isLoadingTags } = useGetTags(TagType.ActressAdult);
 
   const handleSave = async () => {
     if (!name.trim()) return;

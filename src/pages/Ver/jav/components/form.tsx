@@ -236,7 +236,7 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editingJav ? "Editar JAV" : "Agregar JAV"}</DialogTitle>
           <DialogDescription>
@@ -247,201 +247,224 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="nombre">
-              Código <span className="text-red-500">*</span>
-              {checkingCode && <span className="text-xs text-muted-foreground ml-2">Verificando...</span>}
-              {codeExists && <span className="text-xs text-red-500 ml-2">⚠️ Ya existe</span>}
-            </Label>
-            <Input
-              id="nombre"
-              placeholder="Código del JAV (ej: SSIS-123)"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              required
-              className={`focus-visible:ring-0 focus-visible:ring-offset-0 ${codeExists ? 'border-red-500' : ''}`}
-            />
-          </div>
-
-          {/* Selector de actrices */}
-          {isLoadingActressesJav ? (
-            <div className="flex justify-center py-4">
-              <Spinner className="h-6 w-6" />
-            </div>
-          ) : actressesJav && actressesJav.length > 0 ? (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Actrices <span className="text-red-500">* (mínimo 1)</span></Label>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setQuickAddActressOpen(!quickAddActressOpen)}
-                  className="h-7"
-                >
-                  {quickAddActressOpen ? 'Cancelar' : '+ Agregar Actriz'}
-                </Button>
-              </div>
-              
-              {quickAddActressOpen && (
-                <div className="flex gap-2 p-2 bg-muted/50 rounded">
-                  <Input
-                    placeholder="Nombre de la actriz"
-                    value={quickActressName}
-                    onChange={(e) => setQuickActressName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleQuickAddActress();
-                      }
-                    }}
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={handleQuickAddActress}
-                  >
-                    Agregar
-                  </Button>
-                </div>
-              )}
-              
-              <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto border rounded p-2">
-                {actressesJav.map((actress) => (
-                  <div
-                    key={actress.id}
-                    onClick={() => toggleActress(actress.id)}
-                    className={`p-2 rounded cursor-pointer text-sm ${
-                      selectedActresses.includes(actress.id)
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-muted hover:bg-muted/80'
-                    }`}
-                  >
-                    {actress.name}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          <div className="space-y-2">
-            <Label htmlFor="imagen">
-              URL de Imagen <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="imagen"
-              type="url"
-              placeholder="https://example.com/imagen.jpg"
-              value={imagen}
-              onChange={(e) => setImagen(e.target.value)}
-              required
-              className="focus-visible:ring-0 focus-visible:ring-offset-0"
-            />
-          </div>
-
-          {isLoadingTags ? (
-            <div className="flex justify-center py-4">
-              <Spinner className="h-6 w-6" />
-            </div>
-          ) : tags && tags.length > 0 ? (
-            <div className="space-y-2">
-              <Label>Tags</Label>
-              <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded p-2">
-                {tags.map((tag) => (
-                  <div key={tag.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`tag-${tag.id}`}
-                      checked={selectedTags.includes(tag.id)}
-                      onCheckedChange={() => toggleTag(tag.id)}
-                    />
-                    <label
-                      htmlFor={`tag-${tag.id}`}
-                      className="text-sm cursor-pointer"
-                    >
-                      {tag.name}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          <div className="space-y-2">
-            <Label>
-              Enlaces <span className="text-red-500">* (mínimo 1)</span>
-            </Label>
-            {enlaces.map((enlace, index) => (
-              <div key={index} className="flex gap-2">
+          <div className="grid grid-cols-2 gap-6">
+            {/* Columna Izquierda */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="nombre">
+                  Código <span className="text-red-500">*</span>
+                  {checkingCode && <span className="text-xs text-muted-foreground ml-2">Verificando...</span>}
+                  {codeExists && <span className="text-xs text-red-500 ml-2">⚠️ Ya existe</span>}
+                </Label>
                 <Input
+                  id="nombre"
+                  placeholder="Código del JAV (ej: SSIS-123)"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  required
+                  className={`focus-visible:ring-0 focus-visible:ring-offset-0 ${codeExists ? 'border-red-500' : ''}`}
+                />
+              </div>
+
+              {/* Selector de actrices */}
+              {isLoadingActressesJav ? (
+                <div className="flex justify-center py-4">
+                  <Spinner className="h-6 w-6" />
+                </div>
+              ) : actressesJav && actressesJav.length > 0 ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Actrices <span className="text-red-500">* (mínimo 1)</span></Label>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setQuickAddActressOpen(!quickAddActressOpen)}
+                      className="h-7"
+                    >
+                      {quickAddActressOpen ? 'Cancelar' : '+ Agregar Actriz'}
+                    </Button>
+                  </div>
+                  
+                  {quickAddActressOpen && (
+                    <div className="flex gap-2 p-2 bg-muted/50 rounded">
+                      <Input
+                        placeholder="Nombre de la actriz"
+                        value={quickActressName}
+                        onChange={(e) => setQuickActressName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleQuickAddActress();
+                          }
+                        }}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleQuickAddActress}
+                      >
+                        Agregar
+                      </Button>
+                    </div>
+                  )}
+                  
+                  <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto border rounded p-2">
+                    {actressesJav.map((actress) => (
+                      <div
+                        key={actress.id}
+                        onClick={() => toggleActress(actress.id)}
+                        className={`p-2 rounded cursor-pointer text-sm ${
+                          selectedActresses.includes(actress.id)
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-muted hover:bg-muted/80'
+                        }`}
+                      >
+                        {actress.name}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {isLoadingTags ? (
+                <div className="flex justify-center py-4">
+                  <Spinner className="h-6 w-6" />
+                </div>
+              ) : tags && tags.length > 0 ? (
+                <div className="space-y-2">
+                  <Label>Tags</Label>
+                  <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded p-2">
+                    {tags.map((tag) => (
+                      <div key={tag.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`tag-${tag.id}`}
+                          checked={selectedTags.includes(tag.id)}
+                          onCheckedChange={() => toggleTag(tag.id)}
+                        />
+                        <label
+                          htmlFor={`tag-${tag.id}`}
+                          className="text-sm cursor-pointer"
+                        >
+                          {tag.name}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
+            {/* Columna Derecha */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="imagen">
+                  URL de Imagen <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="imagen"
                   type="url"
-                  placeholder={`Enlace ${index + 1}`}
-                  value={enlace}
-                  onChange={(e) => handleEnlaceChange(index, e.target.value)}
-                  onPaste={(e) => {
-                    const pastedText = e.clipboardData.getData('text');
-                    handleEnlacePaste(index, pastedText, e);
-                  }}
-                  data-enlace-index={index}
-                  required={index === 0}
+                  placeholder="https://example.com/imagen.jpg"
+                  value={imagen}
+                  onChange={(e) => setImagen(e.target.value)}
+                  required
                   className="focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
-                <Button
-                  type="button"
-                  size="icon"
-                  disabled={loading || !enlace.trim()}
-                  onClick={async () => {
-                    const urlToFetch = enlace;
-                    if (!urlToFetch) return;
-                    
-                    const metadata = await fetchMetadata(urlToFetch);
-                    
-                    if (metadata) {
-                      // Verificar si ya existe un JAV con ese código
-                      const codigoUpper = metadata.nombre.trim().toUpperCase();
-                      
-                      // Si está editando, permitir el mismo código
-                      if (editingJav && editingJav.code === codigoUpper) {
-                        // Es el mismo JAV que está editando, permitir
-                        setNombre(metadata.nombre);
-                        setImagen(metadata.imagen);
-                        const nuevosEnlaces = [...enlaces];
-                        nuevosEnlaces[index] = metadata.enlace;
-                        setEnlaces(nuevosEnlaces);
-                        setVisto(false);
-                        return;
-                      }
-                      
-                      // TODO: Verificar en el backend si ya existe el código
-                      // Por ahora solo cargamos los datos
-                      
-                      // Si no existe, cargar los datos
-                      setNombre(metadata.nombre);
-                      setImagen(metadata.imagen);
-                      // Actualizar el enlace del índice clickeado
-                      const nuevosEnlaces = [...enlaces];
-                      nuevosEnlaces[index] = metadata.enlace;
-                      setEnlaces(nuevosEnlaces);
-                      setVisto(false);
-                    } else {
-                      console.log('❌ No se pudo obtener metadata');
-                    }
-                  }}
-                >
-                  {loading ? "..." : <Sparkles className="w-4 h-4" />}
-                </Button>
-                {enlaces.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleRemoveEnlace(index)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                {imagen && (
+                  <div className="mt-2 border rounded-lg overflow-hidden bg-muted">
+                    <img
+                      src={imagen}
+                      alt="Vista previa"
+                      className="w-full h-auto max-h-[300px] object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                      onLoad={(e) => {
+                        e.currentTarget.style.display = 'block';
+                      }}
+                    />
+                  </div>
                 )}
               </div>
-            ))}
+
+              <div className="space-y-2">
+                <Label>
+                  Enlaces <span className="text-red-500">* (mínimo 1)</span>
+                </Label>
+                {enlaces.map((enlace, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      type="url"
+                      placeholder={`Enlace ${index + 1}`}
+                      value={enlace}
+                      onChange={(e) => handleEnlaceChange(index, e.target.value)}
+                      onPaste={(e) => {
+                        const pastedText = e.clipboardData.getData('text');
+                        handleEnlacePaste(index, pastedText, e);
+                      }}
+                      data-enlace-index={index}
+                      required={index === 0}
+                      className="focus-visible:ring-0 focus-visible:ring-offset-0"
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      disabled={loading || !enlace.trim()}
+                      onClick={async () => {
+                        const urlToFetch = enlace;
+                        if (!urlToFetch) return;
+                        
+                        const metadata = await fetchMetadata(urlToFetch);
+                        
+                        if (metadata) {
+                          // Verificar si ya existe un JAV con ese código
+                          const codigoUpper = metadata.nombre.trim().toUpperCase();
+                          
+                          // Si está editando, permitir el mismo código
+                          if (editingJav && editingJav.code === codigoUpper) {
+                            // Es el mismo JAV que está editando, permitir
+                            setNombre(metadata.nombre);
+                            setImagen(metadata.imagen);
+                            const nuevosEnlaces = [...enlaces];
+                            nuevosEnlaces[index] = metadata.enlace;
+                            setEnlaces(nuevosEnlaces);
+                            setVisto(false);
+                            return;
+                          }
+                          
+                          // TODO: Verificar en el backend si ya existe el código
+                          // Por ahora solo cargamos los datos
+                          
+                          // Si no existe, cargar los datos
+                          setNombre(metadata.nombre);
+                          setImagen(metadata.imagen);
+                          // Actualizar el enlace del índice clickeado
+                          const nuevosEnlaces = [...enlaces];
+                          nuevosEnlaces[index] = metadata.enlace;
+                          setEnlaces(nuevosEnlaces);
+                          setVisto(false);
+                        } else {
+                          console.log('❌ No se pudo obtener metadata');
+                        }
+                      }}
+                    >
+                      {loading ? "..." : <Sparkles className="w-4 h-4" />}
+                    </Button>
+                    {enlaces.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleRemoveEnlace(index)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           <DialogFooter>

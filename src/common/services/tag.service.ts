@@ -17,22 +17,18 @@ export interface UpdateTagDto {
 
 export const tagService = {
   getByType: async (type: number): Promise<Tag[]> => {
-    const response = await apiClient.get(`/tag/type/${type}`);
-    return response.data;
+    return await apiClient.get(`/tag/type/${type}`);
   },
 
   create: async (data: CreateTagDto) => {
-    const response = await apiClient.post('/tag', data);
-    return response.data;
+    return await apiClient.post('/tag', data);
   },
 
   update: async (id: number, data: UpdateTagDto) => {
-    const response = await apiClient.put(`/tag/${id}`, data);
-    return response.data;
+    return await apiClient.put(`/tag/${id}`, data);
   },
 
   delete: async (id: number) => {
-    const response = await apiClient.delete(`/tag/${id}`);
-    return response.data;
+    return await apiClient.delete(`/tag/${id}`);
   },
 };

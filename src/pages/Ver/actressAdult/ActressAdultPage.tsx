@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useGetAllActressAdult } from './hooks/useGetAllActressAdult.hook';
 import { useCreateActressAdult } from './hooks/useCreateActressAdult.hook';
 import { useDeleteActressAdult } from './hooks/useDeleteActressAdult.hook';
@@ -30,11 +30,15 @@ export const ActressAdultPage = () => {
   const [selectedActress, setSelectedActress] = useState<number | null>(null);
   const [editingActress, setEditingActress] = useState<number | null>(null);
   const [editingVideo, setEditingVideo] = useState<VideoAdult | null>(null);
-  const [showCompleted, setShowCompleted] = useState(false);
+  const [showCompleted, setShowCompleted] = useState(() => {
+    const saved = localStorage.getItem('actress-adult-show-completed');
+    return saved === 'true';
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTagFilters, setSelectedTagFilters] = useState<string[]>([]);
   const [editingLinks, setEditingLinks] = useState(false);
   const [linksInput, setLinksInput] = useState<string[]>([]);
+  const [hoveredActressId, setHoveredActressId] = useState<number | null>(null);
 
   const { data: actresses, isLoading } = useGetAllActressAdult();
   const createActress = useCreateActressAdult();
@@ -48,6 +52,42 @@ export const ActressAdultPage = () => {
   const uploadImage = useUploadImage();
   const deleteMedia = useDeleteMedia();
   const updateLinks = useUpdateLinks();
+
+  // Manejar paste global
+  const handlePaste = async (e: ClipboardEvent) => {
+    if (!hoveredActressId || selectedActress) return; // No pegar si estamos en vista de detalle
+
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        e.preventDefault();
+        const blob = items[i].getAsFile();
+        if (!blob) continue;
+
+        try {
+          await uploadImage.mutateAsync({
+            file: blob,
+            refId: hoveredActressId,
+          });
+          toast.success('Imagen subida correctamente');
+        } catch (error) {
+          console.error('Error:', error);
+          toast.error('Error al subir la imagen');
+        }
+        break;
+      }
+    }
+  };
+
+  // Agregar y remover listener de paste
+  useEffect(() => {
+    document.addEventListener('paste', handlePaste as any);
+    return () => {
+      document.removeEventListener('paste', handlePaste as any);
+    };
+  }, [hoveredActressId, selectedActress]);
 
   const videos = actressDetail?.videos || [];
 
@@ -291,7 +331,11 @@ export const ActressAdultPage = () => {
                 <Edit className="h-4 w-4" />
               </Button>
               <Button
-                onClick={() => setShowCompleted(!showCompleted)}
+                onClick={() => {
+                  const newValue = !showCompleted;
+                  setShowCompleted(newValue);
+                  localStorage.setItem('actress-adult-show-completed', String(newValue));
+                }}
                 size="icon"
                 className="bg-cyan-500 hover:bg-cyan-600"
               >
@@ -331,6 +375,8 @@ export const ActressAdultPage = () => {
                   className="relative w-full cursor-pointer transition-all hover:opacity-90 group"
                   style={{ paddingBottom: '150%' }}
                   onClick={() => handleSelectActress(actress.id)}
+                  onMouseEnter={() => setHoveredActressId(actress.id)}
+                  onMouseLeave={() => setHoveredActressId(null)}
                 >
                   <Button
                     size="icon"

@@ -29,7 +29,10 @@ export const JavPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [extractCodesOpen, setExtractCodesOpen] = useState(false);
   const [editingJav, setEditingJav] = useState<Jav | null>(null);
-  const [showCompleted, setShowCompleted] = useState(false);
+  const [showCompleted, setShowCompleted] = useState(() => {
+    const saved = localStorage.getItem('jav-show-completed');
+    return saved === 'true';
+  });
   const [selectedTagFilters, setSelectedTagFilters] = useState<string[]>([]);
 
   const { data: savedJavs, isLoading, error } = useGetAllJav();
@@ -203,7 +206,11 @@ export const JavPage = () => {
           />
         </div>
         <Button
-          onClick={() => setShowCompleted(!showCompleted)}
+          onClick={() => {
+            const newValue = !showCompleted;
+            setShowCompleted(newValue);
+            localStorage.setItem('jav-show-completed', String(newValue));
+          }}
           size="icon"
           className="bg-cyan-500 hover:bg-cyan-600"
         >

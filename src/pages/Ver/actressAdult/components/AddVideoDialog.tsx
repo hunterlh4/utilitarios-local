@@ -5,6 +5,7 @@ import { Input } from '@/common/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select';
 import { Checkbox } from '@/common/components/ui/checkbox';
 import { Spinner } from '@/common/components/ui/spinner';
+import { TagType } from '@/common/enums/tag.enum';
 import { useGetTags } from '../hooks/useGetTags.hook';
 import type { ActressAdult } from '../models/actressAdult.model';
 
@@ -28,7 +29,7 @@ export const AddVideoDialog = ({
   const [selectedActresses, setSelectedActresses] = useState<number[]>([currentActressId]);
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
 
-  const { data: tags, isLoading: isLoadingTags } = useGetTags(6); // 6 = VideoAdult
+  const { data: tags, isLoading: isLoadingTags } = useGetTags(TagType.VideoAdult);
 
   const handleSave = () => {
     if (!videoUrl.trim()) return;

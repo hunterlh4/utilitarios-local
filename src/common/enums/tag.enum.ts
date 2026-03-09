@@ -1,7 +1,10 @@
-// Tipos de tags (Tag table y TagRelation table)
 export enum TagType {
-  Jav = 1,
+  ActressJav = 1,
   Project = 2,
   Post = 3,
-  Otros = 4,
+  Other = 4,
+  ActressAdult = 5,
+  Hentai = 6,
+  Jav = 7,
+  VideoAdult = 8,
 }

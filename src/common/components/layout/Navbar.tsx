@@ -23,7 +23,7 @@ export const Navbar = () => {
         { label: 'Hentai', path: '/ver/hentai' },
         { label: 'JAV', path: '/ver/jav' },
         { label: 'Series', path: '/ver/series' },
-        { label: 'Actrices', path: '/ver/actress' },
+        { label: 'Actrices JAV', path: '/ver/actress-jav' },
         { label: 'Actrices Porno', path: '/ver/actress-adult' },
         { label: 'YouTube', path: '/ver/youtube' },
       ],
