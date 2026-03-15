@@ -15,7 +15,7 @@ import { useUpdateLinks } from './hooks/useUpdateLinks.hook';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
-import { Plus, Trash2, Check, Eye, Edit, Search, Link as LinkIcon, X } from 'lucide-react';
+import { Plus, Trash2, Check, Eye, Edit, Search, Link as LinkIcon, X, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { CreateActressDialog } from './components/CreateActressDialog';
 import { EditActressDialog } from './components/EditActressDialog';

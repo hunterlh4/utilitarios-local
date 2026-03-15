@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGetActressDetail } from './hooks/useGetActressDetail.hook';
 import { useGetAllActressAdult } from './hooks/useGetAllActressAdult.hook';
@@ -13,7 +13,7 @@ import { useUpdateLinks } from './hooks/useUpdateLinks.hook';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
-import { Upload, Check, Eye, Edit, Search, Link as LinkIcon, X, ArrowLeft } from 'lucide-react';
+import { Upload, Check, Eye, Edit, Link as LinkIcon, X, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { EditActressDialog } from './components/EditActressDialog';
 import { AddVideoDialog } from './components/AddVideoDialog';
