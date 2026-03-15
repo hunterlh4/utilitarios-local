@@ -50,10 +50,7 @@ export const EditActressDialog = ({ open, onOpenChange, actressId, onSave }: Edi
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     setNewImage(file);
-    // Si hay una nueva imagen, marcar las existentes para eliminar
-    if (file && actress?.images && actress.images.length > 0) {
-      setImagesToDelete(actress.images.map(img => img.id));
-    }
+    // NO eliminar imágenes existentes, solo agregar la nueva
   };
 
   const handleRemoveNewImage = () => {
@@ -82,7 +79,7 @@ export const EditActressDialog = ({ open, onOpenChange, actressId, onSave }: Edi
             />
 
             {/* Mostrar imágenes actuales */}
-            {currentImages.length > 0 && !newImage && (
+            {currentImages.length > 0 && (
               <div>
                 <p className="text-sm font-medium mb-2">Imagen actual:</p>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">

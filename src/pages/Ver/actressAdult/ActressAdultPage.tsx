@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGetAllActressAdult } from './hooks/useGetAllActressAdult.hook';
 import { useCreateActressAdult } from './hooks/useCreateActressAdult.hook';
 import { useDeleteActressAdult } from './hooks/useDeleteActressAdult.hook';
@@ -14,7 +15,7 @@ import { useUpdateLinks } from './hooks/useUpdateLinks.hook';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
-import { Plus, Upload, Trash2, Check, Eye, Edit, Search, Link as LinkIcon, X } from 'lucide-react';
+import { Plus, Trash2, Check, Eye, Edit, Search, Link as LinkIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { CreateActressDialog } from './components/CreateActressDialog';
 import { EditActressDialog } from './components/EditActressDialog';
@@ -23,6 +24,7 @@ import { EditVideoDialog } from './components/EditVideoDialog';
 import type { VideoAdult } from './models/actressAdult.model';
 
 export const ActressAdultPage = () => {
+  const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [videoDialogOpen, setVideoDialogOpen] = useState(false);
@@ -35,7 +37,9 @@ export const ActressAdultPage = () => {
     return saved === 'true';
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [actressSearchQuery, setActressSearchQuery] = useState('');
   const [selectedTagFilters, setSelectedTagFilters] = useState<string[]>([]);
+  const [selectedActressTagFilters, setSelectedActressTagFilters] = useState<string[]>([]);
   const [editingLinks, setEditingLinks] = useState(false);
   const [linksInput, setLinksInput] = useState<string[]>([]);
   const [hoveredActressId, setHoveredActressId] = useState<number | null>(null);
@@ -55,29 +59,61 @@ export const ActressAdultPage = () => {
 
   // Manejar paste global
   const handlePaste = async (e: ClipboardEvent) => {
-    if (!hoveredActressId || selectedActress) return; // No pegar si estamos en vista de detalle
+    // No hacer nada si hay algún dialog abierto
+    if (createDialogOpen || editDialogOpen || videoDialogOpen || editVideoDialogOpen) {
+      return;
+    }
 
     const items = e.clipboardData?.items;
     if (!items) return;
 
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.indexOf('image') !== -1) {
-        e.preventDefault();
-        const blob = items[i].getAsFile();
-        if (!blob) continue;
+    // Manejo de imágenes cuando hay actriz hover activa
+    if (hoveredActressId && !selectedActress) {
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          e.preventDefault();
+          const blob = items[i].getAsFile();
+          if (!blob) continue;
 
-        try {
-          await uploadImage.mutateAsync({
-            file: blob,
-            refId: hoveredActressId,
-          });
-          toast.success('Imagen subida correctamente');
-        } catch (error) {
-          console.error('Error:', error);
-          toast.error('Error al subir la imagen');
+          try {
+            await uploadImage.mutateAsync({
+              file: blob,
+              refId: hoveredActressId,
+            });
+            toast.success('Imagen subida correctamente');
+          } catch (error) {
+            console.error('Error:', error);
+            toast.error('Error al subir la imagen');
+          }
+          return;
         }
-        break;
       }
+    }
+
+    // Manejo de texto (nombres de actrices)
+    if (items[0].kind === 'string' && items[0].type === 'text/plain') {
+      items[0].getAsString(async (text) => {
+        const name = text.trim();
+        if (!name) return;
+
+        // Verificar si la actriz ya existe
+        const existingActress = actresses?.find(a => a.name.toLowerCase() === name.toLowerCase());
+        
+        if (existingActress) {
+          // Si existe, navegar al detalle
+          navigate(`/ver/actress-adult/${existingActress.id}`);
+          toast.success(`Actriz "${name}" seleccionada`);
+        } else {
+          // Si no existe, crear una nueva (sin ir al detalle)
+          try {
+            await createActress.mutateAsync({ name, tagIds: [] });
+            toast.success(`Actriz "${name}" creada correctamente`);
+          } catch (error) {
+            console.error('Error al crear actriz:', error);
+            toast.error('Error al crear la actriz');
+          }
+        }
+      });
     }
   };
 
@@ -87,7 +123,7 @@ export const ActressAdultPage = () => {
     return () => {
       document.removeEventListener('paste', handlePaste as any);
     };
-  }, [hoveredActressId, selectedActress]);
+  }, [hoveredActressId, selectedActress, navigate, actresses, createActress, createDialogOpen, editDialogOpen, videoDialogOpen, editVideoDialogOpen]);
 
   const videos = actressDetail?.videos || [];
 
@@ -176,8 +212,7 @@ export const ActressAdultPage = () => {
   };
 
   const handleSelectActress = (id: number) => {
-    setSelectedActress(id);
-    setEditingLinks(false);
+    navigate(`/ver/actress-adult/${id}`);
   };
 
   const handleAddVideo = async (source: string, videoUrl: string, actressIds: number[], tagIds: number[]) => {
@@ -269,6 +304,35 @@ export const ActressAdultPage = () => {
   };
 
   const selectedActressData = actresses?.find((a) => a.id === selectedActress);
+
+  const toggleActressTagFilter = (tagName: string) => {
+    setSelectedActressTagFilters(prev =>
+      prev.includes(tagName) ? prev.filter(t => t !== tagName) : [...prev, tagName]
+    );
+  };
+
+  const availableActressTags = useMemo(() => {
+    if (!actresses) return [];
+    const tagSet = new Set<string>();
+    actresses.forEach(actress => {
+      actress.tags?.forEach(tag => tagSet.add(tag));
+    });
+    return Array.from(tagSet).sort();
+  }, [actresses]);
+
+  const filteredActresses = useMemo(() => {
+    if (!actresses) return [];
+
+    return actresses.filter((actress) => {
+      const matchesSearch =
+        actress.name.toLowerCase().includes(actressSearchQuery.toLowerCase());
+
+      const matchesTags = selectedActressTagFilters.length === 0 ||
+        selectedActressTagFilters.every(filterTag => actress.tags?.includes(filterTag));
+
+      return matchesSearch && matchesTags;
+    });
+  }, [actresses, actressSearchQuery, selectedActressTagFilters]);
 
   const toggleTagFilter = (tagName: string) => {
     setSelectedTagFilters(prev =>
@@ -362,14 +426,47 @@ export const ActressAdultPage = () => {
       </div>
 
       {!selectedActress && (
-        <div>
+        <div className="space-y-4">
+          {/* Buscador y filtros de actrices */}
+          <div className="space-y-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Buscar actriz..."
+                value={actressSearchQuery}
+                onChange={(e) => setActressSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            {availableActressTags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {availableActressTags.map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => toggleActressTagFilter(tag)}
+                    className={`px-3 py-1 rounded text-sm transition-colors ${
+                      selectedActressTagFilters.includes(tag)
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-muted hover:bg-muted/80'
+                    }`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Lista de actrices */}
           {isLoading ? (
             <div className="flex justify-center py-8">
               <Spinner className="h-8 w-8" />
             </div>
-          ) : actresses && actresses.length > 0 ? (
+          ) : filteredActresses && filteredActresses.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-0">
-              {actresses.map((actress) => (
+              {filteredActresses.map((actress) => (
                 <div
                   key={actress.id}
                   className="relative w-full cursor-pointer transition-all hover:opacity-90 group"
@@ -385,14 +482,6 @@ export const ActressAdultPage = () => {
                   >
                     <Edit className="h-3 w-3" />
                   </Button>
-                  <Button
-                    size="icon"
-                    variant="destructive"
-                    className="absolute top-2 right-2 h-7 w-7 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => handleDeleteActress(actress.id, e)}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
                   {actress.image ? (
                     <img
                       src={actress.image}
@@ -405,13 +494,24 @@ export const ActressAdultPage = () => {
                     </div>
                   )}
                   <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-2">
-                    <p className="font-medium text-sm text-white text-center truncate">{actress.name}</p>
+                    <p 
+                      className="font-medium text-sm text-white text-center truncate cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard.writeText(actress.name);
+                        toast.success('Nombre copiado al portapapeles');
+                      }}
+                    >
+                      {actress.name}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-center text-muted-foreground py-8">No hay actrices creadas</p>
+            <p className="text-center text-muted-foreground py-8">
+              {actresses && actresses.length > 0 ? 'Sin resultados' : 'No hay actrices creadas'}
+            </p>
           )}
         </div>
       )}

@@ -17,6 +17,14 @@ interface AddVideoDialogProps {
   onSave: (source: string, videoUrl: string, actressIds: number[], tagIds: number[]) => void;
 }
 
+const detectVideoSource = (url: string): string => {
+  if (!url) return 'pornhub';
+  const lowerUrl = url.toLowerCase();
+  if (lowerUrl.includes('xvideos')) return 'xvideos';
+  if (lowerUrl.includes('pornhub')) return 'pornhub';
+  return 'pornhub'; // default
+};
+
 export const AddVideoDialog = ({
   open,
   onOpenChange,
@@ -30,6 +38,13 @@ export const AddVideoDialog = ({
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
 
   const { data: tags, isLoading: isLoadingTags } = useGetTags(TagType.VideoAdult);
+
+  const handleVideoUrlChange = (value: string) => {
+    setVideoUrl(value);
+    // Auto-detect source from URL
+    const detectedSource = detectVideoSource(value);
+    setSource(detectedSource);
+  };
 
   const handleSave = () => {
     if (!videoUrl.trim()) return;
@@ -77,7 +92,7 @@ export const AddVideoDialog = ({
             <Input
               placeholder="https://..."
               value={videoUrl}
-              onChange={(e) => setVideoUrl(e.target.value)}
+              onChange={(e) => handleVideoUrlChange(e.target.value)}
             />
           </div>
           <div>

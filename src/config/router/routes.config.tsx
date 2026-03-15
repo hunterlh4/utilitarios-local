@@ -8,6 +8,7 @@ import { SeriesPage } from '@/pages/Ver/series/SeriesPage';
 import { ActressJavPage } from '@/pages/Ver/actressJav/ActressJavPage';
 import { ActressJavDetailPage } from '@/pages/Ver/actressJav/ActressJavDetailPage';
 import { ActressAdultPage } from '@/pages/Ver/actressAdult/ActressAdultPage';
+import { ActressAdultDetailPage } from '@/pages/Ver/actressAdult/ActressAdultDetailPage';
 import { YouTubePage } from '@/pages/Ver/youtube/YouTubePage';
 import { AnimeGaleryPage } from '@/pages/Galeria/anime/AnimeGaleryPage';
 import { GirlGaleryPage } from '@/pages/Galeria/girl/GirlGaleryPage';
@@ -66,6 +67,10 @@ export const router = createBrowserRouter([
       {
         path: 'ver/actress-adult',
         element: <ActressAdultPage />,
+      },
+      {
+        path: 'ver/actress-adult/:id',
+        element: <ActressAdultDetailPage />,
       },
       {
         path: 'ver/youtube',

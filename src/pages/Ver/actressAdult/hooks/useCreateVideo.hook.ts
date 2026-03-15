@@ -10,6 +10,7 @@ export const useCreateVideo = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['actressAdultVideos'] });
       queryClient.invalidateQueries({ queryKey: ['actressAdult'] });
+      queryClient.invalidateQueries({ queryKey: ['actressAdultDetail'] });
     },
   });
 };
