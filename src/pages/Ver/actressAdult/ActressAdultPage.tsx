@@ -21,11 +21,13 @@ import { CreateActressDialog } from './components/CreateActressDialog';
 import { EditActressDialog } from './components/EditActressDialog';
 import { AddVideoDialog } from './components/AddVideoDialog';
 import { EditVideoDialog } from './components/EditVideoDialog';
+import { BulkCreateActressDialog } from './components/BulkCreateActressDialog';
 import type { VideoAdult } from './models/actressAdult.model';
 
 export const ActressAdultPage = () => {
   const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [bulkCreateDialogOpen, setBulkCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [videoDialogOpen, setVideoDialogOpen] = useState(false);
   const [editVideoDialogOpen, setEditVideoDialogOpen] = useState(false);
@@ -147,6 +149,24 @@ export const ActressAdultPage = () => {
     } catch (error) {
       console.error('Error al crear actriz:', error);
       toast.error('Error al crear la actriz');
+    }
+  };
+
+  const handleBulkCreateActresses = async (names: string[]) => {
+    try {
+      for (const name of names) {
+        try {
+          await createActress.mutateAsync({ name, tagIds: [] });
+        } catch (error) {
+          console.error(`Error al crear actriz "${name}":`, error);
+          toast.error(`Error al crear la actriz "${name}"`);
+        }
+      }
+      toast.success('Actrices creadas correctamente');
+      setBulkCreateDialogOpen(false);
+    } catch (error) {
+      console.error('Error en creación en lote:', error);
+      toast.error('Error al crear las actrices');
     }
   };
 
@@ -417,10 +437,15 @@ export const ActressAdultPage = () => {
               Agregar Video
             </Button>
           ) : (
-            <Button onClick={() => setCreateDialogOpen(true)} className="bg-green-600 hover:bg-green-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Nueva Actriz
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => setCreateDialogOpen(true)} className="bg-green-600 hover:bg-green-700">
+                <Plus className="h-4 w-4 mr-2" />
+                Nueva Actriz
+              </Button>
+              <Button onClick={() => setBulkCreateDialogOpen(true)} variant="outline">
+                Importar actrices
+              </Button>
+            </div>
           )}
         </div>
       </div>
@@ -737,6 +762,12 @@ export const ActressAdultPage = () => {
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         onSave={handleCreateActress}
+      />
+
+      <BulkCreateActressDialog
+        open={bulkCreateDialogOpen}
+        onOpenChange={setBulkCreateDialogOpen}
+        onCreateActresses={handleBulkCreateActresses}
       />
 
       <EditActressDialog

@@ -13,12 +13,14 @@ import { Search, Plus, Trash2, Edit, Link as LinkIcon, Image as ImageIcon } from
 import { toast } from 'sonner';
 import { ActressDialog } from './components/form';
 import { ActressLinksDialog } from './components/ActressLinksDialog';
+import { BulkCreateActressDialog } from './components/BulkCreateActressDialog';
 import type { ActressJav } from './models/actress.model';
 
 export const ActressJavPage = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [bulkCreateDialogOpen, setBulkCreateDialogOpen] = useState(false);
   const [linksDialogOpen, setLinksDialogOpen] = useState(false);
   const [editingActress, setEditingActress] = useState<ActressJav | null>(null);
   const [selectedTagFilters, setSelectedTagFilters] = useState<string[]>([]);
@@ -166,6 +168,27 @@ export const ActressJavPage = () => {
     setDialogOpen(true);
   };
 
+  const handleBulkCreateActresses = async (names: string[]) => {
+    try {
+      for (const name of names) {
+        try {
+          await addActress.mutateAsync({
+            name,
+            tagIds: [],
+          });
+        } catch (error) {
+          console.error(`Error al crear actriz "${name}":`, error);
+          toast.error(`Error al crear la actriz "${name}"`);
+        }
+      }
+      toast.success('Actrices creadas correctamente');
+      setBulkCreateDialogOpen(false);
+    } catch (error) {
+      console.error('Error en creación en lote:', error);
+      toast.error('Error al crear las actrices');
+    }
+  };
+
   const toggleTagFilter = (tagName: string) => {
     setSelectedTagFilters(prev =>
       prev.includes(tagName) ? prev.filter(t => t !== tagName) : [...prev, tagName]
@@ -211,6 +234,10 @@ export const ActressJavPage = () => {
         </div>
         <Button onClick={handleOpenDialog} size="icon" className="bg-green-600 hover:bg-green-700">
           <Plus className="h-4 w-4" />
+        </Button>
+        <Button onClick={() => setBulkCreateDialogOpen(true)} variant="outline" title="Importar actrices en lote">
+          <Plus className="h-4 w-4 mr-1" />
+          Importar
         </Button>
       </div>
 
@@ -378,6 +405,12 @@ export const ActressJavPage = () => {
         onOpenChange={setLinksDialogOpen}
         actress={editingActress}
         onSave={handleSaveLinks}
+      />
+
+      <BulkCreateActressDialog
+        open={bulkCreateDialogOpen}
+        onOpenChange={setBulkCreateDialogOpen}
+        onCreateActresses={handleBulkCreateActresses}
       />
     </div>
   );

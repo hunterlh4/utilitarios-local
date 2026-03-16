@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/common/components/ui/button';
 import { Textarea } from '@/common/components/ui/textarea';
 import { Trash2 } from 'lucide-react';
@@ -26,6 +26,15 @@ const PLANET_NAMES = [
 
 export const OGamePage = () => {
   const [planets, setPlanets] = useState<string[]>(['']);
+  const textareaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
+  const [focusIndex, setFocusIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (focusIndex !== null && textareaRefs.current[focusIndex]) {
+      textareaRefs.current[focusIndex]?.focus();
+      setFocusIndex(null);
+    }
+  }, [focusIndex, planets.length]);
 
   const parseResources = (text: string): Resources => {
     // Dividir por saltos de línea para obtener los 3 recursos
@@ -188,14 +197,17 @@ export const OGamePage = () => {
   const updatePlanet = (index: number, value: string) => {
     const newPlanets = [...planets];
     newPlanets[index] = value;
-    setPlanets(newPlanets);
     
     // Contar líneas en el valor actual
     const lines = value.split('\n').filter(l => l.trim());
     
     // Si tiene 3 líneas y es el último input, crear uno nuevo
     if (lines.length >= 3 && index === planets.length - 1) {
+      // Establecer el índice del siguiente input para enfocarlo
+      setFocusIndex(index + 1);
       setPlanets([...newPlanets, '']);
+    } else {
+      setPlanets(newPlanets);
     }
   };
 
@@ -221,6 +233,9 @@ export const OGamePage = () => {
             </span>
             <div className="flex gap-1 items-start">
               <Textarea
+                ref={(el) => {
+                  textareaRefs.current[index] = el;
+                }}
                 value={planet}
                 onChange={(e) => updatePlanet(index, e.target.value)}
                 onPaste={(e) => handlePaste(e, index)}
