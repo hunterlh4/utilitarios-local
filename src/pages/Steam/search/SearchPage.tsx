@@ -8,12 +8,7 @@ import { Card, CardContent } from '@/common/components/ui/card';
 import { Spinner } from '@/common/components/ui/spinner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select';
 
-const ITEM_QUALITY: Record<string, { label: string; className: string }> = {
-  '4D7455': { label: 'Genuine',     className: 'text-[#4D7455]  border-[#4D7455]' },
-  'CF6A32': { label: 'Inscribed',   className: 'text-[#CF6A32]  border-[#CF6A32]' },
-  'A52A2A': { label: 'Corrupted',   className: 'text-[#A52A2A]  border-[#A52A2A]' },
-  'ADE55C': { label: 'Autographed', className: 'text-[#ADE55C]  border-[#ADE55C]' },
-};
+import { getQualityByColor } from '../shared/item-quality';
 import { useSteamSearch } from './hooks/useSteamSearch.hook';
 import { useGetAllSteamItems } from './hooks/useGetAllSteamItems.hook';
 import { useAddSteamItem } from './hooks/useAddSteamItem.hook';
@@ -166,7 +161,7 @@ export const SearchPage = () => {
               const imageUrl = steamSearchService.getImageUrl(result.asset_description.icon_url);
               const price = steamSearchService.convertToSoles(result.sell_price);
               const quality = result.asset_description.name_color
-                ? ITEM_QUALITY[result.asset_description.name_color.toUpperCase()]
+                ? getQualityByColor(result.asset_description.name_color)
                 : undefined;
               return (
                 <Card
@@ -195,7 +190,7 @@ export const SearchPage = () => {
                   </div>
                   <CardContent className="p-2 space-y-0.5">
                     {quality && (
-                      <span className={`text-[10px] font-medium border rounded px-1 py-0.5 ${quality.className}`}>
+                      <span className={`text-[10px] font-medium border rounded px-1 py-0.5 ${quality.borderClass} text-foreground`}>
                         {quality.label}
                       </span>
                     )}

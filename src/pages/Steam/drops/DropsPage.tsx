@@ -6,6 +6,7 @@ import { Input } from '@/common/components/ui/input';
 import { Label } from '@/common/components/ui/label';
 import { Spinner } from '@/common/components/ui/spinner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/common/components/ui/dialog';
+import { getQualityByName } from '../shared/item-quality';
 import { useGetAllSteamItems } from '../search/hooks/useGetAllSteamItems.hook';
 import { useGetAllSteamItemDrops } from './hooks/useGetAllSteamItemDrops.hook';
 import { useAddSteamItemDrop } from './hooks/useAddSteamItemDrop.hook';
@@ -104,51 +105,57 @@ export const DropsPage = () => {
       ) : !drops?.length ? (
         <p className="text-sm text-muted-foreground">No hay drops registrados.</p>
       ) : (
-        <div className="border rounded-lg overflow-hidden">
+        <div className="rounded-xl border overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="text-left p-3">Item</th>
-                <th className="text-right p-3">Cant.</th>
-                <th className="text-right p-3">Precio</th>
-                <th className="text-right p-3">Precio venta</th>
-                <th className="text-right p-3">Total</th>
-                <th className="p-3 w-10"></th>
+            <thead>
+              <tr className="bg-muted/40 text-muted-foreground text-xs uppercase tracking-wide">
+                <th className="text-left px-4 py-3 font-medium">Item</th>
+                <th className="text-center px-4 py-3 font-medium w-36">Foto</th>
+                <th className="text-center px-4 py-3 font-medium">Cant.</th>
+                <th className="text-center px-4 py-3 font-medium">Precio</th>
+                <th className="text-center px-4 py-3 font-medium">Venta</th>
+                <th className="text-center px-4 py-3 font-medium">Total</th>
+                <th className="px-4 py-3 w-10"></th>
               </tr>
             </thead>
-            <tbody>
-              {drops.map((drop) => (
-                <tr
-                  key={drop.id}
-                  className="border-t hover:bg-muted/70 cursor-pointer"
-                  onClick={() => openEdit(drop)}
-                >
-                  <td className="p-3">
-                    <div className="flex items-center gap-2">
-                      <img src={drop.itemImage} alt={drop.itemName} className="w-8 h-8 object-contain" />
-                      <span className="truncate max-w-[200px]">{drop.itemName}</span>
-                    </div>
-                  </td>
-                  <td className="p-3 text-right">{drop.quantity}</td>
-                  <td className="p-3 text-right">S/. {drop.price}</td>
-                  <td className="p-3 text-right">S/. {drop.salePrice}</td>
-                  <td className="p-3 text-right font-medium">S/. {drop.total}</td>
-                  <td className="p-3">
-                    <Button
-                      size="icon" variant="ghost"
-                      onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(drop.id, { onSuccess: () => toast.success('Eliminado') }); }}
-                      disabled={deleteMutation.isPending}
-                    >
-                      <Trash2 className="w-4 h-4 text-destructive" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
+            <tbody className="divide-y divide-border">
+              {drops.map((drop) => {
+                return (
+                  <tr
+                    key={drop.id}
+                    className="hover:bg-muted/30 cursor-pointer transition-colors group"
+                    onClick={() => openEdit(drop)}
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <span className="truncate max-w-[220px] font-medium">{drop.itemName}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <img src={drop.itemImage} alt={drop.itemName} className="w-36 h-36 object-contain mx-auto" />
+                    </td>
+                    <td className="px-4 py-3 text-center text-muted-foreground">{drop.quantity}</td>
+                    <td className="px-4 py-3 text-center text-muted-foreground">S/. {drop.price}</td>
+                    <td className="px-4 py-3 text-center text-muted-foreground">S/. {drop.salePrice}</td>
+                    <td className="px-4 py-3 text-center font-semibold">S/. {drop.total}</td>
+                    <td className="px-4 py-3">
+                      <Button
+                        size="icon" variant="ghost"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(drop.id, { onSuccess: () => toast.success('Eliminado') }); }}
+                        disabled={deleteMutation.isPending}
+                      >
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
             <tfoot>
-              <tr className="border-t bg-muted/70">
-                <td colSpan={4} className="p-3 font-semibold text-right">Total ganancia</td>
-                <td className="p-3 text-right font-bold">S/. {totalGanancia.toFixed(2)}</td>
+              <tr className="bg-muted/40 border-t">
+                <td colSpan={4} className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Total ganancia</td>
+                <td className="px-4 py-3 text-right font-bold text-base">S/. {totalGanancia.toFixed(2)}</td>
                 <td />
               </tr>
             </tfoot>
@@ -164,19 +171,24 @@ export const DropsPage = () => {
           <div className="space-y-4">
             {/* Grid de items */}
             <div className="grid grid-cols-5 gap-2 max-h-[420px] overflow-y-auto">
-              {steamItems?.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => handleItemSelect(String(item.id))}
-                  className={`cursor-pointer rounded-md overflow-hidden border-2 transition-all ${
-                    form.steamItemId === String(item.id)
-                      ? 'border-primary'
-                      : 'border-transparent hover:border-muted-foreground/30'
-                  }`}
-                >
-                  <img src={item.image} alt={item.name} className="w-full h-28 object-contain p-1" />
-                </div>
-              ))}
+              {steamItems?.map((item) => {
+                const quality = getQualityByName(item.name);
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => handleItemSelect(String(item.id))}
+                    className={`cursor-pointer rounded-md overflow-hidden border-2 transition-all ${
+                      form.steamItemId === String(item.id)
+                        ? 'border-primary'
+                        : quality
+                        ? `${quality.borderClass} opacity-80 hover:opacity-100`
+                        : 'border-transparent hover:border-muted-foreground/30'
+                    }`}
+                  >
+                    <img src={item.image} alt={item.name} className="w-full h-28 object-contain p-1" />
+                  </div>
+                );
+              })}
             </div>
 
             {form.steamItemId && (

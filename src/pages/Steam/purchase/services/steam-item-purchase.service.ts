@@ -1,32 +1,25 @@
 import { apiClient } from '@/config/api/api-client';
 import type { CreateSteamItemPurchaseDto, UpdateSteamItemPurchaseDto } from '../models/steam-item-purchase-request.dto';
-import type { GetAllSteamItemPurchasesResponse, GetSteamItemPurchaseByIdResponse } from '../models/steam-item-purchase-response.dto';
+import type { SteamItemPurchase } from '../models/steam-item-purchase.model';
 
-const BASE_URL = '/steam-item-purchase';
+const BASE_URL = '/steam-purchase';
 
 export const steamItemPurchaseService = {
-  getAll: async () => {
-    const response = await apiClient.get<GetAllSteamItemPurchasesResponse>(BASE_URL);
-    return response.data;
+  getAll: async (): Promise<SteamItemPurchase[]> => {
+    const response = await apiClient.get<SteamItemPurchase[]>(BASE_URL);
+    return response as unknown as SteamItemPurchase[];
   },
 
-  getById: async (id: number) => {
-    const response = await apiClient.get<GetSteamItemPurchaseByIdResponse>(`${BASE_URL}/${id}`);
-    return response.data;
+  create: async (data: CreateSteamItemPurchaseDto): Promise<number> => {
+    const response = await apiClient.post<number>(BASE_URL, data);
+    return response as unknown as number;
   },
 
-  create: async (data: CreateSteamItemPurchaseDto) => {
-    const response = await apiClient.post(BASE_URL, data);
-    return response.data;
+  update: async (id: number, data: UpdateSteamItemPurchaseDto): Promise<void> => {
+    await apiClient.put(`${BASE_URL}/${id}`, data);
   },
 
-  update: async (id: number, data: UpdateSteamItemPurchaseDto) => {
-    const response = await apiClient.put(`${BASE_URL}/${id}`, data);
-    return response.data;
-  },
-
-  delete: async (id: number) => {
-    const response = await apiClient.delete(`${BASE_URL}/${id}`);
-    return response.data;
+  delete: async (id: number): Promise<void> => {
+    await apiClient.delete(`${BASE_URL}/${id}`);
   },
 };
