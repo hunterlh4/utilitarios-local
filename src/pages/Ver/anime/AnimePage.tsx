@@ -76,7 +76,6 @@ export const AnimePage = () => {
           <Button
             type="submit"
             size="icon"
-            variant="outline"
             disabled={isSearching || !searchQuery.trim()}
           >
             {isSearching ? <Spinner className="h-4 w-4" /> : <Search className="h-4 w-4" />}
@@ -84,7 +83,6 @@ export const AnimePage = () => {
           <Button 
             type="button" 
             size="icon" 
-            variant="outline" 
             onClick={toggleFilter}
           >
             {filterStatus === ContentStatus.Proximamente ? (

@@ -144,7 +144,7 @@ export const AnimeGaleryPage = () => {
               Subir Imágenes
             </Button>
           ) : (
-            <Button onClick={() => setDialogOpen(true)} className="bg-green-600 hover:bg-green-700">
+            <Button onClick={() => setDialogOpen(true)} >
               <Plus className="h-4 w-4 mr-2" />
               Nueva Galería
             </Button>

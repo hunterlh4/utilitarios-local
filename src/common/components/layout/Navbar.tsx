@@ -84,8 +84,8 @@ export const Navbar = () => {
         <div className="flex gap-2">
           <Link
             to="/"
-            className={`px-3 py-2 rounded-md hover:bg-accent transition-colors ${
-              isActive('/') ? 'bg-accent font-semibold' : ''
+            className={`px-3 py-2 rounded-md transition-colors text-sm font-medium ${
+              isActive('/') ? 'bg-primary text-primary-foreground' : 'hover:bg-primary hover:text-white'
             }`}
           >
             Inicio
@@ -93,20 +93,22 @@ export const Navbar = () => {
           {menuItems.map((menu) => (
             <DropdownMenu key={menu.label}>
               <DropdownMenuTrigger
-                className={`px-3 py-2 rounded-md hover:bg-accent transition-colors flex items-center gap-1 outline-none focus:outline-none focus-visible:ring-0 ${
-                  isActiveSection(menu.label.toLowerCase()) ? 'bg-accent font-semibold' : ''
+                className={`px-3 py-2 rounded-md transition-colors flex items-center gap-1 outline-none focus:outline-none focus-visible:ring-0 text-sm font-medium ${
+                  isActiveSection(menu.label.toLowerCase()) ? 'bg-primary text-primary-foreground' : 'hover:bg-primary hover:text-white'
                 }`}
               >
                 {menu.label}
                 <ChevronDown className="h-4 w-4" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
+              <DropdownMenuContent className="p-1 flex flex-col gap-0.5">
                 {menu.items.map((item) => (
-                  <DropdownMenuItem key={item.path} asChild>
+                  <DropdownMenuItem key={item.path} asChild className="focus:bg-primary focus:text-primary-foreground cursor-pointer rounded-md">
                     <Link
                       to={item.path}
                       className={`w-full ${
-                        isActive(item.path) ? 'bg-accent font-semibold' : ''
+                        isActive(item.path)
+                          ? 'bg-primary text-primary-foreground focus:bg-primary focus:text-primary-foreground'
+                          : ''
                       }`}
                     >
                       {item.label}
@@ -120,7 +122,7 @@ export const Navbar = () => {
 
         <button
           onClick={toggleDarkMode}
-          className="p-2 rounded-lg hover:bg-accent transition-colors"
+          className="p-2 rounded-lg hover:bg-primary transition-colors"
         >
           {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </button>

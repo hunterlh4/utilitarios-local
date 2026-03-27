@@ -3,7 +3,11 @@ export interface CreateSteamItemDropDto {
   quantity: number;
   price: number;
   salePrice: number;
-  total: number;
 }
 
-export interface UpdateSteamItemDropDto extends Partial<CreateSteamItemDropDto> {}
+export interface UpdateSteamItemDropDto {
+  steamItemId: number;
+  quantity: number;
+  price: number;
+  salePrice: number;
+}
