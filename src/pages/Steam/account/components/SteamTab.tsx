@@ -22,7 +22,7 @@ export const SteamTab = ({ search = '' }: { search?: string }) => {
     const matchFilter =
       (!filters.dota2 || s.hasDota2) &&
       (!filters.cs2 || s.hasCS2) &&
-      (!filters.mobile || true) &&
+      (!filters.mobile || s.hasSteamMobile) &&
       (!filters.unlimited || s.isUnlimited);
     // Si todos los filtros están activos, muestra todo
     const allActive = Object.values(filters).every(Boolean);
@@ -56,8 +56,8 @@ export const SteamTab = ({ search = '' }: { search?: string }) => {
                   {s.hasDota2 && <img src="/svg/dota2.svg" alt="Dota 2" className="w-5 h-5" title="Dota 2" />}
                   {s.hasCS2 && <img src="/svg/cs2.svg" alt="CS2" className="w-5 h-5" title="CS2" />}
                   {s.isUnlimited && <img src="/svg/facebook.svg" alt="Ilimitada" className="w-5 h-5" title="Ilimitada" />}
-                  {s.isVacBanned && <img src="/svg/prohibido.svg" alt="Banned" className="w-5 h-5" title="Banned" />}
-                  <img src="/svg/device.svg" alt="Device" className="w-5 h-5" title="Mobile" />
+                  {s.hasSteamMobile && <img src="/svg/device.svg" alt="Mobile" className="w-5 h-5" title="Steam Mobile" />}
+                  {s.isVacBanned && <img src="/svg/prohibido.svg" alt="isVacBanned" className="w-5 h-5" title="Steam isVacBanned" />}
                 </div>
               }
               onEdit={() => setModal({ item: s })}

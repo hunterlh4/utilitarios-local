@@ -17,7 +17,7 @@ export interface AccountEmail {
 export interface AccountSteam {
   id: number; emailId: number; emailAddress: string; username: string; password: string;
   phone?: string; profileUrl?: string;
-  hasDota2: boolean; hasCS2: boolean; isUnlimited: boolean; isVacBanned: boolean;
+  hasDota2: boolean; hasCS2: boolean; isUnlimited: boolean; isVacBanned: boolean; hasSteamMobile: boolean;
   isNew: boolean; lastUsed?: string; createdAt: string;
 }
 

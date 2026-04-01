@@ -19,6 +19,7 @@ export interface CreateSteamDto {
   hasCS2: boolean;
   isUnlimited: boolean;
   isVacBanned: boolean;
+  hasSteamMobile: boolean;
 }
 export interface UpdateSteamDto extends CreateSteamDto {}
 

@@ -31,6 +31,7 @@ export const SteamFormDialog = ({ item, onClose }: Props) => {
     hasCS2: false,
     isUnlimited: false,
     isVacBanned: false,
+    hasSteamMobile: false,
   });
 
   useEffect(() => {
@@ -44,6 +45,7 @@ export const SteamFormDialog = ({ item, onClose }: Props) => {
       hasCS2: item.hasCS2,
       isUnlimited: item.isUnlimited,
       isVacBanned: item.isVacBanned,
+      hasSteamMobile: item.hasSteamMobile,
     });
   }, [item]);
 
@@ -60,6 +62,7 @@ export const SteamFormDialog = ({ item, onClose }: Props) => {
       hasCS2: form.hasCS2,
       isUnlimited: form.isUnlimited,
       isVacBanned: form.isVacBanned,
+      hasSteamMobile: form.hasSteamMobile,
     };
     if (isEdit) {
       updateMutation.mutate({ id: item.id, data: payload }, {
@@ -116,6 +119,7 @@ export const SteamFormDialog = ({ item, onClose }: Props) => {
             {check('CS2', 'hasCS2')}
             {check('Ilimitada', 'isUnlimited')}
             {check('VAC Banned', 'isVacBanned')}
+            {check('Steam Mobile', 'hasSteamMobile')}
           </div>
           <div className="flex justify-end gap-2 pt-1">
             <Button variant="outline" onClick={onClose}>Cancelar</Button>

@@ -40,7 +40,7 @@ export const KiroTab = ({ search = '' }: { search?: string }) => {
       <div className="flex items-center justify-between gap-2">
         <div className="flex gap-1">
           <FilterChip label="Gmail" icon="/svg/gmail.svg" active={filters.email} onChange={() => toggle('email')} />
-          <FilterChip label="GitHub" icon="/svg/google.svg" active={filters.github} onChange={() => toggle('github')} />
+          <FilterChip label="GitHub" icon="/svg/github.svg" active={filters.github} onChange={() => toggle('github')} />
         </div>
         {kiro && (
           <Button size="sm" variant="outline" onClick={() => resetMutation.mutate()} disabled={resetMutation.isPending}>
