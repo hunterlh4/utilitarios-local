@@ -1,25 +1,48 @@
-import type { AccountType } from '../enums/account.enum';
+import type { GeneralPlatform, LinkedAccountType } from './account.model';
 
-export interface AccountPropertyRequest {
-  key: string;
-  value: string;
+export interface CreateEmailDto {
+  provider: string;
+  email: string;
+  password: string;
+  phone?: string;
+  recoveryEmailId?: number;
 }
+export interface UpdateEmailDto extends CreateEmailDto {}
 
-export interface AccountRenewalRequest {
-  day: number;
-}
-
-export interface CreateAccountDto {
-  type: AccountType;
-  name: string;
-  username?: string;
-  password?: string;
+export interface CreateSteamDto {
+  emailId?: number;
+  username: string;
+  password: string;
+  phone?: string;
   profileUrl?: string;
-  phoneNumber?: string;
-  recoveryEmail?: string;
-  lastConnection?: string;
-  properties?: AccountPropertyRequest[];
-  renewals?: AccountRenewalRequest[];
+  hasDota2: boolean;
+  hasCS2: boolean;
+  isUnlimited: boolean;
+  isVacBanned: boolean;
 }
+export interface UpdateSteamDto extends CreateSteamDto {}
 
-export interface UpdateAccountDto extends CreateAccountDto {}
+export interface CreateGitHubDto {
+  emailId?: number;
+  username: string;
+  password: string;
+  profileUrl?: string;
+}
+export interface UpdateGitHubDto extends CreateGitHubDto {}
+
+export interface CreateGeneralDto {
+  platform: GeneralPlatform;
+  username: string;
+  password: string;
+  emailId?: number;
+  profileUrl?: string;
+}
+export interface UpdateGeneralDto extends CreateGeneralDto {}
+
+export interface CreateKiroDto {
+  linkedType: LinkedAccountType;
+  refId: number;
+  isNew: boolean;
+  lastUsed?: string;
+}
+export interface UpdateKiroDto extends CreateKiroDto {}

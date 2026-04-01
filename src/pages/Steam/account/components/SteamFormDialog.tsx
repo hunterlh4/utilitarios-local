@@ -1,0 +1,130 @@
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/common/components/ui/dialog';
+import { Button } from '@/common/components/ui/button';
+import { Input } from '@/common/components/ui/input';
+import { Label } from '@/common/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select';
+import { useAddSteam } from '../hooks/useAddSteam.hook';
+import { useUpdateSteam } from '../hooks/useUpdateSteam.hook';
+import { useGetEmails } from '../hooks/useGetEmails.hook';
+import type { AccountSteam } from '../models/account.model';
+
+interface Props {
+  item?: AccountSteam;
+  onClose: () => void;
+}
+
+export const SteamFormDialog = ({ item, onClose }: Props) => {
+  const isEdit = !!item;
+  const addMutation = useAddSteam();
+  const updateMutation = useUpdateSteam();
+  const { data: emails } = useGetEmails();
+
+  const [form, setForm] = useState({
+    emailId: '',
+    username: '',
+    password: '',
+    phone: '',
+    profileUrl: '',
+    hasDota2: false,
+    hasCS2: false,
+    isUnlimited: false,
+    isVacBanned: false,
+  });
+
+  useEffect(() => {
+    if (item) setForm({
+      emailId: item.emailId ? String(item.emailId) : '',
+      username: item.username,
+      password: item.password,
+      phone: item.phone ?? '',
+      profileUrl: item.profileUrl ?? '',
+      hasDota2: item.hasDota2,
+      hasCS2: item.hasCS2,
+      isUnlimited: item.isUnlimited,
+      isVacBanned: item.isVacBanned,
+    });
+  }, [item]);
+
+  const f = (key: string, value: any) => setForm((p) => ({ ...p, [key]: value }));
+
+  const handleSubmit = () => {
+    const payload = {
+      emailId: form.emailId ? Number(form.emailId) : undefined,
+      username: form.username,
+      password: form.password,
+      phone: form.phone || undefined,
+      profileUrl: form.profileUrl || undefined,
+      hasDota2: form.hasDota2,
+      hasCS2: form.hasCS2,
+      isUnlimited: form.isUnlimited,
+      isVacBanned: form.isVacBanned,
+    };
+    if (isEdit) {
+      updateMutation.mutate({ id: item.id, data: payload }, {
+        onSuccess: () => { toast.success('Actualizado'); onClose(); },
+        onError: () => toast.error('Error al actualizar'),
+      });
+    } else {
+      addMutation.mutate(payload, {
+        onSuccess: () => { toast.success('Creado'); onClose(); },
+        onError: () => toast.error('Error al crear'),
+      });
+    }
+  };
+
+  const check = (label: string, key: string) => (
+    <label className="flex items-center gap-2 text-sm cursor-pointer">
+      <input type="checkbox" checked={!!(form as any)[key]} onChange={(e) => f(key, e.target.checked)} className="w-4 h-4" />
+      {label}
+    </label>
+  );
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader><DialogTitle>{isEdit ? 'Editar Steam' : 'Agregar Steam'}</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <Label>Correo asociado</Label>
+            <Select value={form.emailId} onValueChange={(v) => f('emailId', v)}>
+              <SelectTrigger className="focus-visible:ring-0"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+              <SelectContent>
+                {emails?.map((e) => <SelectItem key={e.id} value={String(e.id)}>{e.email}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label>Usuario Steam</Label>
+            <Input value={form.username} onChange={(e) => f('username', e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <Label>Contraseña</Label>
+            <Input value={form.password} onChange={(e) => f('password', e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <Label>Celular</Label>
+            <Input value={form.phone} onChange={(e) => f('phone', e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <Label>URL de perfil</Label>
+            <Input value={form.profileUrl} onChange={(e) => f('profileUrl', e.target.value)} placeholder="https://steamcommunity.com/id/..." />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {check('Dota 2', 'hasDota2')}
+            {check('CS2', 'hasCS2')}
+            {check('Ilimitada', 'isUnlimited')}
+            {check('VAC Banned', 'isVacBanned')}
+          </div>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button variant="outline" onClick={onClose}>Cancelar</Button>
+            <Button onClick={handleSubmit} disabled={!form.username || !form.password || addMutation.isPending || updateMutation.isPending}>
+              {isEdit ? 'Actualizar' : 'Guardar'}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};

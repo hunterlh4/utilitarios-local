@@ -6,20 +6,18 @@ const BASE_URL = '/steam-purchase';
 
 export const steamItemPurchaseService = {
   getAll: async (): Promise<SteamItemPurchase[]> => {
-    const response = await apiClient.get<SteamItemPurchase[]>(BASE_URL);
-    return response as unknown as SteamItemPurchase[];
+    return await apiClient.get(BASE_URL);
   },
 
   create: async (data: CreateSteamItemPurchaseDto): Promise<number> => {
-    const response = await apiClient.post<number>(BASE_URL, data);
-    return response as unknown as number;
+    return await apiClient.post(BASE_URL, data);
   },
 
   update: async (id: number, data: UpdateSteamItemPurchaseDto): Promise<void> => {
-    await apiClient.put(`${BASE_URL}/${id}`, data);
+    return await apiClient.put(`${BASE_URL}/${id}`, data);
   },
 
   delete: async (id: number): Promise<void> => {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    return await apiClient.delete(`${BASE_URL}/${id}`);
   },
 };

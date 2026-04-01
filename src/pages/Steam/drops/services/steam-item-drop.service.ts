@@ -6,20 +6,18 @@ const BASE_URL = '/steam-drop';
 
 export const steamItemDropService = {
   getAll: async (): Promise<SteamItemDrop[]> => {
-    const response = await apiClient.get<SteamItemDrop[]>(BASE_URL);
-    return response as unknown as SteamItemDrop[];
+    return await apiClient.get(BASE_URL);
   },
 
   create: async (data: CreateSteamItemDropDto): Promise<number> => {
-    const response = await apiClient.post<number>(BASE_URL, data);
-    return response as unknown as number;
+    return await apiClient.post(BASE_URL, data);
   },
 
   update: async (id: number, data: UpdateSteamItemDropDto): Promise<void> => {
-    await apiClient.put(`${BASE_URL}/${id}`, data);
+    return await apiClient.put(`${BASE_URL}/${id}`, data);
   },
 
   delete: async (id: number): Promise<void> => {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    return await apiClient.delete(`${BASE_URL}/${id}`);
   },
 };
