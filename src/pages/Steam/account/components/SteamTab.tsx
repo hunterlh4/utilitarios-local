@@ -19,14 +19,19 @@ export const SteamTab = ({ search = '' }: { search?: string }) => {
   const filtered = data?.filter((s) => {
     const matchSearch = s.username.toLowerCase().includes(search.toLowerCase()) ||
       (s.emailAddress ?? '').toLowerCase().includes(search.toLowerCase());
-    const matchFilter =
-      (!filters.dota2 || s.hasDota2) &&
-      (!filters.cs2 || s.hasCS2) &&
-      (!filters.mobile || s.hasSteamMobile) &&
-      (!filters.unlimited || s.isUnlimited);
+
     // Si todos los filtros están activos, muestra todo
     const allActive = Object.values(filters).every(Boolean);
-    return matchSearch && (allActive || matchFilter);
+    if (allActive) return matchSearch;
+
+    // Muestra la cuenta si tiene AL MENOS UNA de las propiedades con filtro activo
+    const matchFilter =
+      (filters.dota2 && s.hasDota2) ||
+      (filters.cs2 && s.hasCS2) ||
+      (filters.mobile && s.hasSteamMobile) ||
+      (filters.unlimited && s.isUnlimited);
+
+    return matchSearch && matchFilter;
   });
 
   return (

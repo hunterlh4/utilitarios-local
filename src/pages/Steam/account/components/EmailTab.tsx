@@ -38,7 +38,7 @@ export const EmailTab = ({ search = '' }: { search?: string }) => {
         <FilterChip label="Otro" active={filters.otro} onChange={() => toggle('otro')} />
       </div>
       {isLoading ? <div className="flex justify-center py-8"><Spinner className="h-8 w-8" /></div> : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {filtered?.map((e) => (
             <AccountCard
               key={e.id}

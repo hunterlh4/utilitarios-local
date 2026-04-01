@@ -227,7 +227,7 @@ export const PurchasePage = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Compras Steam</h1>
         <div className="flex items-center gap-3">

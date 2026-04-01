@@ -103,21 +103,23 @@ export const SearchPage = () => {
   const savedIds = new Set(savedItems?.map((i) => i.externalId).filter(Boolean));
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6 pt-4">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Steam Items</h1>
         <div className="flex gap-2">
-          <Button
-            size="sm"
-            disabled={isBulkPending}
-            onClick={async () => {
-              const result = await bulkCreate(PRESET_ITEMS);
-              toast.success(`${result.created} agregados, ${result.skipped} ya existían`);
-            }}
-          >
-            {isBulkPending ? <Spinner className="h-4 w-4 mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
-            Importar preset
-          </Button>
+          {!savedItems?.length && (
+            <Button
+              size="sm"
+              disabled={isBulkPending}
+              onClick={async () => {
+                const result = await bulkCreate(PRESET_ITEMS);
+                toast.success(`${result.created} agregados, ${result.skipped} ya existían`);
+              }}
+            >
+              {isBulkPending ? <Spinner className="h-4 w-4 mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
+              Importar preset
+            </Button>
+          )}
           <Button onClick={handleOpenManual} size="sm">
             <Plus className="w-4 h-4 mr-1" /> Agregar manual
           </Button>
@@ -230,10 +232,10 @@ export const SearchPage = () => {
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="w-full h-full object-contain p-1"
+                    className="w-full h-full object-contain p-0.5"
                   />
                   <button
-                    className="absolute top-1 right-1 p-1 rounded bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-6 right-1 p-1 rounded bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
                     disabled={deleteMutation.isPending}
                   >
@@ -245,9 +247,9 @@ export const SearchPage = () => {
                   <p className="text-sm font-semibold">
                     {item.price != null ? `S/. ${item.price}` : '—'}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  {/* <p className="text-xs text-muted-foreground">
                     {item.game === '1' ? 'Dota 2' : 'CS2'}
-                  </p>
+                  </p> */}
                 </CardContent>
               </Card>
             ))}

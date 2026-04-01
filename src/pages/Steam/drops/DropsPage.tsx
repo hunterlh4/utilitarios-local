@@ -92,7 +92,7 @@ export const DropsPage = () => {
   const totalGanancia = drops?.reduce((acc, d) => acc + d.total, 0) ?? 0;
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6 pt-4">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Drops Steam</h1>
         <Button size="sm"  onClick={openAdd}>
