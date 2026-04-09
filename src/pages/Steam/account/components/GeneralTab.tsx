@@ -13,8 +13,8 @@ const platformIcons: Partial<Record<GeneralPlatform, string>> = {
   [GeneralPlatform.Facebook]: '/svg/facebook.svg',
 };
 
-export const GeneralTab = ({ search = '' }: { search?: string }) => {
-  const { data, isLoading } = useGetGenerals();
+export const GeneralTab = ({ search = '', isActive = true }: { search?: string; isActive?: boolean }) => {
+  const { data, isLoading } = useGetGenerals(isActive);
   const deleteMutation = useDeleteGeneral();
   const [modal, setModal] = useState<{ item?: AccountGeneral } | null>(null);
   const [activeFilters, setActiveFilters] = useState<Set<GeneralPlatform>>(

@@ -20,6 +20,7 @@ export interface CreateSteamDto {
   isUnlimited: boolean;
   isVacBanned: boolean;
   hasSteamMobile: boolean;
+  lastPurchaseDate?: string;
 }
 export interface UpdateSteamDto extends CreateSteamDto {}
 

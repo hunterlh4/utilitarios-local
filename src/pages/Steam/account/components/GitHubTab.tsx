@@ -8,8 +8,8 @@ import { GitHubFormDialog } from './GitHubFormDialog';
 import { FilterChip } from './FilterChip';
 import type { AccountGitHub } from '../models/account.model';
 
-export const GitHubTab = ({ search = '' }: { search?: string }) => {
-  const { data, isLoading } = useGetGitHubs();
+export const GitHubTab = ({ search = '', isActive = true }: { search?: string; isActive?: boolean }) => {
+  const { data, isLoading } = useGetGitHubs(isActive);
   const deleteMutation = useDeleteGitHub();
   const [modal, setModal] = useState<{ item?: AccountGitHub } | null>(null);
   const [filters, setFilters] = useState({ withEmail: true, withoutEmail: true });

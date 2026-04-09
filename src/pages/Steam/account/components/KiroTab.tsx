@@ -12,8 +12,8 @@ import { AccountCard } from './AccountCard';
 import { FilterChip } from './FilterChip';
 import { LinkedAccountType } from '../models/account.model';
 
-export const KiroTab = ({ search = '' }: { search?: string }) => {
-  const { data: kiro, isLoading } = useGetKiro();
+export const KiroTab = ({ search = '', isActive = true }: { search?: string; isActive?: boolean }) => {
+  const { data: kiro, isLoading } = useGetKiro(isActive);
   const useKiroMutation = useUseKiro();
   const [editOpen, setEditOpen] = useState(false);
   const [filters, setFilters] = useState({ email: true, github: true });

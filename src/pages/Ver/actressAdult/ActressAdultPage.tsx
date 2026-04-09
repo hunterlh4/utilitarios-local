@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGetAllActressAdult } from './hooks/useGetAllActressAdult.hook';
 import { useCreateActressAdult } from './hooks/useCreateActressAdult.hook';
-import { useDeleteActressAdult } from './hooks/useDeleteActressAdult.hook';
+// import { useDeleteActressAdult } from './hooks/useDeleteActressAdult.hook';
 import { useUpdateActressAdult } from './hooks/useUpdateActressAdult.hook';
 import { useCreateVideo } from './hooks/useCreateVideo.hook';
 import { useUpdateVideo } from './hooks/useUpdateVideo.hook';
@@ -49,7 +49,7 @@ export const ActressAdultPage = () => {
   const { data: actresses, isLoading } = useGetAllActressAdult();
   const createActress = useCreateActressAdult();
   const updateActress = useUpdateActressAdult();
-  const deleteActress = useDeleteActressAdult();
+  // const deleteActress = useDeleteActressAdult();
   const createVideo = useCreateVideo();
   const updateVideo = useUpdateVideo();
   const deleteVideo = useDeleteVideo();
@@ -211,19 +211,22 @@ export const ActressAdultPage = () => {
     }
   };
 
-  const handleDeleteActress = async (id: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      await deleteActress.mutateAsync(id);
-      toast.success('Actriz eliminada correctamente');
-      if (selectedActress === id) {
-        setSelectedActress(null);
-      }
-    } catch (error) {
-      console.error('Error al eliminar actriz:', error);
-      toast.error('Error al eliminar la actriz');
-    }
-  };
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // const handleDeleteActress = async (id: number, e: React.MouseEvent) => {
+  //   e.stopPropagation();
+  //   try {
+  //     await deleteActress.mutateAsync(id);
+  //     toast.success('Actriz eliminada correctamente');
+  //     if (selectedActress === id) {
+  //       setSelectedActress(null);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error al eliminar actriz:', error);
+  //     toast.error('Error al eliminar la actriz');
+  //   }
+  // };
 
   const handleOpenEdit = (id: number, e?: React.MouseEvent) => {
     e?.stopPropagation();

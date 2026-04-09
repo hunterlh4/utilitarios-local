@@ -1,16 +1,17 @@
 import { apiClient } from '@/config/api/api-client';
 import type { CreateActressDto, UpdateActressDto } from '../models/actress-request.dto';
 import type { GetAllActressesResponse, GetActressByIdResponse } from '../models/actress-response.dto';
+import type { JavSummary } from '../models/jav-summary.model';
 
 const BASE_URL = '/actress-jav';
 
 export const actressJavService = {
   getAll: async (): Promise<GetAllActressesResponse> => {
-    return await apiClient.get<GetAllActressesResponse>(BASE_URL);
+    return await apiClient.get(BASE_URL);
   },
 
   getById: async (id: number): Promise<GetActressByIdResponse> => {
-    return await apiClient.get<GetActressByIdResponse>(`${BASE_URL}/${id}`);
+    return await apiClient.get(`${BASE_URL}/${id}`);
   },
 
   create: async (data: CreateActressDto) => {
@@ -29,12 +30,12 @@ export const actressJavService = {
     return await apiClient.delete(`${BASE_URL}/${id}`);
   },
 
-  getJavsByActress: async (actressId: number) => {
+  getJavsByActress: async (actressId: number): Promise<JavSummary[]> => {
     return await apiClient.get(`${BASE_URL}/${actressId}/javs`);
   },
 
   checkNameExists: async (name: string): Promise<boolean> => {
-    return await apiClient.get<boolean>(`${BASE_URL}/check/${encodeURIComponent(name)}`);
+    return await apiClient.get(`${BASE_URL}/check/${encodeURIComponent(name)}`);
   },
 
   uploadImage: async (file: File, refId: number) => {

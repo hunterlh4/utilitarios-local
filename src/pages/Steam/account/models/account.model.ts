@@ -10,36 +10,66 @@ export const GeneralPlatformLabels: Record<GeneralPlatform, string> = {
 };
 
 export interface AccountEmail {
-  id: number; provider: string; email: string; password: string;
-  phone?: string; recoveryEmail?: string; isNew: boolean; lastUsed?: string; createdAt: string;
+  id: number; 
+  provider: string; 
+  email: string; 
+  password: string;
+  phone?: string; 
+  recoveryEmailId?: number;
+  recoveryEmail?: string; 
+  isNew: boolean; 
+  lastUsed?: string; 
+  createdAt: string;
 }
 
 export interface AccountSteam {
-  id: number; emailId: number; emailAddress: string; username: string; password: string;
-  phone?: string; profileUrl?: string;
-  hasDota2: boolean; hasCS2: boolean; isUnlimited: boolean; isVacBanned: boolean; hasSteamMobile: boolean;
-  isNew: boolean; lastUsed?: string; createdAt: string;
+  id: number; 
+  emailId: number; 
+  emailAddress: string; 
+  username: string; 
+  password: string;
+  phone?: string; 
+  profileUrl?: string;
+  hasDota2: boolean; 
+  hasCS2: boolean; 
+  isUnlimited: boolean; 
+  isVacBanned: boolean; 
+  hasSteamMobile: boolean;
+  lastPurchaseDate?: string;
+  isNew: boolean; 
+  lastUsed?: string; 
+  createdAt: string;
 }
 
 export interface AccountGitHub {
-  id: number; emailId: number; emailAddress: string; username: string; password: string;
-  profileUrl?: string; isNew: boolean; lastUsed?: string; createdAt: string;
+  id: number; 
+  emailId: number; 
+  emailAddress: string;
+  username: string; 
+  password: string;
+  profileUrl?: string; 
+  isNew: boolean; 
+  lastUsed?: string; 
+  createdAt: string;
 }
 
 export interface AccountGeneral {
-  id: number; platform: GeneralPlatform; username: string; password: string;
-  emailId?: number; emailAddress?: string; profileUrl?: string; createdAt: string;
+  id: number; 
+  platform: GeneralPlatform; 
+  username: string; 
+  password: string;
+  emailId?: number; 
+  emailAddress?: string; 
+  profileUrl?: string; 
+  createdAt: string;
 }
 
 export interface AccountKiro {
-  id: number; linkedType: LinkedAccountType; refId: number; linkedDisplay: string;
-  isNew: boolean; lastUsed?: string; createdAt: string;
-}
-
-export interface AccountAll {
-  emails: AccountEmail[];
-  steams: AccountSteam[];
-  gitHubs: AccountGitHub[];
-  generals: AccountGeneral[];
-  kiro?: AccountKiro;
+  id: number; 
+  linkedType: LinkedAccountType; 
+  refId: number; 
+  linkedDisplay: string;
+  isNew: boolean; 
+  lastUsed?: string; 
+  createdAt: string;
 }

@@ -49,11 +49,11 @@ export const AccountPage = () => {
             <Plus className="w-4 h-4 mr-1" />Nuevo
           </Button>        </div>
 
-        <TabsContent value="email"><EmailTab search={search} /></TabsContent>
-        <TabsContent value="steam"><SteamTab search={search} /></TabsContent>
-        <TabsContent value="github"><GitHubTab search={search} /></TabsContent>
-        <TabsContent value="general"><GeneralTab search={search} /></TabsContent>
-        <TabsContent value="kiro"><KiroTab search={search} /></TabsContent>
+        <TabsContent value="email"><EmailTab search={search} isActive={activeTab === 'email'} /></TabsContent>
+        <TabsContent value="steam"><SteamTab search={search} isActive={activeTab === 'steam'} /></TabsContent>
+        <TabsContent value="github"><GitHubTab search={search} isActive={activeTab === 'github'} /></TabsContent>
+        <TabsContent value="general"><GeneralTab search={search} isActive={activeTab === 'general'} /></TabsContent>
+        <TabsContent value="kiro"><KiroTab search={search} isActive={activeTab === 'kiro'} /></TabsContent>
       </Tabs>
 
       {addOpen && activeTab === 'email' && <EmailFormDialog onClose={() => setAddOpen(false)} />}

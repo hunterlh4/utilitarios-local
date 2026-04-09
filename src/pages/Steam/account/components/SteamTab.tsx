@@ -8,8 +8,8 @@ import { SteamFormDialog } from './SteamFormDialog';
 import { FilterChip } from './FilterChip';
 import type { AccountSteam } from '../models/account.model';
 
-export const SteamTab = ({ search = '' }: { search?: string }) => {
-  const { data, isLoading } = useGetSteams();
+export const SteamTab = ({ search = '', isActive = true }: { search?: string; isActive?: boolean }) => {
+  const { data, isLoading } = useGetSteams(isActive);
   const deleteMutation = useDeleteSteam();
   const [modal, setModal] = useState<{ item?: AccountSteam } | null>(null);
   const [filters, setFilters] = useState({ dota2: true, cs2: true, mobile: true, unlimited: true, banned:true });

@@ -14,8 +14,8 @@ const getEmailIcon = (provider: string) => {
   return '/svg/google.svg';
 };
 
-export const EmailTab = ({ search = '' }: { search?: string }) => {
-  const { data, isLoading } = useGetEmails();
+export const EmailTab = ({ search = '', isActive = true }: { search?: string; isActive?: boolean }) => {
+  const { data, isLoading } = useGetEmails(isActive);
   const deleteMutation = useDeleteEmail();
   const [modal, setModal] = useState<{ item?: AccountEmail } | null>(null);
   const [filters, setFilters] = useState({ gmail: true, outlook: true, otro: true });

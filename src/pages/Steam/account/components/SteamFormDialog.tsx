@@ -32,6 +32,7 @@ export const SteamFormDialog = ({ item, onClose }: Props) => {
     isUnlimited: false,
     isVacBanned: false,
     hasSteamMobile: false,
+    lastPurchaseDate: '',
   });
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export const SteamFormDialog = ({ item, onClose }: Props) => {
       isUnlimited: item.isUnlimited,
       isVacBanned: item.isVacBanned,
       hasSteamMobile: item.hasSteamMobile,
+      lastPurchaseDate: item.lastPurchaseDate ?? '',
     });
   }, [item]);
 
@@ -63,6 +65,7 @@ export const SteamFormDialog = ({ item, onClose }: Props) => {
       isUnlimited: form.isUnlimited,
       isVacBanned: form.isVacBanned,
       hasSteamMobile: form.hasSteamMobile,
+      lastPurchaseDate: form.lastPurchaseDate || undefined,
     };
     if (isEdit) {
       updateMutation.mutate({ id: item.id, data: payload }, {
@@ -113,6 +116,10 @@ export const SteamFormDialog = ({ item, onClose }: Props) => {
           <div className="space-y-1">
             <Label>URL de perfil</Label>
             <Input value={form.profileUrl} onChange={(e) => f('profileUrl', e.target.value)} placeholder="https://steamcommunity.com/id/..." />
+          </div>
+          <div className="space-y-1">
+            <Label>Última compra (fecha y hora)</Label>
+            <Input type="datetime-local" value={form.lastPurchaseDate} onChange={(e) => f('lastPurchaseDate', e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-2">
             {check('Dota 2', 'hasDota2')}

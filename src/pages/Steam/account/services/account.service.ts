@@ -71,7 +71,9 @@ export const accountService = {
 
   // Kiro
   getKiro: async (): Promise<AccountKiro | null> => {
-    return await apiClient.get(`${BASE_URL}/kiro`);
+    const result = await apiClient.get<AccountKiro[]>(`${BASE_URL}/kiro`);
+    // El endpoint devuelve un array, pero solo hay una cuenta Kiro
+    return (Array.isArray(result) && result.length > 0) ? result[0] : null;
   },
   createKiro: async (data: CreateKiroDto): Promise<void> => {
     return await apiClient.post(`${BASE_URL}/kiro`, data);
