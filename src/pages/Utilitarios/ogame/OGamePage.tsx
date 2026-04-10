@@ -190,6 +190,7 @@ export const OGamePage = () => {
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>, index: number) => {
+    e.preventDefault();
     const pastedText = e.clipboardData.getData('text');
     updatePlanet(index, pastedText);
   };
