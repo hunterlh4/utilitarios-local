@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGetAllActressAdult } from './hooks/useGetAllActressAdult.hook';
 import { useCreateActressAdult } from './hooks/useCreateActressAdult.hook';
@@ -10,7 +10,6 @@ import { useDeleteVideo } from './hooks/useDeleteVideo.hook';
 import { useGetActressDetail } from './hooks/useGetActressDetail.hook';
 import { useUpdateVideoStatus } from './hooks/useUpdateVideoStatus.hook';
 import { useUploadImage } from './hooks/useUploadImage.hook';
-import { useDeleteMedia } from './hooks/useDeleteMedia.hook';
 import { useUpdateLinks } from './hooks/useUpdateLinks.hook';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
@@ -56,11 +55,10 @@ export const ActressAdultPage = () => {
   const { data: actressDetail, isLoading: isLoadingDetail } = useGetActressDetail(selectedActress);
   const updateVideoStatus = useUpdateVideoStatus();
   const uploadImage = useUploadImage();
-  const deleteMedia = useDeleteMedia();
   const updateLinks = useUpdateLinks();
 
   // Manejar paste global
-  const handlePaste = async (e: ClipboardEvent) => {
+  const handlePaste = useCallback(async (e: ClipboardEvent) => {
     // No hacer nada si hay algún dialog abierto
     if (createDialogOpen || editDialogOpen || videoDialogOpen || editVideoDialogOpen) {
       return;
@@ -117,17 +115,21 @@ export const ActressAdultPage = () => {
         }
       });
     }
-  };
+  }, [hoveredActressId, selectedActress, navigate, actresses, createActress, createDialogOpen, editDialogOpen, videoDialogOpen, editVideoDialogOpen, uploadImage]);
 
   // Agregar y remover listener de paste
   useEffect(() => {
-    document.addEventListener('paste', handlePaste as any);
-    return () => {
-      document.removeEventListener('paste', handlePaste as any);
+    const onPaste: EventListener = (event) => {
+      void handlePaste(event as ClipboardEvent);
     };
-  }, [hoveredActressId, selectedActress, navigate, actresses, createActress, createDialogOpen, editDialogOpen, videoDialogOpen, editVideoDialogOpen]);
 
-  const videos = actressDetail?.videos || [];
+    document.addEventListener('paste', onPaste);
+    return () => {
+      document.removeEventListener('paste', onPaste);
+    };
+  }, [handlePaste]);
+
+  const videos = useMemo(() => actressDetail?.videos ?? [], [actressDetail?.videos]);
 
   const handleCreateActress = async (name: string, image: File | null, tagIds: number[]) => {
     try {
@@ -174,21 +176,10 @@ export const ActressAdultPage = () => {
     id: number,
     name: string,
     tagIds: number[],
-    newImage: File | null,
-    imagesToDelete: number[]
+    newImage: File | null
   ) => {
     try {
       await updateActress.mutateAsync({ id, name, tagIds });
-
-      if (imagesToDelete.length > 0) {
-        for (const mediaId of imagesToDelete) {
-          try {
-            await deleteMedia.mutateAsync(mediaId);
-          } catch (error) {
-            console.error('Error al eliminar imagen:', error);
-          }
-        }
-      }
 
       if (newImage) {
         try {

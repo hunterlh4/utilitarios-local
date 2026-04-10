@@ -41,17 +41,11 @@ export const actressJavService = {
   uploadImage: async (file: File, refId: number) => {
     const formData = new FormData();
     formData.append('image', file);
-    formData.append('type', '4'); // 4 = ActressJav
-    formData.append('refId', refId.toString());
 
-    return await apiClient.post('/upload/image', formData, {
+    return await apiClient.post(`${BASE_URL}/${refId}/image`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
-  },
-
-  deleteMedia: async (mediaId: number) => {
-    return await apiClient.delete(`/upload/media/${mediaId}`);
   },
 };

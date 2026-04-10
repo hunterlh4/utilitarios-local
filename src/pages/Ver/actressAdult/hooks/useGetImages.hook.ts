@@ -6,6 +6,6 @@ export const useGetImages = (actressId: number | null) => {
     queryKey: ['actressAdultDetail', actressId],
     queryFn: () => actressAdultService.getById(actressId!),
     enabled: actressId !== null,
-    select: (data) => data.images,
+    select: (data) => (data.image ? [{ id: 0, url: data.image, orderIndex: 1 }] : []),
   });
 };

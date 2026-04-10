@@ -12,14 +12,13 @@ interface EditActressDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   actressId: number | null;
-  onSave: (id: number, name: string, tagIds: number[], newImage: File | null, imagesToDelete: number[]) => void;
+  onSave: (id: number, name: string, tagIds: number[], newImage: File | null) => void;
 }
 
 export const EditActressDialog = ({ open, onOpenChange, actressId, onSave }: EditActressDialogProps) => {
   const [name, setName] = useState('');
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [newImage, setNewImage] = useState<File | null>(null);
-  const [imagesToDelete, setImagesToDelete] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const { data: actress, isLoading: isLoadingActress } = useGetActressById(actressId);
@@ -29,7 +28,6 @@ export const EditActressDialog = ({ open, onOpenChange, actressId, onSave }: Edi
     if (actress) {
       setName(actress.name);
       setSelectedTags(actress.tagIds || []);
-      setImagesToDelete([]);
       setNewImage(null);
     }
   }, [actress]);
@@ -37,7 +35,7 @@ export const EditActressDialog = ({ open, onOpenChange, actressId, onSave }: Edi
   const handleSave = async () => {
     if (!name.trim() || !actressId) return;
     setIsLoading(true);
-    await onSave(actressId, name, selectedTags, newImage, imagesToDelete);
+    await onSave(actressId, name, selectedTags, newImage);
     setIsLoading(false);
   };
 
@@ -50,15 +48,11 @@ export const EditActressDialog = ({ open, onOpenChange, actressId, onSave }: Edi
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     setNewImage(file);
-    // NO eliminar imágenes existentes, solo agregar la nueva
   };
 
   const handleRemoveNewImage = () => {
     setNewImage(null);
-    setImagesToDelete([]);
   };
-
-  const currentImages = actress?.images?.filter(img => !imagesToDelete.includes(img.id)) || [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -78,20 +72,18 @@ export const EditActressDialog = ({ open, onOpenChange, actressId, onSave }: Edi
               onChange={(e) => setName(e.target.value)}
             />
 
-            {/* Mostrar imágenes actuales */}
-            {currentImages.length > 0 && (
+            {/* Mostrar imagen actual */}
+            {actress?.image && (
               <div>
                 <p className="text-sm font-medium mb-2">Imagen actual:</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {currentImages.map((image) => (
-                    <div key={image.id} className="relative aspect-[2/3]">
-                      <img
-                        src={image.url}
-                        alt="Imagen actual"
-                        className="w-full h-full object-cover rounded"
-                      />
-                    </div>
-                  ))}
+                <div className="max-w-50">
+                  <div className="relative aspect-2/3">
+                    <img
+                      src={actress.image}
+                      alt="Imagen actual"
+                      className="w-full h-full object-cover rounded"
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -100,7 +92,7 @@ export const EditActressDialog = ({ open, onOpenChange, actressId, onSave }: Edi
             {newImage && (
               <div>
                 <p className="text-sm font-medium mb-2">Nueva imagen:</p>
-                <div className="relative aspect-[2/3] max-w-[200px]">
+                <div className="relative aspect-2/3 max-w-50">
                   <img
                     src={URL.createObjectURL(newImage)}
                     alt="Nueva imagen"

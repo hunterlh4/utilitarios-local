@@ -8,7 +8,6 @@ import { useUpdateVideo } from './hooks/useUpdateVideo.hook';
 import { useDeleteVideo } from './hooks/useDeleteVideo.hook';
 import { useUpdateVideoStatus } from './hooks/useUpdateVideoStatus.hook';
 import { useUploadImage } from './hooks/useUploadImage.hook';
-import { useDeleteMedia } from './hooks/useDeleteMedia.hook';
 import { useUpdateLinks } from './hooks/useUpdateLinks.hook';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
@@ -47,7 +46,6 @@ export const ActressAdultDetailPage = () => {
   const deleteVideo = useDeleteVideo();
   const updateVideoStatus = useUpdateVideoStatus();
   const uploadImage = useUploadImage();
-  const deleteMedia = useDeleteMedia();
   const updateLinks = useUpdateLinks();
 
   const videos = actressDetail?.videos || [];
@@ -56,21 +54,10 @@ export const ActressAdultDetailPage = () => {
     id: number,
     name: string,
     tagIds: number[],
-    newImage: File | null,
-    imagesToDelete: number[]
+    newImage: File | null
   ) => {
     try {
       await updateActress.mutateAsync({ id, name, tagIds });
-
-      if (imagesToDelete.length > 0) {
-        for (const mediaId of imagesToDelete) {
-          try {
-            await deleteMedia.mutateAsync(mediaId);
-          } catch (error) {
-            console.error('Error al eliminar imagen:', error);
-          }
-        }
-      }
 
       if (newImage) {
         try {

@@ -3,7 +3,6 @@ import { VideoSourceMap } from '@/common/enums/video-source.enum';
 import type { ActressAdult, ActressAdultBasic, ActressAdultDetail, CreateVideoAdultDto } from '../models/actressAdult.model';
 
 const BASE_URL = '/actress-adult';
-const UPLOAD_URL = '/upload';
 
 export const actressAdultService = {
   getAll: async (): Promise<ActressAdult[]> => {
@@ -61,17 +60,11 @@ export const actressAdultService = {
   uploadImage: async (file: File, refId: number) => {
     const formData = new FormData();
     formData.append('image', file);
-    formData.append('type', '5'); // 5 = ActressAdult
-    formData.append('refId', refId.toString());
 
-    return await apiClient.post(`${UPLOAD_URL}/image`, formData, {
+    return await apiClient.post(`${BASE_URL}/${refId}/image`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
-  },
-
-  deleteMedia: async (mediaId: number): Promise<void> => {
-    return await apiClient.delete(`${UPLOAD_URL}/media/${mediaId}`);
   },
 };

@@ -9,14 +9,8 @@ export interface ActressAdult {
 export interface ActressAdultBasic {
   id: number;
   name: string;
-  images: Media[];
+  image?: string;
   tagIds: number[];
-}
-
-export interface Media {
-  id: number;
-  url: string;
-  orderIndex: number;
 }
 
 export interface ActressAdultDetail {
