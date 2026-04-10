@@ -1,4 +1,5 @@
 import { apiClient } from '@/config/api/api-client';
+import type { ExcelFileDto, ImportExcelResult } from '@/common/models/excel.model';
 import type { CreateActressDto, UpdateActressDto } from '../models/actress-request.dto';
 import type { GetAllActressesResponse, GetActressByIdResponse } from '../models/actress-response.dto';
 import type { JavSummary } from '../models/jav-summary.model';
@@ -43,6 +44,21 @@ export const actressJavService = {
     formData.append('image', file);
 
     return await apiClient.post(`${BASE_URL}/${refId}/image`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
+  exportExcel: async (): Promise<ExcelFileDto> => {
+    return await apiClient.get(`${BASE_URL}/export`);
+  },
+
+  importExcel: async (file: File): Promise<ImportExcelResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return await apiClient.post(`${BASE_URL}/import`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

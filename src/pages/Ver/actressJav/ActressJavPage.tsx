@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGetAllActresses } from './hooks/useGetAllActresses.hook';
 import { useDeleteActress } from './hooks/useDeleteActress.hook';
@@ -9,12 +9,17 @@ import { useUploadImage } from './hooks/useUploadImage.hook';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
-import { Search, Plus, Trash2, Edit, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
+import { Search, Plus, Trash2, Edit, Link as LinkIcon, Image as ImageIcon, ChevronDown, Upload, Download } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu';
+import { downloadBase64File } from '@/common/lib/download-file';
 import { toast } from 'sonner';
 import { ActressDialog } from './components/form';
 import { ActressLinksDialog } from './components/ActressLinksDialog';
 import { BulkCreateActressDialog } from './components/BulkCreateActressDialog';
+import { actressJavService } from './services/actressJav.service';
 import type { ActressJav } from './models/actress.model';
+
+type ActressJavForm = ActressJav & { tagIds?: number[] };
 
 export const ActressJavPage = () => {
   const navigate = useNavigate();
@@ -25,16 +30,55 @@ export const ActressJavPage = () => {
   const [editingActress, setEditingActress] = useState<ActressJav | null>(null);
   const [selectedTagFilters, setSelectedTagFilters] = useState<string[]>([]);
   const [hoveredActressId, setHoveredActressId] = useState<number | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: actresses, isLoading, error } = useGetAllActresses();
+  const { data: actresses, isLoading, error, refetch } = useGetAllActresses();
   const deleteActress = useDeleteActress();
   const addActress = useAddActress();
   const updateActress = useUpdateActress();
   const updateActressLinks = useUpdateActressLinks();
   const uploadImage = useUploadImage();
 
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      const file = await actressJavService.exportExcel();
+      downloadBase64File(file.base64, file.fileName || 'actress-jav.xlsx');
+      toast.success('Exportacion completada');
+    } catch {
+      toast.error('No se pudo exportar el archivo');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImportClick = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleImportExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      const result = await actressJavService.importExcel(file);
+      await refetch();
+      toast.success(
+        `Importacion lista. Creados: ${result.created}, Actualizados: ${result.updated}, Sin cambios: ${result.skipped}, Invalidos: ${result.invalid}`
+      );
+    } catch {
+      toast.error('No se pudo importar el archivo');
+    } finally {
+      event.target.value = '';
+      setIsImporting(false);
+    }
+  };
+
   // Manejar paste global
-  const handlePaste = async (e: ClipboardEvent) => {
+  const handlePaste = useCallback(async (e: ClipboardEvent) => {
     if (!hoveredActressId) return;
 
     const items = e.clipboardData?.items;
@@ -59,20 +103,25 @@ export const ActressJavPage = () => {
         break;
       }
     }
-  };
+  }, [hoveredActressId, uploadImage]);
 
   // Agregar y remover listener de paste
   useEffect(() => {
-    document.addEventListener('paste', handlePaste as any);
-    return () => {
-      document.removeEventListener('paste', handlePaste as any);
+    const pasteListener = (event: Event) => {
+      void handlePaste(event as ClipboardEvent);
     };
-  }, [hoveredActressId]);
+
+    document.addEventListener('paste', pasteListener);
+    return () => {
+      document.removeEventListener('paste', pasteListener);
+    };
+  }, [handlePaste]);
 
   const handleSave = async (actress: ActressJav) => {
+    const actressForm = actress as ActressJavForm;
     try {
       if (editingActress) {
-        const tagIds = (actress as any).tagIds || [];
+        const tagIds = actressForm.tagIds || [];
         await updateActress.mutateAsync({
           id: actress.id,
           data: {
@@ -82,7 +131,7 @@ export const ActressJavPage = () => {
         });
         toast.success('Actriz actualizada correctamente');
       } else {
-        const tagIds = (actress as any).tagIds || [];
+        const tagIds = actressForm.tagIds || [];
         await addActress.mutateAsync({
           name: actress.name,
           tagIds: tagIds,
@@ -91,11 +140,15 @@ export const ActressJavPage = () => {
       }
       setDialogOpen(false);
       setEditingActress(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error al guardar:', error);
       
       // Mostrar mensaje específico si viene del backend
-      const errorMessage = error?.response?.data?.message || error?.message;
+      const maybeApiError = error as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+      const errorMessage = maybeApiError.response?.data?.message || maybeApiError.message;
       
       if (errorMessage && errorMessage.includes('Ya existe')) {
         toast.error(errorMessage);
@@ -222,7 +275,15 @@ export const ActressJavPage = () => {
   return (
     <div className="h-full flex flex-col">
       <div className="flex gap-2 mb-1 flex-wrap px-1 pt-1">
-        <div className="relative flex-1 min-w-[200px]">
+        <input
+          ref={importInputRef}
+          type="file"
+          accept=".xlsx,.xls"
+          className="hidden"
+          onChange={handleImportExcel}
+        />
+
+        <div className="relative flex-1 min-w-50">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
@@ -235,6 +296,29 @@ export const ActressJavPage = () => {
         <Button onClick={handleOpenDialog} size="icon" className="bg-green-600 hover:bg-green-700">
           <Plus className="h-4 w-4" />
         </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="icon" variant="outline" disabled={isExporting || isImporting} title="Importar/Exportar Excel">
+              {isExporting || isImporting ? <Spinner className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44 p-1.5">
+            <DropdownMenuItem
+              onClick={handleExportExcel}
+              className="h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
+            >
+              <Download className="mr-2 h-4 w-4" /> Exportar
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleImportClick}
+              className="mt-1 h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
+            >
+              <Upload className="mr-2 h-4 w-4" /> Importar
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <Button onClick={() => setBulkCreateDialogOpen(true)} variant="outline" title="Importar actrices en lote">
           <Plus className="h-4 w-4 mr-1" />
           Importar
@@ -359,7 +443,7 @@ export const ActressJavPage = () => {
                       {actress.name}
                     </p>
                     {actress.javCount !== undefined && actress.javCount > 0 && (
-                      <span className="bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full flex-shrink-0">
+                      <span className="bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full shrink-0">
                         {actress.javCount}
                       </span>
                     )}

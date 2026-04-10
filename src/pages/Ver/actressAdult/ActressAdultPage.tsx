@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGetAllActressAdult } from './hooks/useGetAllActressAdult.hook';
 import { useCreateActressAdult } from './hooks/useCreateActressAdult.hook';
@@ -14,13 +14,16 @@ import { useUpdateLinks } from './hooks/useUpdateLinks.hook';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
-import { Plus, Trash2, Check, Eye, Edit, Search, Link as LinkIcon, X, Upload } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu';
+import { downloadBase64File } from '@/common/lib/download-file';
+import { Plus, Trash2, Check, Eye, Edit, Search, Link as LinkIcon, X, Upload, ChevronDown, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { CreateActressDialog } from './components/CreateActressDialog';
 import { EditActressDialog } from './components/EditActressDialog';
 import { AddVideoDialog } from './components/AddVideoDialog';
 import { EditVideoDialog } from './components/EditVideoDialog';
 import { BulkCreateActressDialog } from './components/BulkCreateActressDialog';
+import { actressAdultService } from './services/actressAdult.service';
 import type { VideoAdult } from './models/actressAdult.model';
 
 export const ActressAdultPage = () => {
@@ -44,8 +47,11 @@ export const ActressAdultPage = () => {
   const [editingLinks, setEditingLinks] = useState(false);
   const [linksInput, setLinksInput] = useState<string[]>([]);
   const [hoveredActressId, setHoveredActressId] = useState<number | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: actresses, isLoading } = useGetAllActressAdult();
+  const { data: actresses, isLoading, refetch } = useGetAllActressAdult();
   const createActress = useCreateActressAdult();
   const updateActress = useUpdateActressAdult();
   // const deleteActress = useDeleteActressAdult();
@@ -56,6 +62,42 @@ export const ActressAdultPage = () => {
   const updateVideoStatus = useUpdateVideoStatus();
   const uploadImage = useUploadImage();
   const updateLinks = useUpdateLinks();
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      const file = await actressAdultService.exportExcel();
+      downloadBase64File(file.base64, file.fileName || 'actress-adult.xlsx');
+      toast.success('Exportacion completada');
+    } catch {
+      toast.error('No se pudo exportar el archivo');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImportClick = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleImportExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      const result = await actressAdultService.importExcel(file);
+      await refetch();
+      toast.success(
+        `Importacion lista. Creados: ${result.created}, Actualizados: ${result.updated}, Sin cambios: ${result.skipped}, Invalidos: ${result.invalid}`
+      );
+    } catch {
+      toast.error('No se pudo importar el archivo');
+    } finally {
+      event.target.value = '';
+      setIsImporting(false);
+    }
+  };
 
   // Manejar paste global
   const handlePaste = useCallback(async (e: ClipboardEvent) => {
@@ -374,6 +416,14 @@ export const ActressAdultPage = () => {
 
   return (
     <div className="space-y-6">
+      <input
+        ref={importInputRef}
+        type="file"
+        accept=".xlsx,.xls"
+        className="hidden"
+        onChange={handleImportExcel}
+      />
+
       <div className="flex justify-between items-center">
         <h1
           className={`text-3xl font-bold ${selectedActress ? 'cursor-pointer hover:text-blue-600 transition-colors' : ''}`}
@@ -419,6 +469,27 @@ export const ActressAdultPage = () => {
                 <Plus className="h-4 w-4 mr-2" />
                 Nueva Actriz
               </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon" variant="outline" disabled={isExporting || isImporting} title="Importar/Exportar Excel">
+                    {isExporting || isImporting ? <Spinner className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44 p-1.5">
+                  <DropdownMenuItem
+                    onClick={handleExportExcel}
+                    className="h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
+                  >
+                    <Download className="mr-2 h-4 w-4" /> Exportar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={handleImportClick}
+                    className="mt-1 h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
+                  >
+                    <Upload className="mr-2 h-4 w-4" /> Importar
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button onClick={() => setBulkCreateDialogOpen(true)} variant="outline">
                 Importar actrices
               </Button>

@@ -1,5 +1,6 @@
 import { apiClient } from '@/config/api/api-client';
 import { VideoSourceMap } from '@/common/enums/video-source.enum';
+import type { ExcelFileDto, ImportExcelResult } from '@/common/models/excel.model';
 import type { ActressAdult, ActressAdultBasic, ActressAdultDetail, CreateVideoAdultDto } from '../models/actressAdult.model';
 
 const BASE_URL = '/actress-adult';
@@ -62,6 +63,21 @@ export const actressAdultService = {
     formData.append('image', file);
 
     return await apiClient.post(`${BASE_URL}/${refId}/image`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
+  exportExcel: async (): Promise<ExcelFileDto> => {
+    return await apiClient.get(`${BASE_URL}/export`);
+  },
+
+  importExcel: async (file: File): Promise<ImportExcelResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return await apiClient.post(`${BASE_URL}/import`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
