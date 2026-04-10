@@ -211,23 +211,6 @@ export const ActressAdultPage = () => {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // const handleDeleteActress = async (id: number, e: React.MouseEvent) => {
-  //   e.stopPropagation();
-  //   try {
-  //     await deleteActress.mutateAsync(id);
-  //     toast.success('Actriz eliminada correctamente');
-  //     if (selectedActress === id) {
-  //       setSelectedActress(null);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error al eliminar actriz:', error);
-  //     toast.error('Error al eliminar la actriz');
-  //   }
-  // };
-
   const handleOpenEdit = (id: number, e?: React.MouseEvent) => {
     e?.stopPropagation();
     setEditingActress(id);

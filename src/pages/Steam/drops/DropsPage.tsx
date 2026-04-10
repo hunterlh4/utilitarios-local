@@ -94,7 +94,7 @@ export const DropsPage = () => {
   return (
     <div className="max-w-6xl mx-auto space-y-6 pt-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Drops Steam</h1>
+        <h1 className="text-3xl font-bold">Drop</h1>
         <Button size="sm"  onClick={openAdd}>
           <Plus className="w-4 h-4 mr-1" /> Agregar drop
         </Button>
