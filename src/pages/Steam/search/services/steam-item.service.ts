@@ -1,4 +1,5 @@
 import { apiClient } from '@/config/api/api-client';
+import type { ExcelFileDto, ImportExcelResult } from '@/common/models/excel.model';
 import type { CreateSteamItemDto, UpdateSteamItemDto } from '../models/steam-item-request.dto';
 import type { SteamItem } from '../models/steam-item.model';
 
@@ -31,5 +32,20 @@ export const steamItemService = {
 
   delete: async (id: number): Promise<void> => {
     return await apiClient.delete(`${BASE_URL}/${id}`);
+  },
+
+  exportExcel: async (): Promise<ExcelFileDto> => {
+    return await apiClient.get(`${BASE_URL}/export`);
+  },
+
+  importExcel: async (file: File): Promise<ImportExcelResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return await apiClient.post(`${BASE_URL}/import`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   },
 };

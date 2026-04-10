@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Search, Plus, Trash2 } from 'lucide-react';
+import { Search, Plus, Trash2, ChevronDown, Upload, Download } from 'lucide-react';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Badge } from '@/common/components/ui/badge';
 import { Card, CardContent } from '@/common/components/ui/card';
 import { Spinner } from '@/common/components/ui/spinner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu';
+import { downloadBase64File } from '@/common/lib/download-file';
 
 import { getQualityByColor } from '../shared/item-quality';
 import { useSteamSearch } from './hooks/useSteamSearch.hook';
@@ -16,6 +18,7 @@ import { useUpdateSteamItem } from './hooks/useUpdateSteamItem.hook';
 import { useDeleteSteamItem } from './hooks/useDeleteSteamItem.hook';
 import { useBulkCreateSteamItems } from './hooks/useBulkCreateSteamItems.hook';
 import { steamSearchService } from './services/steam-search.service';
+import { steamItemService } from './services/steam-item.service';
 import { SteamItemFormModal } from './components/SteamItemFormModal';
 import { PRESET_ITEMS } from './data/preset-items';
 import type { SteamItem } from './models/steam-item.model';
@@ -27,13 +30,52 @@ export const SearchPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<SteamItem | null>(null);
   const [prefillData, setPrefillData] = useState<Partial<CreateSteamItemDto> | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const { search, data: searchResults, isFetching } = useSteamSearch();
-  const { data: savedItems, isLoading: loadingSaved } = useGetAllSteamItems();
+  const { data: savedItems, isLoading: loadingSaved, refetch: refetchSavedItems } = useGetAllSteamItems();
   const addMutation = useAddSteamItem();
   const updateMutation = useUpdateSteamItem();
   const deleteMutation = useDeleteSteamItem();
   const { bulkCreate, isPending: isBulkPending } = useBulkCreateSteamItems();
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      const file = await steamItemService.exportExcel();
+      downloadBase64File(file.base64, file.fileName || 'steam-items.xlsx');
+      toast.success('Exportacion completada');
+    } catch {
+      toast.error('No se pudo exportar el archivo');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImportClick = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleImportExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      const result = await steamItemService.importExcel(file);
+      await refetchSavedItems();
+      toast.success(
+        `Importacion lista. Creados: ${result.created}, Actualizados: ${result.updated}, Sin cambios: ${result.skipped}, Invalidos: ${result.invalid}`
+      );
+    } catch {
+      toast.error('No se pudo importar el archivo');
+    } finally {
+      event.target.value = '';
+      setIsImporting(false);
+    }
+  };
 
   const handleSearch = () => {
     if (!searchQuery.trim()) return;
@@ -47,7 +89,7 @@ export const SearchPage = () => {
     const marketUrl = `https://steamcommunity.com/market/listings/${result.asset_description.appid}/${encodeURIComponent(result.asset_description.market_hash_name)}`;
 
     setPrefillData({
-      externalId: result.asset_description.market_hash_name,
+      externalId: result.asset_description.classid || result.asset_description.market_hash_name,
       name: result.name,
       image: imageUrl,
       price: priceInSoles,
@@ -92,8 +134,8 @@ export const SearchPage = () => {
     } else {
       addMutation.mutate(payload as CreateSteamItemDto, {
         onSuccess: () => { toast.success('Item guardado'); setModalOpen(false); },
-        onError: (err: any) => {
-          const msg = err?.response?.data?.message ?? 'Error al guardar';
+        onError: (err: unknown) => {
+          const msg = err instanceof Error ? err.message : 'Error al guardar';
           toast.error(msg);
         },
       });
@@ -107,6 +149,14 @@ export const SearchPage = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Steam Items</h1>
         <div className="flex gap-2">
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={handleImportExcel}
+          />
+
           {!savedItems?.length && (
             <Button
               size="sm"
@@ -120,9 +170,44 @@ export const SearchPage = () => {
               Importar preset
             </Button>
           )}
-          <Button onClick={handleOpenManual} size="sm">
-            <Plus className="w-4 h-4 mr-1" /> Agregar manual
-          </Button>
+
+          <div className="flex items-center overflow-hidden rounded-md">
+            <Button
+              onClick={handleOpenManual}
+              size="sm"
+              className="rounded-none border-0"
+            >
+              <Plus className="w-4 h-4 mr-1" /> Agregar
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="default"
+                  disabled={isExporting || isImporting}
+                  className="rounded-none border-0 border-l border-primary-foreground/25 px-2"
+                  aria-label="Abrir acciones de Excel"
+                >
+                  {isExporting || isImporting ? <Spinner className="h-4 w-4" /> : <ChevronDown className="w-4 h-4" />}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 p-1.5 bg-primary">
+                <DropdownMenuItem
+                  onClick={handleExportExcel}
+                  className="h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
+                >
+                  <Download className="mr-2 h-4 w-4" /> Exportar
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={handleImportClick}
+                  className="mt-1 h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground  focus:bg-primary/90 focus:text-primary-foreground"
+                >
+                  <Upload className="mr-2 h-4 w-4" /> Importar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
 
@@ -159,7 +244,8 @@ export const SearchPage = () => {
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-0">
             {searchResults.results.map((result) => {
-              const alreadySaved = savedIds.has(result.asset_description.market_hash_name);
+              const resultExternalId = result.asset_description.classid || result.asset_description.market_hash_name;
+              const alreadySaved = savedIds.has(resultExternalId);
               const imageUrl = steamSearchService.getImageUrl(result.asset_description.icon_url);
               const price = steamSearchService.convertToSoles(result.sell_price);
               const quality = result.asset_description.name_color
