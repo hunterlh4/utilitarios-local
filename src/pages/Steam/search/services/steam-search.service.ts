@@ -19,7 +19,7 @@ export interface BulkCreateResult {
 
 export const steamSearchService = {
   search: async (query: string, game: 1 | 2 = 1): Promise<SteamSearchResponse> => {
-    return await apiClient.get('/steam-item/steam-api-search', { params: { query, game } });
+    return await apiClient.get('/steam/item-api-search', { params: { query, game } });
   },
 
   bulkCreate: async (items: BulkSteamItemDto[]): Promise<BulkCreateResult> => {
@@ -27,7 +27,7 @@ export const steamSearchService = {
       ...item,
       price: item.price != null ? parseFloat((item.price * USD_TO_PEN).toFixed(2)) : 0,
     }));
-    return await apiClient.post('/steam-item/bulk', converted);
+    return await apiClient.post('/steam/item-bulk', converted);
   },
 
   convertToSoles: (priceInCents: number): string => {

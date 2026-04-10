@@ -43,7 +43,7 @@ export const DropsPage = () => {
   const openEdit = (drop: SteamItemDrop) => {
     setEditing(drop);
     setForm({
-      steamItemId: String(drop.steamItemId),
+      steamItemId: String(drop.item.id),
       quantity: String(drop.quantity),
       price: String(drop.price),
       salePrice: String(drop.salePrice),
@@ -128,11 +128,11 @@ export const DropsPage = () => {
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <span className="truncate max-w-[220px] font-medium">{drop.itemName}</span>
+                        <span className="truncate max-w-55 font-medium">{drop.item.name}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <img src={drop.itemImage} alt={drop.itemName} className="w-36 h-36 object-contain mx-auto" />
+                      <img src={drop.item.image} alt={drop.item.name} className="w-36 h-36 object-contain mx-auto" />
                     </td>
                     <td className="px-4 py-3 text-center text-muted-foreground">{drop.quantity}</td>
                     <td className="px-4 py-3 text-center text-muted-foreground">S/. {drop.price}</td>
@@ -170,7 +170,7 @@ export const DropsPage = () => {
           </DialogHeader>
           <div className="space-y-4">
             {/* Grid de items */}
-            <div className="grid grid-cols-5 gap-2 max-h-[420px] overflow-y-auto">
+            <div className="grid grid-cols-5 gap-2 max-h-105 overflow-y-auto">
               {steamItems?.map((item) => {
                 const quality = getQualityByName(item.name);
                 return (

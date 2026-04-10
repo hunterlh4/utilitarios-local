@@ -34,15 +34,20 @@ interface PurchaseGroup {
   soldCount: number;
 }
 
+interface PurchasesByGame {
+  dota: PurchaseGroup[];
+  cs2: PurchaseGroup[];
+}
+
 const groupPurchases = (list: SteamItemPurchase[]): PurchaseGroup[] => {
   const map = new Map<number, PurchaseGroup>();
   for (const p of list) {
-    if (!map.has(p.steamItemId)) {
-      map.set(p.steamItemId, {
-        steamItemId: p.steamItemId,
-        itemName: p.itemName,
-        itemImage: p.itemImage,
-        itemGame: p.itemGame,
+    if (!map.has(p.item.id)) {
+      map.set(p.item.id, {
+        steamItemId: p.item.id,
+        itemName: p.item.name,
+        itemImage: p.item.image,
+        itemGame: p.item.game ?? 1,
         items: [],
         totalPurchase: 0,
         totalSale: 0,
@@ -50,13 +55,32 @@ const groupPurchases = (list: SteamItemPurchase[]): PurchaseGroup[] => {
         soldCount: 0,
       });
     }
-    const g = map.get(p.steamItemId)!;
+    const g = map.get(p.item.id)!;
     g.items.push(p);
     g.totalPurchase += p.purchasePrice;
     g.totalSale += p.salePrice;
     if (p.profit != null) { g.totalProfit += p.profit; g.soldCount++; }
   }
   return Array.from(map.values());
+};
+
+const groupByGameThenItem = (list: SteamItemPurchase[]): PurchasesByGame => {
+  const byGame = new Map<1 | 2, SteamItemPurchase[]>();
+
+  for (const purchase of list) {
+    const game = purchase.item.game === 2 ? 2 : 1;
+    const current = byGame.get(game);
+    if (current) {
+      current.push(purchase);
+    } else {
+      byGame.set(game, [purchase]);
+    }
+  }
+
+  return {
+    dota: groupPurchases(byGame.get(1) ?? []),
+    cs2: groupPurchases(byGame.get(2) ?? []),
+  };
 };
 
 export const PurchasePage = () => {
@@ -79,7 +103,7 @@ export const PurchasePage = () => {
 
   const openEdit = (p: SteamItemPurchase) => {
     setEditing(p);
-    setForm({ steamItemId: String(p.steamItemId), purchasePrice: String(p.purchasePrice), salePrice: String(p.salePrice), quantity: '1' });
+    setForm({ steamItemId: String(p.item.id), purchasePrice: String(p.purchasePrice), salePrice: String(p.salePrice), quantity: '1' });
     setModalOpen(true);
   };
 
@@ -91,7 +115,11 @@ export const PurchasePage = () => {
   const toggleExpand = (id: number) => {
     setExpanded((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
@@ -117,8 +145,9 @@ export const PurchasePage = () => {
     }
   };
 
-  const dota = groupPurchases(purchases?.filter((p) => p.itemGame === 1) ?? []);
-  const cs2 = groupPurchases(purchases?.filter((p) => p.itemGame === 2) ?? []);
+  const groupedByGame = groupByGameThenItem(purchases ?? []);
+  const dota = groupedByGame.dota;
+  const cs2 = groupedByGame.cs2;
   const totalGlobal = (purchases ?? []).reduce((acc, p) => acc + (p.profit ?? 0), 0);
 
   const renderTable = (groups: PurchaseGroup[], title: string) => (
@@ -151,10 +180,10 @@ export const PurchasePage = () => {
                     <td className="px-4 py-2">
                       <div className="flex items-center gap-3">
                         {g.items.length > 1
-                          ? (isOpen ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />)
+                          ? (isOpen ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />)
                           : <span className="w-3.5" />
                         }
-                        <span className="truncate max-w-[220px] font-medium">{g.itemName}</span>
+                        <span className="truncate max-w-55 font-medium">{g.itemName}</span>
                       </div>
                     </td>
                     <td className="px-4 py-2 text-center">
@@ -259,7 +288,7 @@ export const PurchasePage = () => {
             <DialogTitle>{editing ? 'Editar compra' : 'Registrar compra'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-5 gap-2 max-h-[420px] overflow-y-auto">
+            <div className="grid grid-cols-5 gap-2 max-h-105 overflow-y-auto">
               {steamItems?.map((item) => {
                 const quality = getQualityByName(item.name);
                 return (

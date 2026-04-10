@@ -2,7 +2,7 @@ import { apiClient } from '@/config/api/api-client';
 import type { CreateSteamItemDropDto, UpdateSteamItemDropDto } from '../models/steam-item-drop-request.dto';
 import type { SteamItemDrop } from '../models/steam-item-drop.model';
 
-const BASE_URL = '/steam-drop';
+const BASE_URL = '/steam/drop';
 
 export const steamItemDropService = {
   getAll: async (): Promise<SteamItemDrop[]> => {

@@ -2,7 +2,7 @@ import { apiClient } from '@/config/api/api-client';
 import type { CreateSteamItemPurchaseDto, UpdateSteamItemPurchaseDto } from '../models/steam-item-purchase-request.dto';
 import type { SteamItemPurchase } from '../models/steam-item-purchase.model';
 
-const BASE_URL = '/steam-purchase';
+const BASE_URL = '/steam/purchase';
 
 export const steamItemPurchaseService = {
   getAll: async (): Promise<SteamItemPurchase[]> => {
