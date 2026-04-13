@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Plus, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronRight, Search, Upload, Download } from 'lucide-react';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Label } from '@/common/components/ui/label';
 import { Spinner } from '@/common/components/ui/spinner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/common/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu';
+import { downloadBase64File } from '@/common/lib/download-file';
 import { useGetAllSteamItems } from '../search/hooks/useGetAllSteamItems.hook';
 import { useGetAllSteamItemPurchases } from './hooks/useGetAllSteamItemPurchases.hook';
 import { useAddSteamItemPurchase } from './hooks/useAddSteamItemPurchase.hook';
 import { useUpdateSteamItemPurchase } from './hooks/useUpdateSteamItemPurchase.hook';
 import { useDeleteSteamItemPurchase } from './hooks/useDeleteSteamItemPurchase.hook';
+import { steamItemPurchaseService } from './services/steam-item-purchase.service';
 import { getQualityByName } from '../shared/item-quality';
 import type { SteamItemPurchase } from './models/steam-item-purchase.model';
 
@@ -88,12 +91,52 @@ export const PurchasePage = () => {
   const [editing, setEditing] = useState<SteamItemPurchase | null>(null);
   const [form, setForm] = useState<PurchaseFormValues>({ steamItemId: '', purchasePrice: '', salePrice: '0', quantity: '1' });
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const { data: steamItems } = useGetAllSteamItems();
-  const { data: purchases, isLoading } = useGetAllSteamItemPurchases();
+  const { data: purchases, isLoading, refetch } = useGetAllSteamItemPurchases();
   const addMutation = useAddSteamItemPurchase();
   const updateMutation = useUpdateSteamItemPurchase();
   const deleteMutation = useDeleteSteamItemPurchase();
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      const file = await steamItemPurchaseService.exportExcel();
+      downloadBase64File(file.base64, file.fileName || 'steam-purchase.xlsx');
+      toast.success('Exportacion completada');
+    } catch {
+      toast.error('No se pudo exportar el archivo');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImportClick = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleImportExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      const result = await steamItemPurchaseService.importExcel(file);
+      await refetch();
+      toast.success(
+        `Importacion lista. Creados: ${result.created}, Actualizados: ${result.updated}, Sin cambios: ${result.skipped}, Invalidos: ${result.invalid}`
+      );
+    } catch {
+      toast.error('No se pudo importar el archivo');
+    } finally {
+      event.target.value = '';
+      setIsImporting(false);
+    }
+  };
 
   const openAdd = () => {
     setEditing(null);
@@ -145,10 +188,14 @@ export const PurchasePage = () => {
     }
   };
 
-  const groupedByGame = groupByGameThenItem(purchases ?? []);
+  const filteredPurchases = (purchases ?? []).filter((purchase) =>
+    purchase.item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const groupedByGame = groupByGameThenItem(filteredPurchases);
   const dota = groupedByGame.dota;
   const cs2 = groupedByGame.cs2;
-  const totalGlobal = (purchases ?? []).reduce((acc, p) => acc + (p.profit ?? 0), 0);
+  const totalGlobal = filteredPurchases.reduce((acc, p) => acc + (p.profit ?? 0), 0);
 
   const renderTable = (groups: PurchaseGroup[], title: string) => (
     <div className="space-y-2">
@@ -256,25 +303,74 @@ export const PurchasePage = () => {
   );
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6 pt-4">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Compras Steam</h1>
         <div className="flex items-center gap-3">
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={handleImportExcel}
+          />
+
           {totalGlobal !== 0 && (
             <span className={`text-sm font-semibold ${totalGlobal >= 0 ? 'text-green-500' : 'text-destructive'}`}>
               Total: S/. {totalGlobal.toFixed(2)}
             </span>
           )}
-          <Button size="sm" onClick={openAdd}>
-            <Plus className="w-4 h-4 mr-1" /> Registrar compra
-          </Button>
+
+          <div className="flex items-center overflow-hidden rounded-md">
+            <Button onClick={openAdd} size="sm" className="rounded-none border-0">
+              <Plus className="w-4 h-4 mr-1" /> Agregar
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="default"
+                  disabled={isExporting || isImporting}
+                  className="rounded-none border-0 border-l border-primary-foreground/25 px-2"
+                  aria-label="Abrir acciones de Excel"
+                >
+                  {isExporting || isImporting ? <Spinner className="h-4 w-4" /> : <ChevronDown className="w-4 h-4" />}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 p-1.5 bg-primary">
+                <DropdownMenuItem
+                  onClick={handleExportExcel}
+                  className="h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
+                >
+                  <Download className="mr-2 h-4 w-4" /> Exportar
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={handleImportClick}
+                  className="mt-1 h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
+                >
+                  <Upload className="mr-2 h-4 w-4" /> Importar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
+      </div>
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar compra por item..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10 focus-visible:ring-0 focus-visible:ring-offset-0"
+        />
       </div>
 
       {isLoading ? (
         <div className="flex justify-center py-8"><Spinner className="h-8 w-8" /></div>
-      ) : !purchases?.length ? (
-        <p className="text-sm text-muted-foreground">No hay compras registradas.</p>
+      ) : !filteredPurchases.length ? (
+        <p className="text-sm text-muted-foreground">No hay resultados para la busqueda.</p>
       ) : (
         <div className="space-y-8">
           {dota.length > 0 && renderTable(dota, 'Dota 2')}

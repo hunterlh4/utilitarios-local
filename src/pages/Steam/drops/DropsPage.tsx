@@ -1,17 +1,20 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Search, ChevronDown, Upload, Download } from 'lucide-react';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Label } from '@/common/components/ui/label';
 import { Spinner } from '@/common/components/ui/spinner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/common/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu';
+import { downloadBase64File } from '@/common/lib/download-file';
 import { getQualityByName } from '../shared/item-quality';
 import { useGetAllSteamItems } from '../search/hooks/useGetAllSteamItems.hook';
 import { useGetAllSteamItemDrops } from './hooks/useGetAllSteamItemDrops.hook';
 import { useAddSteamItemDrop } from './hooks/useAddSteamItemDrop.hook';
 import { useUpdateSteamItemDrop } from './hooks/useUpdateSteamItemDrop.hook';
 import { useDeleteSteamItemDrop } from './hooks/useDeleteSteamItemDrop.hook';
+import { steamItemDropService } from './services/steam-item-drop.service';
 import type { SteamItemDrop } from './models/steam-item-drop.model';
 
 const STEAM_FEE = 0.87; // Steam cobra ~13%, el vendedor recibe 87%
@@ -27,12 +30,52 @@ export const DropsPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<SteamItemDrop | null>(null);
   const [form, setForm] = useState<DropFormValues>({ steamItemId: '', quantity: '1', price: '', salePrice: '' });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const { data: steamItems } = useGetAllSteamItems();
-  const { data: drops, isLoading } = useGetAllSteamItemDrops();
+  const { data: drops, isLoading, refetch } = useGetAllSteamItemDrops();
   const addMutation = useAddSteamItemDrop();
   const updateMutation = useUpdateSteamItemDrop();
   const deleteMutation = useDeleteSteamItemDrop();
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      const file = await steamItemDropService.exportExcel();
+      downloadBase64File(file.base64, file.fileName || 'steam-drop.xlsx');
+      toast.success('Exportacion completada');
+    } catch {
+      toast.error('No se pudo exportar el archivo');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImportClick = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleImportExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      const result = await steamItemDropService.importExcel(file);
+      await refetch();
+      toast.success(
+        `Importacion lista. Creados: ${result.created}, Actualizados: ${result.updated}, Sin cambios: ${result.skipped}, Invalidos: ${result.invalid}`
+      );
+    } catch {
+      toast.error('No se pudo importar el archivo');
+    } finally {
+      event.target.value = '';
+      setIsImporting(false);
+    }
+  };
 
   const openAdd = () => {
     setEditing(null);
@@ -89,21 +132,75 @@ export const DropsPage = () => {
     }
   };
 
-  const totalGanancia = drops?.reduce((acc, d) => acc + d.total, 0) ?? 0;
+  const filteredDrops = (drops ?? []).filter((drop) =>
+    drop.item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const totalGanancia = filteredDrops.reduce((acc, d) => acc + d.total, 0);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pt-4">
+    <div className="max-w-7xl mx-auto space-y-6 pt-4">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Drop</h1>
-        <Button size="sm"  onClick={openAdd}>
-          <Plus className="w-4 h-4 mr-1" /> Agregar drop
-        </Button>
+        <div className="flex gap-2">
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={handleImportExcel}
+          />
+
+          <div className="flex items-center overflow-hidden rounded-md">
+            <Button onClick={openAdd} size="sm" className="rounded-none border-0">
+              <Plus className="w-4 h-4 mr-1" /> Agregar
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="default"
+                  disabled={isExporting || isImporting}
+                  className="rounded-none border-0 border-l border-primary-foreground/25 px-2"
+                  aria-label="Abrir acciones de Excel"
+                >
+                  {isExporting || isImporting ? <Spinner className="h-4 w-4" /> : <ChevronDown className="w-4 h-4" />}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 p-1.5 bg-primary">
+                <DropdownMenuItem
+                  onClick={handleExportExcel}
+                  className="h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
+                >
+                  <Download className="mr-2 h-4 w-4" /> Exportar
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={handleImportClick}
+                  className="mt-1 h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
+                >
+                  <Upload className="mr-2 h-4 w-4" /> Importar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar drop por item..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10 focus-visible:ring-0 focus-visible:ring-offset-0"
+        />
       </div>
 
       {isLoading ? (
         <div className="flex justify-center py-8"><Spinner className="h-8 w-8" /></div>
-      ) : !drops?.length ? (
-        <p className="text-sm text-muted-foreground">No hay drops registrados.</p>
+      ) : !filteredDrops.length ? (
+        <p className="text-sm text-muted-foreground">No hay resultados para la busqueda.</p>
       ) : (
         <div className="rounded-xl border overflow-hidden">
           <table className="w-full text-sm">
@@ -119,7 +216,7 @@ export const DropsPage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {drops.map((drop) => {
+              {filteredDrops.map((drop) => {
                 return (
                   <tr
                     key={drop.id}
