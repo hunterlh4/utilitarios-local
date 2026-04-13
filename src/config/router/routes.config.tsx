@@ -82,7 +82,15 @@ export const router = createBrowserRouter([
         element: <AnimeGaleryPage />,
       },
       {
+        path: 'galeria/anime/:id',
+        element: <AnimeGaleryPage />,
+      },
+      {
         path: 'galeria/girl',
+        element: <GirlGaleryPage />,
+      },
+      {
+        path: 'galeria/girl/:id',
         element: <GirlGaleryPage />,
       },
       // Steam

@@ -1,15 +1,24 @@
 export interface GirlGalery {
   id: number;
   name: string;
-  firstImageUrl?: string;
+  image?: string;
   createdAt?: string;
 }
 
 export interface GirlGaleryDetail {
   id: number;
   name: string;
+  image?: string;
   media: Media[];
+  links: LinkItem[];
   createdAt: string;
+}
+
+export interface LinkItem {
+  id: number;
+  name?: string;
+  url: string;
+  orderIndex?: number;
 }
 
 export interface Media {
@@ -21,5 +30,4 @@ export interface Media {
 
 export interface UpdateGirlGaleryDto {
   name: string;
-  mediaId?: number;
 }
