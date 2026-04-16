@@ -12,7 +12,6 @@ import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
 import { Upload, Check, Eye, Edit, Link as LinkIcon, X, ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
 import { EditActressDialog } from './components/EditActressDialog';
 import { AddVideoDialog } from './components/AddVideoDialog';
 import { EditVideoDialog } from './components/EditVideoDialog';
@@ -55,13 +54,10 @@ export const ActressAdultDetailPage = () => {
   ) => {
     try {
       await updateActress.mutateAsync({ id, name, tagIds });
-
-      toast.success('Actriz actualizada correctamente');
       setEditDialogOpen(false);
       setEditingActress(null);
     } catch (error) {
       console.error('Error al actualizar actriz:', error);
-      toast.error('Error al actualizar la actriz');
     }
   };
 
@@ -73,35 +69,29 @@ export const ActressAdultDetailPage = () => {
   const handleAddVideo = async (source: string, videoUrl: string, actressIds: number[], tagIds: number[]) => {
     try {
       await createVideo.mutateAsync({ source, videoUrl, actressIds, tagIds });
-      toast.success('Video agregado correctamente');
       setVideoDialogOpen(false);
     } catch (error) {
       console.error('Error al agregar video:', error);
-      toast.error('Error al agregar el video');
     }
   };
 
   const handleEditVideo = async (videoId: number, actressIds: number[], tagIds: number[]) => {
     try {
       await updateVideo.mutateAsync({ videoId, actressIds, tagIds });
-      toast.success('Video actualizado correctamente');
       setEditVideoDialogOpen(false);
       setEditingVideo(null);
     } catch (error) {
       console.error('Error al actualizar video:', error);
-      toast.error('Error al actualizar el video');
     }
   };
 
   const handleDeleteVideo = async (videoId: number) => {
     if (!confirm('¿Estás seguro de eliminar este video?')) return;
-    
+
     try {
       await deleteVideo.mutateAsync(videoId);
-      toast.success('Video eliminado correctamente');
     } catch (error) {
       console.error('Error al eliminar video:', error);
-      toast.error('Error al eliminar el video');
     }
   };
 
@@ -114,10 +104,8 @@ export const ActressAdultDetailPage = () => {
     try {
       const newStatus = currentStatus === 0 ? 1 : 0;
       await updateVideoStatus.mutateAsync({ id: videoId, status: newStatus });
-      toast.success(newStatus === 1 ? 'Video marcado como completado' : 'Video marcado como por ver');
     } catch (error) {
       console.error('Error al actualizar estado:', error);
-      toast.error('Error al actualizar el estado');
     }
   };
 
@@ -129,11 +117,9 @@ export const ActressAdultDetailPage = () => {
   const handleSaveLinks = async () => {
     try {
       await updateLinks.mutateAsync({ id: actressId, links: linksInput.filter(l => l.trim()) });
-      toast.success('Links actualizados correctamente');
       setEditingLinks(false);
     } catch (error) {
       console.error('Error al actualizar links:', error);
-      toast.error('Error al actualizar los links');
     }
   };
 

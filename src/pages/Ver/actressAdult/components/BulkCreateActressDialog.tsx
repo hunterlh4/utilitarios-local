@@ -3,7 +3,6 @@ import { Button } from '@/common/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/common/components/ui/dialog';
 import { Textarea } from '@/common/components/ui/textarea';
 import { Spinner } from '@/common/components/ui/spinner';
-import { toast } from 'sonner';
 
 interface BulkCreateActressDialogProps {
   open: boolean;
@@ -18,6 +17,7 @@ export const BulkCreateActressDialog = ({
 }: BulkCreateActressDialogProps) => {
   const [namesText, setNamesText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleCreate = async () => {
     const names = namesText
@@ -26,19 +26,18 @@ export const BulkCreateActressDialog = ({
       .filter(name => name.length > 0);
 
     if (names.length === 0) {
-      toast.error('Por favor ingresa al menos un nombre');
+      setValidationError('Por favor ingresa al menos un nombre');
       return;
     }
 
+    setValidationError(null);
     setIsLoading(true);
     try {
       await onCreateActresses(names);
-      toast.success(`${names.length} actriz(ces) creadas correctamente`);
       setNamesText('');
       onOpenChange(false);
     } catch (error) {
       console.error('Error al crear actrices:', error);
-      toast.error('Error al crear las actrices');
     } finally {
       setIsLoading(false);
     }
@@ -48,13 +47,13 @@ export const BulkCreateActressDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Crear múltiples actrices</DialogTitle>
+          <DialogTitle>Crear multiples actrices</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">
-              Ingresa los nombres (uno por línea)
+              Ingresa los nombres (uno por linea)
             </label>
             <Textarea
               placeholder={`Morgpie leaks\nNaomi Hughes\nnnnnekochan\nKari Keone`}
@@ -65,6 +64,7 @@ export const BulkCreateActressDialog = ({
             <p className="text-xs text-muted-foreground mt-2">
               {namesText.split('\n').filter(n => n.trim()).length} nombre(s) listo(s) para crear
             </p>
+            {validationError && <p className="text-xs text-red-500 mt-1">{validationError}</p>}
           </div>
 
           <div className="flex gap-2 justify-end">

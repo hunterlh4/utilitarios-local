@@ -6,19 +6,20 @@ import { useCreateActressAdult } from './hooks/useCreateActressAdult.hook';
 import { useUpdateActressAdult } from './hooks/useUpdateActressAdult.hook';
 import { useUpdateLinks } from './hooks/useUpdateLinks.hook';
 import { useUploadImage } from './hooks/useUploadImage.hook';
+import { useExportActressAdult } from './hooks/useExportActressAdult.hook';
+import { useImportActressAdult } from './hooks/useImportActressAdult.hook';
+import { useBulkCreateActressAdult } from './hooks/useBulkCreateActressAdult.hook';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
 import { Search, Plus, Trash2, Edit, Link as LinkIcon, Image as ImageIcon, ChevronDown, Upload, Download } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu';
 import { downloadBase64File } from '@/common/lib/download-file';
-import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/common/components/ui/dialog';
 import { Label } from '@/common/components/ui/label';
 import { CreateActressDialog } from './components/CreateActressDialog';
 import { EditActressDialog } from './components/EditActressDialog';
 import { BulkCreateActressDialog } from './components/BulkCreateActressDialog';
-import { actressAdultService } from './services/actressAdult.service';
 import type { ActressAdult } from './models/actressAdult.model';
 
 type ActressAdultWithLinks = ActressAdult & {
@@ -125,15 +126,15 @@ export const ActressAdultPage = () => {
   const updateActress = useUpdateActressAdult();
   const updateLinks = useUpdateLinks();
   const uploadImage = useUploadImage();
+  const exportActressAdult = useExportActressAdult();
+  const importActressAdult = useImportActressAdult();
+  const bulkCreateActressAdult = useBulkCreateActressAdult();
 
   const handleExportExcel = async () => {
     setIsExporting(true);
     try {
-      const file = await actressAdultService.exportExcel();
+      const file = await exportActressAdult.mutateAsync();
       downloadBase64File(file.base64, file.fileName || 'actress-adult.xlsx');
-      toast.success('Exportacion completada');
-    } catch {
-      toast.error('No se pudo exportar el archivo');
     } finally {
       setIsExporting(false);
     }
@@ -149,13 +150,8 @@ export const ActressAdultPage = () => {
 
     setIsImporting(true);
     try {
-      const result = await actressAdultService.importExcel(file);
+      await importActressAdult.mutateAsync(file);
       await refetch();
-      toast.success(
-        `Importacion lista. Creados: ${result.created}, Actualizados: ${result.updated}, Sin cambios: ${result.skipped}, Invalidos: ${result.invalid}`
-      );
-    } catch {
-      toast.error('No se pudo importar el archivo');
     } finally {
       event.target.value = '';
       setIsImporting(false);
@@ -165,10 +161,8 @@ export const ActressAdultPage = () => {
   const uploadPastedImage = useCallback(async (file: File, refId: number) => {
     try {
       await uploadImage.mutateAsync({ file, refId });
-      toast.success('Imagen subida correctamente');
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Error al subir la imagen');
     }
   }, [uploadImage]);
 
@@ -211,30 +205,18 @@ export const ActressAdultPage = () => {
   const handleCreateActress = async (name: string, tagIds: number[]) => {
     try {
       await createActress.mutateAsync({ name, tagIds });
-      toast.success('Actriz creada correctamente');
-
       setCreateDialogOpen(false);
     } catch (error) {
       console.error('Error al crear actriz:', error);
-      toast.error('Error al crear la actriz');
     }
   };
 
   const handleBulkCreateActresses = async (names: string[]) => {
     try {
-      for (const name of names) {
-        try {
-          await createActress.mutateAsync({ name, tagIds: [] });
-        } catch (error) {
-          console.error(`Error al crear actriz "${name}":`, error);
-          toast.error(`Error al crear la actriz "${name}"`);
-        }
-      }
-      toast.success('Actrices creadas correctamente');
+      await bulkCreateActressAdult.mutateAsync(names);
       setBulkCreateDialogOpen(false);
     } catch (error) {
       console.error('Error en creación en lote:', error);
-      toast.error('Error al crear las actrices');
     }
   };
 
@@ -245,13 +227,10 @@ export const ActressAdultPage = () => {
   ) => {
     try {
       await updateActress.mutateAsync({ id, name, tagIds });
-
-      toast.success('Actriz actualizada correctamente');
       setEditDialogOpen(false);
       setEditingActress(null);
     } catch (error) {
       console.error('Error al actualizar actriz:', error);
-      toast.error('Error al actualizar la actriz');
     }
   };
 
@@ -268,12 +247,10 @@ export const ActressAdultPage = () => {
   const handleSaveLinks = async (actressId: number, links: string[]) => {
     try {
       await updateLinks.mutateAsync({ id: actressId, links });
-      toast.success('Enlaces actualizados correctamente');
       setLinksDialogOpen(false);
       setEditingActress(null);
     } catch (error) {
       console.error('Error al actualizar enlaces:', error);
-      toast.error('Error al actualizar los enlaces');
     }
   };
 
@@ -284,10 +261,8 @@ export const ActressAdultPage = () => {
 
     try {
       await deleteActress.mutateAsync(id);
-      toast.success('Actriz eliminada correctamente');
     } catch (error) {
       console.error('Error al eliminar:', error);
-      toast.error('Error al eliminar la actriz');
     }
   };
 
@@ -301,10 +276,8 @@ export const ActressAdultPage = () => {
 
       try {
         await uploadImage.mutateAsync({ file, refId: actress.id });
-        toast.success('Imagen subida correctamente');
       } catch (error) {
         console.error('Error:', error);
-        toast.error('Error al subir la imagen');
       }
     };
     input.click();

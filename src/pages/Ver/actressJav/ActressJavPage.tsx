@@ -6,6 +6,9 @@ import { useAddActress } from './hooks/useAddActress.hook';
 import { useUpdateActress } from './hooks/useUpdateActress.hook';
 import { useUpdateActressLinks } from './hooks/useUpdateActressLinks.hook';
 import { useUploadImage } from './hooks/useUploadImage.hook';
+import { useExportActressJav } from './hooks/useExportActressJav.hook';
+import { useImportActressJav } from './hooks/useImportActressJav.hook';
+import { useBulkCreateActress } from './hooks/useBulkCreateActress.hook';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
@@ -13,11 +16,9 @@ import { Search, Plus, Trash2, Edit, Link as LinkIcon, Image as ImageIcon, Chevr
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/common/components/ui/dialog';
 import { downloadBase64File } from '@/common/lib/download-file';
-import { toast } from 'sonner';
 import { ActressDialog } from './components/form';
 import { ActressLinksDialog } from './components/ActressLinksDialog';
 import { BulkCreateActressDialog } from './components/BulkCreateActressDialog';
-import { actressJavService } from './services/actressJav.service';
 import type { ActressJav } from './models/actress.model';
 
 type ActressJavForm = ActressJav & { tagIds?: number[] };
@@ -43,14 +44,15 @@ export const ActressJavPage = () => {
   const updateActressLinks = useUpdateActressLinks();
   const uploadImage = useUploadImage();
 
+  const exportActressJav = useExportActressJav();
+  const importActressJav = useImportActressJav();
+  const bulkCreateActress = useBulkCreateActress();
+
   const handleExportExcel = async () => {
     setIsExporting(true);
     try {
-      const file = await actressJavService.exportExcel();
+      const file = await exportActressJav.mutateAsync();
       downloadBase64File(file.base64, file.fileName || 'actress-jav.xlsx');
-      toast.success('Exportacion completada');
-    } catch {
-      toast.error('No se pudo exportar el archivo');
     } finally {
       setIsExporting(false);
     }
@@ -66,13 +68,8 @@ export const ActressJavPage = () => {
 
     setIsImporting(true);
     try {
-      const result = await actressJavService.importExcel(file);
+      await importActressJav.mutateAsync(file);
       await refetch();
-      toast.success(
-        `Importacion lista. Creados: ${result.created}, Actualizados: ${result.updated}, Sin cambios: ${result.skipped}, Invalidos: ${result.invalid}`
-      );
-    } catch {
-      toast.error('No se pudo importar el archivo');
     } finally {
       event.target.value = '';
       setIsImporting(false);
@@ -82,10 +79,8 @@ export const ActressJavPage = () => {
   const uploadPastedImage = useCallback(async (file: File, refId: number) => {
     try {
       await uploadImage.mutateAsync({ file, refId });
-      toast.success('Imagen subida correctamente');
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Error al subir la imagen');
     }
   }, [uploadImage]);
 
@@ -139,44 +134,27 @@ export const ActressJavPage = () => {
             tagIds: tagIds,
           },
         });
-        toast.success('Actriz actualizada correctamente');
       } else {
         const tagIds = actressForm.tagIds || [];
         await addActress.mutateAsync({
           name: actress.name,
           tagIds: tagIds,
         });
-        toast.success('Actriz agregada correctamente');
       }
       setDialogOpen(false);
       setEditingActress(null);
     } catch (error: unknown) {
       console.error('Error al guardar:', error);
-      
-      // Mostrar mensaje específico si viene del backend
-      const maybeApiError = error as {
-        response?: { data?: { message?: string } };
-        message?: string;
-      };
-      const errorMessage = maybeApiError.response?.data?.message || maybeApiError.message;
-      
-      if (errorMessage && errorMessage.includes('Ya existe')) {
-        toast.error(errorMessage);
-      } else {
-        toast.error(editingActress ? 'Error al actualizar la actriz' : 'Error al agregar la actriz');
-      }
     }
   };
 
   const handleSaveLinks = async (actressId: number, links: string[]) => {
     try {
       await updateActressLinks.mutateAsync({ id: actressId, links });
-      toast.success('Enlaces actualizados correctamente');
       setLinksDialogOpen(false);
       setEditingActress(null);
     } catch (error) {
       console.error('Error al actualizar enlaces:', error);
-      toast.error('Error al actualizar los enlaces');
     }
   };
 
@@ -194,13 +172,11 @@ export const ActressJavPage = () => {
     if (!confirm('¿Estás seguro de eliminar esta actriz? Esto no eliminará los JAVs asociados.')) {
       return;
     }
-    
+
     try {
       await deleteActress.mutateAsync(id);
-      toast.success('Actriz eliminada correctamente');
     } catch (error) {
       console.error('Error al eliminar:', error);
-      toast.error('Error al eliminar la actriz');
     }
   };
 
@@ -217,10 +193,8 @@ export const ActressJavPage = () => {
           file,
           refId: actress.id,
         });
-        toast.success('Imagen subida correctamente');
       } catch (error) {
         console.error('Error:', error);
-        toast.error('Error al subir la imagen');
       }
     };
     input.click();
@@ -233,22 +207,10 @@ export const ActressJavPage = () => {
 
   const handleBulkCreateActresses = async (names: string[]) => {
     try {
-      for (const name of names) {
-        try {
-          await addActress.mutateAsync({
-            name,
-            tagIds: [],
-          });
-        } catch (error) {
-          console.error(`Error al crear actriz "${name}":`, error);
-          toast.error(`Error al crear la actriz "${name}"`);
-        }
-      }
-      toast.success('Actrices creadas correctamente');
+      await bulkCreateActress.mutateAsync(names);
       setBulkCreateDialogOpen(false);
     } catch (error) {
       console.error('Error en creación en lote:', error);
-      toast.error('Error al crear las actrices');
     }
   };
 

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/config/api/api-client';
+import { toast } from 'sonner';
 
 export const useUpdateVideoStatus = () => {
   const queryClient = useQueryClient();
@@ -7,8 +8,13 @@ export const useUpdateVideoStatus = () => {
   return useMutation({
     mutationFn: ({ id, status }: { id: number; status: number }) =>
       apiClient.put(`/actress-adult/video/${id}/status`, { status }),
-    onSuccess: () => {
+    onMutate: ({ status }) => ({ status }),
+    onSuccess: (_, __, context) => {
       queryClient.invalidateQueries({ queryKey: ['actressAdultVideos'] });
+      toast.success(context?.status === 1 ? 'Video marcado como completado' : 'Video marcado como por ver');
+    },
+    onError: () => {
+      toast.error('Error al actualizar el estado');
     },
   });
 };

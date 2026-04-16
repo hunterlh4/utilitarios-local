@@ -9,7 +9,6 @@ import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
 import { Search, ArrowLeft, Eye, Check, Edit, Trash2, Image as ImageIcon } from 'lucide-react';
-import { toast } from 'sonner';
 import type { JavSummary } from './models/jav-summary.model';
 
 export const ActressJavDetailPage = () => {
@@ -30,20 +29,13 @@ export const ActressJavDetailPage = () => {
 
   const handleToggleStatus = async (javId: number, currentStatus: ContentStatus) => {
     try {
-      const newStatus = currentStatus === ContentStatus.Proximamente 
-        ? ContentStatus.Completado 
+      const newStatus = currentStatus === ContentStatus.Proximamente
+        ? ContentStatus.Completado
         : ContentStatus.Proximamente;
-      
+
       await updateJavStatus.mutateAsync({ id: javId, status: newStatus });
-      
-      toast.success(
-        newStatus === ContentStatus.Completado 
-          ? 'JAV marcado como completado' 
-          : 'JAV marcado como por ver'
-      );
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Error al actualizar el estado');
     }
   };
 
@@ -51,18 +43,15 @@ export const ActressJavDetailPage = () => {
     if (!confirm('¿Estás seguro de eliminar este JAV?')) {
       return;
     }
-    
+
     try {
       await deleteJav.mutateAsync(javId);
-      toast.success('JAV eliminado correctamente');
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Error al eliminar el JAV');
     }
   };
 
   const handleEditJav = (javId: number) => {
-    // Navegar a la página de JAVs con el JAV seleccionado para editar
     navigate(`/ver/jav?edit=${javId}`);
   };
 

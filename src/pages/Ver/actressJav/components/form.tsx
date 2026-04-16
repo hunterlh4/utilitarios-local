@@ -7,7 +7,6 @@ import { Spinner } from '@/common/components/ui/spinner';
 import { useGetTagsByType } from '@/common/hooks/useGetTagsByType.hook';
 import { TagType } from '@/common/enums/tag.enum';
 import { actressJavService } from '../services/actressJav.service';
-import { toast } from 'sonner';
 import type { ActressJav } from '../models/actress.model';
 
 interface ActressDialogProps {
@@ -35,9 +34,6 @@ export const ActressDialog = ({ open, onOpenChange, editingActress, onSave }: Ac
         try {
           const exists = await actressJavService.checkNameExists(nameTrimmed);
           setNameExists(exists);
-          if (exists) {
-            toast.warning(`El nombre "${nameTrimmed}" ya existe`);
-          }
         } catch (error) {
           console.error('Error al verificar nombre:', error);
         } finally {
@@ -77,12 +73,11 @@ export const ActressDialog = ({ open, onOpenChange, editingActress, onSave }: Ac
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (nameExists) {
-      toast.error('No puedes usar un nombre que ya existe');
       return;
     }
-    
+
     onSave({
       ...(editingActress || {}),
       name: name.trim(),
