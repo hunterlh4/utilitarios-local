@@ -1,26 +1,61 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select';
 import { Spinner } from '@/common/components/ui/spinner';
-import { Plus, Pencil, Trash2, X, Check } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Check, Upload, Download } from 'lucide-react';
 import { useTagsByType } from './hooks/useTagsByType.hook';
 import { useCreateTag } from './hooks/useCreateTag.hook';
 import { useUpdateTag } from './hooks/useUpdateTag.hook';
 import { useDeleteTag } from './hooks/useDeleteTag.hook';
+import { useExportTags } from './hooks/useExportTags.hook';
+import { useImportTags } from './hooks/useImportTags.hook';
 import { TAG_TYPE_LABELS } from './models/tag.model';
 import type { Tag } from './models/tag.model';
+import { downloadBase64File } from '@/common/lib/download-file';
 
 export const TagPage = () => {
   const [selectedType, setSelectedType] = useState<number | null>(null);
   const [newTagName, setNewTagName] = useState('');
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
   const [editName, setEditName] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const { data: tags = [], isLoading } = useTagsByType(selectedType);
   const createTag = useCreateTag();
   const updateTag = useUpdateTag();
   const deleteTag = useDeleteTag();
+  const exportTags = useExportTags();
+  const importTags = useImportTags();
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const file = await exportTags.mutateAsync();
+      downloadBase64File(file.base64, file.fileName || 'tags.xlsx');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImportClick = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      await importTags.mutateAsync(file);
+    } finally {
+      event.target.value = '';
+      setIsImporting(false);
+    }
+  };
 
   const handleCreate = () => {
     if (!newTagName.trim() || selectedType === null) return;
@@ -66,12 +101,32 @@ export const TagPage = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6 pt-3 max-w-4xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold">Gestión de Tags</h1>
-        <p className="text-muted-foreground mt-2">
-          Crea y administra tags por tipo
-        </p>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold">Gestión de Tags</h1>
+           
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={handleImport}
+            />
+            <Button variant="outline" onClick={handleImportClick} disabled={isExporting || isImporting}>
+              <Upload className="h-4 w-4 mr-2" />
+              Importar
+            </Button>
+            <Button variant="outline" onClick={handleExport} disabled={isExporting || isImporting}>
+              <Download className="h-4 w-4 mr-2" />
+              Exportar
+            </Button>
+          </div>
+        </div>
       </div>
 
       <div className="bg-muted p-6 rounded-lg space-y-4">

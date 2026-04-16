@@ -21,7 +21,7 @@ import { ActressLinksDialog } from './components/ActressLinksDialog';
 import { BulkCreateActressDialog } from './components/BulkCreateActressDialog';
 import type { ActressJav } from './models/actress.model';
 
-type ActressJavForm = ActressJav & { tagIds?: number[] };
+type ActressDialogSubmit = Partial<ActressJav> & { name: string; tagIds?: number[] };
 
 export const ActressJavPage = () => {
   const navigate = useNavigate();
@@ -122,20 +122,19 @@ export const ActressJavPage = () => {
     };
   }, [handlePaste]);
 
-  const handleSave = async (actress: ActressJav) => {
-    const actressForm = actress as ActressJavForm;
+  const handleSave = async (actress: ActressDialogSubmit) => {
     try {
       if (editingActress) {
-        const tagIds = actressForm.tagIds || [];
+        const tagIds = actress.tagIds || [];
         await updateActress.mutateAsync({
-          id: actress.id,
+          id: editingActress.id,
           data: {
             name: actress.name,
             tagIds: tagIds,
           },
         });
       } else {
-        const tagIds = actressForm.tagIds || [];
+        const tagIds = actress.tagIds || [];
         await addActress.mutateAsync({
           name: actress.name,
           tagIds: tagIds,

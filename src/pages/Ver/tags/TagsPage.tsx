@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useGetTags } from '@/common/hooks/useGetTags.hook';
 import { useCreateTag } from '@/common/hooks/useCreateTag.hook';
 import { useUpdateTag } from '@/common/hooks/useUpdateTag.hook';
 import { useDeleteTag } from '@/common/hooks/useDeleteTag.hook';
+import { useExportTags } from '@/common/hooks/useExportTags.hook';
+import { useImportTags } from '@/common/hooks/useImportTags.hook';
 import { TagType, TagTypeLabels } from '@/common/enums/tag-type.enum';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
@@ -17,6 +19,7 @@ import {
 import { Plus, Edit, Trash2, X, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Tag } from '@/common/services/tag.service';
+import { downloadBase64File } from '@/common/lib/download-file';
 
 export const TagsPage = () => {
   const [selectedType, setSelectedType] = useState<TagType>(TagType.Jav);
@@ -24,11 +27,43 @@ export const TagsPage = () => {
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
   const [newTagName, setNewTagName] = useState('');
   const [editTagName, setEditTagName] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const { data: tags, isLoading } = useGetTags(selectedType);
   const createTag = useCreateTag();
   const updateTag = useUpdateTag();
   const deleteTag = useDeleteTag();
+  const exportTags = useExportTags();
+  const importTags = useImportTags();
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const file = await exportTags.mutateAsync();
+      downloadBase64File(file.base64, file.fileName || 'tags.xlsx');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImportClick = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      await importTags.mutateAsync(file);
+    } finally {
+      event.target.value = '';
+      setIsImporting(false);
+    }
+  };
 
   const handleCreate = async () => {
     if (!newTagName.trim()) {
@@ -76,9 +111,13 @@ export const TagsPage = () => {
     try {
       await deleteTag.mutateAsync(id);
       toast.success('Tag eliminado correctamente');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error al eliminar tag:', error);
-      if (error?.response?.data?.message?.includes('in use')) {
+      const maybeApiError = error as {
+        response?: { data?: { message?: string } };
+      };
+
+      if (maybeApiError.response?.data?.message?.includes('in use')) {
         toast.error('No se puede eliminar el tag porque está en uso');
       } else {
         toast.error('Error al eliminar el tag');
@@ -112,14 +151,37 @@ export const TagsPage = () => {
     <div className="h-full flex flex-col p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Gestión de Tags</h1>
-        <Button
-          onClick={handleStartCreate}
-          disabled={createMode}
-          className="bg-green-600 hover:bg-green-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Nuevo Tag
-        </Button>
+        <div className="flex gap-2">
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={handleImport}
+          />
+          <Button
+            variant="outline"
+            onClick={handleImportClick}
+            disabled={isExporting || isImporting}
+          >
+            Importar
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleExport}
+            disabled={isExporting || isImporting}
+          >
+            Exportar
+          </Button>
+          <Button
+            onClick={handleStartCreate}
+            disabled={createMode}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Tag
+          </Button>
+        </div>
       </div>
 
       {/* Selector de tipo */}
@@ -133,7 +195,7 @@ export const TagsPage = () => {
             setEditingTag(null);
           }}
         >
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger className="w-50">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
