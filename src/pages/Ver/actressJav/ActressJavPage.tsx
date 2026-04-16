@@ -11,6 +11,7 @@ import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
 import { Search, Plus, Trash2, Edit, Link as LinkIcon, Image as ImageIcon, ChevronDown, Upload, Download } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/common/components/ui/dialog';
 import { downloadBase64File } from '@/common/lib/download-file';
 import { toast } from 'sonner';
 import { ActressDialog } from './components/form';
@@ -30,6 +31,7 @@ export const ActressJavPage = () => {
   const [editingActress, setEditingActress] = useState<ActressJav | null>(null);
   const [selectedTagFilters, setSelectedTagFilters] = useState<string[]>([]);
   const [hoveredActressId, setHoveredActressId] = useState<number | null>(null);
+  const [pendingReplace, setPendingReplace] = useState<{ file: File; refId: number } | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
@@ -77,9 +79,21 @@ export const ActressJavPage = () => {
     }
   };
 
+  const uploadPastedImage = useCallback(async (file: File, refId: number) => {
+    try {
+      await uploadImage.mutateAsync({ file, refId });
+      toast.success('Imagen subida correctamente');
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Error al subir la imagen');
+    }
+  }, [uploadImage]);
+
   // Manejar paste global
   const handlePaste = useCallback(async (e: ClipboardEvent) => {
     if (!hoveredActressId) return;
+
+    const hoveredActress = actresses?.find((actress) => actress.id === hoveredActressId);
 
     const items = e.clipboardData?.items;
     if (!items) return;
@@ -90,20 +104,16 @@ export const ActressJavPage = () => {
         const blob = items[i].getAsFile();
         if (!blob) continue;
 
-        try {
-          await uploadImage.mutateAsync({
-            file: blob,
-            refId: hoveredActressId,
-          });
-          toast.success('Imagen subida correctamente');
-        } catch (error) {
-          console.error('Error:', error);
-          toast.error('Error al subir la imagen');
+        if (hoveredActress?.image) {
+          setPendingReplace({ file: blob, refId: hoveredActressId });
+          return;
         }
+
+        await uploadPastedImage(blob, hoveredActressId);
         break;
       }
     }
-  }, [hoveredActressId, uploadImage]);
+  }, [actresses, hoveredActressId, uploadPastedImage]);
 
   // Agregar y remover listener de paste
   useEffect(() => {
@@ -323,15 +333,16 @@ export const ActressJavPage = () => {
               >
                 <Upload className="mr-2 h-4 w-4" /> Importar
               </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setBulkCreateDialogOpen(true)}
+                className="mt-1 h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
+              >
+                <Plus className="mr-2 h-4 w-4" /> Importar en lote
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
         </div>
-
-        <Button onClick={() => setBulkCreateDialogOpen(true)} variant="outline" title="Importar en lote">
-          <Plus className="h-4 w-4 mr-1" />
-          Importar en lote
-        </Button>
       </div>
 
       {availableTags.length > 0 && (
@@ -505,6 +516,29 @@ export const ActressJavPage = () => {
         onOpenChange={setBulkCreateDialogOpen}
         onCreateActresses={handleBulkCreateActresses}
       />
+
+      <Dialog open={!!pendingReplace} onOpenChange={(open) => !open && setPendingReplace(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reemplazar imagen</DialogTitle>
+          </DialogHeader>
+          <p>Esta actriz ya tiene imagen. ¿Deseas reemplazarla?</p>
+          <DialogFooter>
+            <Button variant="outline" className="focus-visible:ring-0 focus-visible:ring-offset-0" onClick={() => setPendingReplace(null)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!pendingReplace) return;
+                await uploadPastedImage(pendingReplace.file, pendingReplace.refId);
+                setPendingReplace(null);
+              }}
+            >
+              Reemplazar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

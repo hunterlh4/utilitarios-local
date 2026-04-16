@@ -7,7 +7,6 @@ import { useCreateVideo } from './hooks/useCreateVideo.hook';
 import { useUpdateVideo } from './hooks/useUpdateVideo.hook';
 import { useDeleteVideo } from './hooks/useDeleteVideo.hook';
 import { useUpdateVideoStatus } from './hooks/useUpdateVideoStatus.hook';
-import { useUploadImage } from './hooks/useUploadImage.hook';
 import { useUpdateLinks } from './hooks/useUpdateLinks.hook';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
@@ -45,7 +44,6 @@ export const ActressAdultDetailPage = () => {
   const updateVideo = useUpdateVideo();
   const deleteVideo = useDeleteVideo();
   const updateVideoStatus = useUpdateVideoStatus();
-  const uploadImage = useUploadImage();
   const updateLinks = useUpdateLinks();
 
   const videos = actressDetail?.videos || [];
@@ -53,23 +51,10 @@ export const ActressAdultDetailPage = () => {
   const handleEditActress = async (
     id: number,
     name: string,
-    tagIds: number[],
-    newImage: File | null
+    tagIds: number[]
   ) => {
     try {
       await updateActress.mutateAsync({ id, name, tagIds });
-
-      if (newImage) {
-        try {
-          await uploadImage.mutateAsync({ file: newImage, refId: id });
-        } catch (uploadError) {
-          console.error('Error al subir imagen:', uploadError);
-          toast.error('Actriz actualizada pero error al subir la imagen');
-          setEditDialogOpen(false);
-          setEditingActress(null);
-          return;
-        }
-      }
 
       toast.success('Actriz actualizada correctamente');
       setEditDialogOpen(false);

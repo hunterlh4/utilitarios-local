@@ -10,12 +10,11 @@ import { useGetTags } from '../hooks/useGetTags.hook';
 interface CreateActressDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (name: string, image: File | null, tagIds: number[]) => void;
+  onSave: (name: string, tagIds: number[]) => void;
 }
 
 export const CreateActressDialog = ({ open, onOpenChange, onSave }: CreateActressDialogProps) => {
   const [name, setName] = useState('');
-  const [image, setImage] = useState<File | null>(null);
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -24,10 +23,9 @@ export const CreateActressDialog = ({ open, onOpenChange, onSave }: CreateActres
   const handleSave = async () => {
     if (!name.trim()) return;
     setIsLoading(true);
-    await onSave(name, image, selectedTags);
+    await onSave(name, selectedTags);
     setIsLoading(false);
     setName('');
-    setImage(null);
     setSelectedTags([]);
   };
 
@@ -48,11 +46,6 @@ export const CreateActressDialog = ({ open, onOpenChange, onSave }: CreateActres
             placeholder="Nombre"
             value={name}
             onChange={(e) => setName(e.target.value)}
-          />
-          <Input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setImage(e.target.files?.[0] || null)}
           />
           
           {isLoadingTags ? (

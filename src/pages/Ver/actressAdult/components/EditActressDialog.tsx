@@ -6,19 +6,17 @@ import { Spinner } from '@/common/components/ui/spinner';
 import { Checkbox } from '@/common/components/ui/checkbox';
 import { useGetTags } from '../hooks/useGetTags.hook';
 import { useGetActressById } from '../hooks/useGetActressById.hook';
-import { X } from 'lucide-react';
 
 interface EditActressDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   actressId: number | null;
-  onSave: (id: number, name: string, tagIds: number[], newImage: File | null) => void;
+  onSave: (id: number, name: string, tagIds: number[]) => void;
 }
 
 export const EditActressDialog = ({ open, onOpenChange, actressId, onSave }: EditActressDialogProps) => {
   const [name, setName] = useState('');
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
-  const [newImage, setNewImage] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const { data: actress, isLoading: isLoadingActress } = useGetActressById(actressId);
@@ -28,14 +26,13 @@ export const EditActressDialog = ({ open, onOpenChange, actressId, onSave }: Edi
     if (actress) {
       setName(actress.name);
       setSelectedTags(actress.tagIds || []);
-      setNewImage(null);
     }
   }, [actress]);
 
   const handleSave = async () => {
     if (!name.trim() || !actressId) return;
     setIsLoading(true);
-    await onSave(actressId, name, selectedTags, newImage);
+    await onSave(actressId, name, selectedTags);
     setIsLoading(false);
   };
 
@@ -43,15 +40,6 @@ export const EditActressDialog = ({ open, onOpenChange, actressId, onSave }: Edi
     setSelectedTags(prev =>
       prev.includes(tagId) ? prev.filter(id => id !== tagId) : [...prev, tagId]
     );
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setNewImage(file);
-  };
-
-  const handleRemoveNewImage = () => {
-    setNewImage(null);
   };
 
   return (
@@ -88,34 +76,6 @@ export const EditActressDialog = ({ open, onOpenChange, actressId, onSave }: Edi
               </div>
             )}
 
-            {/* Preview de nueva imagen */}
-            {newImage && (
-              <div>
-                <p className="text-sm font-medium mb-2">Nueva imagen:</p>
-                <div className="relative aspect-2/3 max-w-50">
-                  <img
-                    src={URL.createObjectURL(newImage)}
-                    alt="Nueva imagen"
-                    className="w-full h-full object-cover rounded"
-                  />
-                  <Button
-                    size="icon"
-                    variant="destructive"
-                    className="absolute top-2 right-2 h-6 w-6"
-                    onClick={handleRemoveNewImage}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-            />
-            
             {isLoadingTags ? (
               <div className="flex justify-center py-4">
                 <Spinner className="h-6 w-6" />

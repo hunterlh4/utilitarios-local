@@ -1,9 +1,10 @@
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '@/common/components/ui/button';
 import { Spinner } from '@/common/components/ui/spinner';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/common/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu';
 import { downloadBase64File } from '@/common/lib/download-file';
 import { Plus, Upload, Trash2, Pencil, ChevronDown, Download } from 'lucide-react';
@@ -11,6 +12,7 @@ import { useGetAllAnimeGalery } from './hooks/useGetAllAnimeGalery.hook';
 import { useCreateAnimeGalery } from './hooks/useCreateAnimeGalery.hook';
 import { useUpdateAnimeGalery } from './hooks/useUpdateAnimeGalery.hook';
 import { useDeleteAnimeGalery } from './hooks/useDeleteAnimeGalery.hook';
+import { useUploadImage } from './hooks/useUploadImage.hook';
 import { CreateGaleryDialog } from './components/CreateGaleryDialog';
 import { EditGaleryDialog } from './components/EditGaleryDialog';
 import { animeGaleryService } from './services/anime-galery.service';
@@ -21,6 +23,8 @@ export const AnimeGaleryPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingGaleryId, setEditingGaleryId] = useState<number | null>(null);
+  const [hoveredGaleryId, setHoveredGaleryId] = useState<number | null>(null);
+  const [pendingReplace, setPendingReplace] = useState<{ file: File; refId: number } | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
 
@@ -30,6 +34,7 @@ export const AnimeGaleryPage = () => {
   const createGalery = useCreateAnimeGalery();
   const updateGalery = useUpdateAnimeGalery();
   const deleteGalery = useDeleteAnimeGalery();
+  const uploadCoverImage = useUploadImage();
   
   const { data: editingGaleryDetail, isLoading: isLoadingEdit } = useQuery({
     queryKey: ['animeGaleryDetail', editingGaleryId],
@@ -111,6 +116,51 @@ export const AnimeGaleryPage = () => {
     }
   };
 
+  const uploadPastedCover = useCallback(async (file: File, refId: number) => {
+    try {
+      await uploadCoverImage.mutateAsync({ file, refId });
+      toast.success('Imagen de portada subida correctamente');
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Error al subir la imagen');
+    }
+  }, [uploadCoverImage]);
+
+  const handlePaste = useCallback(async (e: ClipboardEvent) => {
+    if (!hoveredGaleryId) return;
+
+    const hoveredGalery = galeries?.find((galery) => galery.id === hoveredGaleryId);
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        e.preventDefault();
+        const blob = items[i].getAsFile();
+        if (!blob) continue;
+
+        if (hoveredGalery?.image) {
+          setPendingReplace({ file: blob, refId: hoveredGaleryId });
+          return;
+        }
+
+        await uploadPastedCover(blob, hoveredGaleryId);
+        break;
+      }
+    }
+  }, [galeries, hoveredGaleryId, uploadPastedCover]);
+
+  useEffect(() => {
+    const pasteListener = (event: Event) => {
+      void handlePaste(event as ClipboardEvent);
+    };
+
+    document.addEventListener('paste', pasteListener);
+    return () => {
+      document.removeEventListener('paste', pasteListener);
+    };
+  }, [handlePaste]);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -172,6 +222,8 @@ export const AnimeGaleryPage = () => {
               className="relative w-full transition-all hover:opacity-90 group"
               style={{ paddingBottom: '150%' }}
               onClick={() => navigate(`/galeria/anime/${galery.id}`)}
+              onMouseEnter={() => setHoveredGaleryId(galery.id)}
+              onMouseLeave={() => setHoveredGaleryId(null)}
             >
               <Button
                 size="icon"
@@ -223,6 +275,29 @@ export const AnimeGaleryPage = () => {
         isLoading={isLoadingEdit || updateGalery.isPending}
         onSave={handleUpdateGalery}
       />
+
+      <Dialog open={!!pendingReplace} onOpenChange={(open) => !open && setPendingReplace(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reemplazar imagen</DialogTitle>
+          </DialogHeader>
+          <p>Esta galería ya tiene imagen. ¿Deseas reemplazarla?</p>
+          <DialogFooter>
+            <Button variant="outline" className="focus-visible:ring-0 focus-visible:ring-offset-0" onClick={() => setPendingReplace(null)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!pendingReplace) return;
+                await uploadPastedCover(pendingReplace.file, pendingReplace.refId);
+                setPendingReplace(null);
+              }}
+            >
+              Reemplazar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
