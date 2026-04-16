@@ -11,7 +11,9 @@ import { ActressAdultPage } from '@/pages/Ver/actressAdult/ActressAdultPage';
 import { ActressAdultDetailPage } from '@/pages/Ver/actressAdult/ActressAdultDetailPage';
 import { YouTubePage } from '@/pages/Ver/youtube/YouTubePage';
 import { AnimeGaleryPage } from '@/pages/Galeria/anime/AnimeGaleryPage';
+import { AnimeGaleryDetailPage } from '@/pages/Galeria/anime/AnimeGaleryDetailPage';
 import { GirlGaleryPage } from '@/pages/Galeria/girl/GirlGaleryPage';
+import { GirlGaleryDetailPage } from '@/pages/Galeria/girl/GirlGaleryDetailPage';
 import { AccountPage } from '@/pages/Steam/account/AccountPage';
 import { SearchPage } from '@/pages/Steam/search/SearchPage';
 import { DropsPage } from '@/pages/Steam/drops/DropsPage';
@@ -83,7 +85,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'galeria/anime/:id',
-        element: <AnimeGaleryPage />,
+        element: <AnimeGaleryDetailPage />,
       },
       {
         path: 'galeria/girl',
@@ -91,7 +93,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'galeria/girl/:id',
-        element: <GirlGaleryPage />,
+        element: <GirlGaleryDetailPage />,
       },
       // Steam
       {

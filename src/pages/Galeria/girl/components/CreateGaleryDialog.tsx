@@ -7,21 +7,19 @@ import { Spinner } from '@/common/components/ui/spinner';
 interface CreateGaleryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (name: string, image: File | null) => void;
+  onSave: (name: string) => void;
 }
 
 export const CreateGaleryDialog = ({ open, onOpenChange, onSave }: CreateGaleryDialogProps) => {
   const [name, setName] = useState('');
-  const [image, setImage] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSave = async () => {
     if (!name.trim()) return;
     setIsLoading(true);
-    await onSave(name, image);
+    await onSave(name);
     setIsLoading(false);
     setName('');
-    setImage(null);
   };
 
   return (
@@ -36,13 +34,6 @@ export const CreateGaleryDialog = ({ open, onOpenChange, onSave }: CreateGaleryD
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Nombre de la galería"
-            />
-          </div>
-          <div>
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setImage(e.target.files?.[0] || null)}
             />
           </div>
           <div className="flex justify-end gap-2">

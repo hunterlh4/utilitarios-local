@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { animeGaleryService } from '../services/anime-galery.service';
 import type { UpdateAnimeGaleryDto } from '../models/anime-galery.model';
 
@@ -11,6 +12,10 @@ export const useUpdateAnimeGalery = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['animeGalery'] });
       queryClient.invalidateQueries({ queryKey: ['animeGaleryDetail', variables.id] });
+      toast.success('Galería actualizada correctamente');
+    },
+    onError: () => {
+      toast.error('Error al actualizar la galería');
     },
   });
 };

@@ -293,35 +293,44 @@ export const ActressJavPage = () => {
             className="pl-10 focus-visible:ring-0 focus-visible:ring-offset-0"
           />
         </div>
-        <Button onClick={handleOpenDialog} size="icon" className="bg-green-600 hover:bg-green-700">
-          <Plus className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center overflow-hidden rounded-md">
+          <Button onClick={handleOpenDialog} className="rounded-none border-0 bg-green-600 hover:bg-green-700">
+            <Plus className="h-4 w-4 mr-2" />
+            Crear
+          </Button>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size="icon" variant="outline" disabled={isExporting || isImporting} title="Importar/Exportar Excel">
-              {isExporting || isImporting ? <Spinner className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44 p-1.5">
-            <DropdownMenuItem
-              onClick={handleExportExcel}
-              className="h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
-            >
-              <Download className="mr-2 h-4 w-4" /> Exportar
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={handleImportClick}
-              className="mt-1 h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
-            >
-              <Upload className="mr-2 h-4 w-4" /> Importar
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="default"
+                disabled={isExporting || isImporting}
+                className="rounded-none border-0 border-l border-primary-foreground/25 px-2 bg-green-600 hover:bg-green-700"
+                title="Importar/Exportar Excel"
+              >
+                {isExporting || isImporting ? <Spinner className="h-4 w-4" /> : <ChevronDown className="w-4 h-4" />}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44 p-1.5 bg-primary">
+              <DropdownMenuItem
+                onClick={handleExportExcel}
+                className="h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
+              >
+                <Download className="mr-2 h-4 w-4" /> Exportar
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleImportClick}
+                className="mt-1 h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
+              >
+                <Upload className="mr-2 h-4 w-4" /> Importar
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-        <Button onClick={() => setBulkCreateDialogOpen(true)} variant="outline" title="Importar actrices en lote">
+        </div>
+
+        <Button onClick={() => setBulkCreateDialogOpen(true)} variant="outline" title="Importar en lote">
           <Plus className="h-4 w-4 mr-1" />
-          Importar
+          Importar en lote
         </Button>
       </div>
 
