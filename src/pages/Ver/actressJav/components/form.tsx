@@ -9,11 +9,13 @@ import { TagType } from '@/common/enums/tag.enum';
 import { actressJavService } from '../services/actressJav.service';
 import type { ActressJav } from '../models/actress.model';
 
+type ActressDialogSubmit = Partial<ActressJav> & { name: string; tagIds?: number[] };
+
 interface ActressDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingActress: ActressJav | null;
-  onSave: (actress: any) => void;
+  onSave: (actress: ActressDialogSubmit) => void;
 }
 
 export const ActressDialog = ({ open, onOpenChange, editingActress, onSave }: ActressDialogProps) => {
