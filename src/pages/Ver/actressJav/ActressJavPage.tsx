@@ -308,14 +308,14 @@ export const ActressJavPage = () => {
 
       {availableTags.length > 0 && (
         <div className="px-1 mb-1">
-          <div className="bg-muted/30 rounded-lg p-2">
-            <p className="text-xs font-medium mb-1.5">Filtrar por tags:</p>
-            <div className="flex flex-wrap gap-1.5">
+          <div className="bg-muted/30 rounded-md p-1.5">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <p className="text-xs font-medium whitespace-nowrap">Filtrar por tags:</p>
               {availableTags.map((tag) => (
                 <div
                   key={tag}
                   onClick={() => toggleTagFilter(tag)}
-                  className={`px-2 py-1 rounded-full text-xs cursor-pointer transition-colors ${
+                  className={`h-6 px-2 rounded-full text-xs cursor-pointer inline-flex items-center transition-colors ${
                     selectedTagFilters.includes(tag)
                       ? 'bg-purple-500 text-white'
                       : 'bg-muted hover:bg-muted/80'
@@ -324,17 +324,17 @@ export const ActressJavPage = () => {
                   {tag}
                 </div>
               ))}
+              {selectedTagFilters.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setSelectedTagFilters([])}
+                  className="h-6 px-2 text-xs"
+                >
+                  Limpiar filtros
+                </Button>
+              )}
             </div>
-            {selectedTagFilters.length > 0 && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setSelectedTagFilters([])}
-                className="mt-1.5 h-6 text-xs"
-              >
-                Limpiar filtros
-              </Button>
-            )}
           </div>
         </div>
       )}
