@@ -213,7 +213,7 @@ export const AnimePage = () => {
                         className="p-0 cursor-pointer" 
                         onClick={() => handleToggleStatus(anime.id, anime.status)}
                       >
-                        <div className="aspect-2/3 w-full overflow-hidden bg-muted">
+                        <div className="aspect-2/3 overflow-hidden bg-muted">
                           <img 
                             src={anime.image} 
                             alt={anime.title} 

@@ -29,7 +29,7 @@ export const AccountPage = () => {
       <h1 className="text-3xl font-bold">Cuentas</h1>
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <div className="flex items-center gap-2">
-          <TabsList className="flex-shrink-0">
+          <TabsList>
             <TabsTrigger value="email">Email</TabsTrigger>
             <TabsTrigger value="steam">Steam</TabsTrigger>
             <TabsTrigger value="github">GitHub</TabsTrigger>
@@ -45,7 +45,7 @@ export const AccountPage = () => {
               className="pl-8 h-9 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
-          <Button size="sm" onClick={() => setAddOpen(true)} className="flex-shrink-0">
+          <Button size="sm" onClick={() => setAddOpen(true)}>
             <Plus className="w-4 h-4 mr-1" />Nuevo
           </Button>        </div>
 
