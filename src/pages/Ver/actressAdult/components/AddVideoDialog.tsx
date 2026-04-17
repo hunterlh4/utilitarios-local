@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/common/compo
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select';
-import { Checkbox } from '@/common/components/ui/checkbox';
 import { Spinner } from '@/common/components/ui/spinner';
 import { TagType } from '@/common/enums/tag.enum';
 import { useGetTags } from '../hooks/useGetTags.hook';
@@ -123,18 +122,16 @@ export const AddVideoDialog = ({
               <label className="text-sm font-medium mb-2 block">Tags del Video</label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto border rounded p-2">
                 {tags.map((tag) => (
-                  <div key={tag.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`video-tag-${tag.id}`}
-                      checked={selectedTags.includes(tag.id)}
-                      onCheckedChange={() => toggleTag(tag.id)}
-                    />
-                    <label
-                      htmlFor={`video-tag-${tag.id}`}
-                      className="text-sm cursor-pointer"
-                    >
-                      {tag.name}
-                    </label>
+                  <div
+                    key={tag.id}
+                    onClick={() => toggleTag(tag.id)}
+                    className={`p-2 rounded cursor-pointer text-sm transition-colors ${
+                      selectedTags.includes(tag.id)
+                        ? 'bg-purple-500 text-white'
+                        : 'bg-muted hover:bg-muted/80'
+                    }`}
+                  >
+                    {tag.name}
                   </div>
                 ))}
               </div>

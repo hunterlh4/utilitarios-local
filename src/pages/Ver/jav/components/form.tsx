@@ -6,7 +6,6 @@ import { useGetAllActressJav } from "../hooks/useGetAllActressJav.hook";
 import { Button } from "@/common/components/ui/button";
 import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
-import { Checkbox } from "@/common/components/ui/checkbox";
 import { Spinner } from "@/common/components/ui/spinner";
 import { ContentStatus } from "@/common/enums/ver.enum";
 import {
@@ -21,14 +20,17 @@ import type { Jav } from "../models/jav.model";
 import { javService } from "../services/jav.service";
 import { toast } from "sonner";
 
+type JavWithIds = Jav & { actressIds?: number[]; tagIds?: number[] };
+
 interface JavDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (jav: Jav) => void;
   editingJav: Jav | null;
+  preselectedActressId?: number;
 }
 
-export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogProps) {
+export function JavDialog({ open, onOpenChange, onSave, editingJav, preselectedActressId }: JavDialogProps) {
   const [nombre, setNombre] = useState("");
   const [selectedActresses, setSelectedActresses] = useState<number[]>([]);
   const [imagen, setImagen] = useState("");
@@ -75,7 +77,11 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
   useEffect(() => {
     if (editingJav) {
       setNombre(editingJav.code);
-      setSelectedActresses(editingJav.actresses?.map(a => a.id) || []);
+      const actressIds = editingJav.actresses?.map(a => a.id) || [];
+      if (preselectedActressId && !actressIds.includes(preselectedActressId)) {
+        actressIds.push(preselectedActressId);
+      }
+      setSelectedActresses(actressIds);
       setImagen(editingJav.image);
       // Convertir LinkDto[] a string[] para el formulario
       const enlacesUrls = editingJav.links && editingJav.links.length > 0 
@@ -96,13 +102,13 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
       }
     } else {
       setNombre("");
-      setSelectedActresses([]);
+      setSelectedActresses(preselectedActressId ? [preselectedActressId] : []);
       setImagen("");
       setEnlaces([""]);
       setSelectedTags([]);
       setVisto(false);
     }
-  }, [editingJav, open, tags]);
+  }, [editingJav, open, tags, preselectedActressId]);
 
   const toggleTag = (tagId: number) => {
     setSelectedTags(prev =>
@@ -211,7 +217,7 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
       url: url,
     }));
 
-    const jav: Jav = {
+    const jav: JavWithIds = {
       id: editingJav?.id || 0,
       code: nombre.trim().toUpperCase(),
       image: imagen.trim(),
@@ -221,8 +227,8 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
     };
 
     // Agregar actressIds y tagIds para enviar al backend
-    (jav as any).actressIds = selectedActresses;
-    (jav as any).tagIds = selectedTags;
+    jav.actressIds = selectedActresses;
+    jav.tagIds = selectedTags;
 
     onSave(jav);
   };
@@ -338,18 +344,16 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
                   <Label>Tags</Label>
                   <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded p-2">
                     {tags.map((tag) => (
-                      <div key={tag.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`tag-${tag.id}`}
-                          checked={selectedTags.includes(tag.id)}
-                          onCheckedChange={() => toggleTag(tag.id)}
-                        />
-                        <label
-                          htmlFor={`tag-${tag.id}`}
-                          className="text-sm cursor-pointer"
-                        >
-                          {tag.name}
-                        </label>
+                      <div
+                        key={tag.id}
+                        onClick={() => toggleTag(tag.id)}
+                        className={`p-2 rounded cursor-pointer text-sm transition-colors ${
+                          selectedTags.includes(tag.id)
+                            ? 'bg-purple-500 text-white'
+                            : 'bg-muted hover:bg-muted/80'
+                        }`}
+                      >
+                        {tag.name}
                       </div>
                     ))}
                   </div>

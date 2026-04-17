@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { javService } from '../services/jav.service';
 import type { UpdateJavDto } from '../models/jav-request.dto';
+import { toast } from 'sonner';
 
 export const useUpdateJav = () => {
   const queryClient = useQueryClient();
@@ -10,6 +11,11 @@ export const useUpdateJav = () => {
       javService.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['jav'] });
+      queryClient.invalidateQueries({ queryKey: ['actress-javs'] });
+      toast.success('JAV actualizado correctamente');
+    },
+    onError: () => {
+      toast.error('Error al actualizar JAV');
     },
   });
 };

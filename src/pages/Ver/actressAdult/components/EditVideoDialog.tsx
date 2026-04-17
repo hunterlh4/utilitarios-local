@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/common/components/ui/dialog';
 import { Button } from '@/common/components/ui/button';
-import { Checkbox } from '@/common/components/ui/checkbox';
 import { Spinner } from '@/common/components/ui/spinner';
 import { useGetTags } from '../hooks/useGetTags.hook';
 import type { ActressAdult, VideoAdult } from '../models/actressAdult.model';
@@ -12,6 +11,7 @@ interface EditVideoDialogProps {
   video: VideoAdult | null;
   actresses: ActressAdult[];
   onSave: (videoId: number, actressIds: number[], tagIds: number[]) => void;
+  currentActressId?: number;
 }
 
 export const EditVideoDialog = ({
@@ -20,6 +20,7 @@ export const EditVideoDialog = ({
   video,
   actresses,
   onSave,
+  currentActressId,
 }: EditVideoDialogProps) => {
   const [selectedActresses, setSelectedActresses] = useState<number[]>([]);
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
@@ -29,14 +30,18 @@ export const EditVideoDialog = ({
 
   useEffect(() => {
     if (video && tags) {
-      setSelectedActresses(video.actresses.map(a => a.id));
+      const actressIds = video.actresses.map(a => a.id);
+      if (currentActressId && !actressIds.includes(currentActressId)) {
+        actressIds.push(currentActressId);
+      }
+      setSelectedActresses(actressIds);
       // Convertir nombres de tags a IDs
       const tagIds = video.tags
         .map(tagName => tags.find(t => t.name === tagName)?.id)
         .filter((id): id is number => id !== undefined);
       setSelectedTags(tagIds);
     }
-  }, [video, tags]);
+  }, [video, tags, currentActressId]);
 
   const handleSave = async () => {
     if (!video || selectedActresses.length === 0) return;
@@ -108,18 +113,16 @@ export const EditVideoDialog = ({
               <label className="text-sm font-medium mb-2 block">Tags del Video</label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto border rounded p-2">
                 {tags.map((tag) => (
-                  <div key={tag.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`edit-video-tag-${tag.id}`}
-                      checked={selectedTags.includes(tag.id)}
-                      onCheckedChange={() => toggleTag(tag.id)}
-                    />
-                    <label
-                      htmlFor={`edit-video-tag-${tag.id}`}
-                      className="text-sm cursor-pointer"
-                    >
-                      {tag.name}
-                    </label>
+                  <div
+                    key={tag.id}
+                    onClick={() => toggleTag(tag.id)}
+                    className={`p-2 rounded cursor-pointer text-sm transition-colors ${
+                      selectedTags.includes(tag.id)
+                        ? 'bg-purple-500 text-white'
+                        : 'bg-muted hover:bg-muted/80'
+                    }`}
+                  >
+                    {tag.name}
                   </div>
                 ))}
               </div>

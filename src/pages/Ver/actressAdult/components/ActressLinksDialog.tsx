@@ -4,12 +4,12 @@ import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Label } from '@/common/components/ui/label';
 import { Plus, Trash2 } from 'lucide-react';
-import type { ActressJav } from '../models/actress.model';
+import type { ActressAdult } from '../models/actressAdult.model';
 
 interface ActressLinksDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  actress: ActressJav | null;
+  actress: ActressAdult | null;
   onSave: (actressId: number, links: string[]) => void;
 }
 
@@ -61,12 +61,7 @@ export const ActressLinksDialog = ({ open, onOpenChange, actress, onSave }: Actr
                   placeholder="https://..."
                   className="flex-1"
                 />
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="destructive"
-                  onClick={() => removeLink(index)}
-                >
+                <Button type="button" size="icon" variant="destructive" onClick={() => removeLink(index)}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -82,9 +77,7 @@ export const ActressLinksDialog = ({ open, onOpenChange, actress, onSave }: Actr
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit">
-              Guardar
-            </Button>
+            <Button type="submit">Guardar</Button>
           </div>
         </form>
       </DialogContent>
