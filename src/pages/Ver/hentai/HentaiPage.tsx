@@ -261,9 +261,7 @@ export const HentaiPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-4">Hentai</h1>
-
-        <form onSubmit={handleSearchSubmit} className="flex gap-2 mb-6">
+        <form onSubmit={handleSearchSubmit} className="flex gap-2 mb-0.5 p-1">
           <input
             ref={importInputRef}
             type="file"
@@ -363,16 +361,9 @@ export const HentaiPage = () => {
         {searchMode === 'saved' && (
           <div>
             {availableTags.length > 0 && (
-              <div className="bg-muted/30 rounded-lg p-2 mb-0">
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <p className="text-xs font-medium">Filtrar por tags:</p>
-                  {(selectedTagFilters.length > 0 || searchQuery.trim()) && (
-                    <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={handleClearFilters}>
-                      Limpiar
-                    </Button>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-2">
+              <div className="bg-muted/30 rounded-md p-1.5 mb-2">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <p className="text-xs font-medium mr-1">Tags:</p>
                   {availableTags.map((tag) => {
                     const isActive = selectedTagFilters.includes(tag);
                     return (
@@ -381,18 +372,28 @@ export const HentaiPage = () => {
                         type="button"
                         variant={isActive ? 'default' : 'outline'}
                         size="sm"
-                        className="h-7 rounded-full px-3 text-xs"
+                        className="h-6 rounded-full px-2 text-xs"
                         onClick={() => toggleTagFilter(tag)}
                       >
                         {tag}
                       </Button>
                     );
                   })}
+                  {(selectedTagFilters.length > 0 || searchQuery.trim()) && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs"
+                      onClick={handleClearFilters}
+                    >
+                      Limpiar
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
             <h2 className="text-xl font-semibold mb-4">
-              {filterStatus === ContentStatus.Pending ? 'Próximamente' : 'Completado'}
             </h2>
             {isLoadingSaved ? (
               <div className="flex justify-center py-8">
