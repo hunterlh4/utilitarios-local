@@ -96,7 +96,6 @@ export const AnimePage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-4">Anime</h1>
 
         {/* Buscador */}
         <form onSubmit={handleSearch} className="flex gap-2 mb-6">
@@ -192,9 +191,9 @@ export const AnimePage = () => {
         {/* Vista de Animes guardados (Próximamente / Completado) */}
         {!showResults && (
           <div>
-            <h2 className="text-xl font-semibold mb-4">
+            {/* <h2 className="text-xl font-semibold mb-4">
               {filterStatus === ContentStatus.Pending ? 'Próximamente' : 'Completado'}
-            </h2>
+            </h2> */}
             {isLoadingSaved ? (
               <div className="flex justify-center py-8">
                 <Spinner className="h-8 w-8" />
