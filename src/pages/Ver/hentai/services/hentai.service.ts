@@ -26,6 +26,21 @@ export const hentaiService = {
     return await apiClient.delete(`${BASE_URL}/${id}`);
   },
 
+  updateTags: async (id: number, tagIds: number[]) => {
+    return await apiClient.put(`${BASE_URL}/${id}/tags`, tagIds);
+  },
+
+  uploadImage: async (file: File, refId: number) => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    return await apiClient.post(`${BASE_URL}/${refId}/image`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
   updateStatus: async (id: number, status: number) => {
     return await apiClient.patch(`${BASE_URL}/${id}/status`, { status });
   },

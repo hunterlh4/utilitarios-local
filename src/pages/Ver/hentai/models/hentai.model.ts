@@ -8,4 +8,5 @@ export interface Hentai {
   episodes: number;
   status: ContentStatus;
   createdAt: string;
+  tags?: string[];
 }
