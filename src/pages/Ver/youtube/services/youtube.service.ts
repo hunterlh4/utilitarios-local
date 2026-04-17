@@ -1,32 +1,43 @@
 import { apiClient } from '@/config/api/api-client';
+import type { ExcelFileDto, ImportExcelResult } from '@/common/models/excel.model';
 import type { CreateYouTubeDto, UpdateYouTubeDto } from '../models/youtube-request.dto';
-import type { GetAllYouTubeResponse, GetYouTubeByIdResponse } from '../models/youtube-response.dto';
+import type { YouTube } from '../models/youtube.model';
 
 const BASE_URL = '/youtube';
 
 export const youtubeService = {
-  getAll: async () => {
-    const response = await apiClient.get<GetAllYouTubeResponse>(BASE_URL);
-    return response.data;
+  getAll: async (): Promise<YouTube[]> => {
+    return await apiClient.get(BASE_URL);
   },
 
-  getById: async (id: number) => {
-    const response = await apiClient.get<GetYouTubeByIdResponse>(`${BASE_URL}/${id}`);
-    return response.data;
+  getById: async (id: number): Promise<YouTube> => {
+    return await apiClient.get(`${BASE_URL}/${id}`);
   },
 
   create: async (data: CreateYouTubeDto) => {
-    const response = await apiClient.post(BASE_URL, data);
-    return response.data;
+    return await apiClient.post(BASE_URL, data);
   },
 
   update: async (id: number, data: UpdateYouTubeDto) => {
-    const response = await apiClient.put(`${BASE_URL}/${id}`, data);
-    return response.data;
+    return await apiClient.put(`${BASE_URL}/${id}`, data);
   },
 
   delete: async (id: number) => {
-    const response = await apiClient.delete(`${BASE_URL}/${id}`);
-    return response.data;
+    return await apiClient.delete(`${BASE_URL}/${id}`);
+  },
+
+  exportExcel: async (): Promise<ExcelFileDto> => {
+    return await apiClient.get(`${BASE_URL}/export`);
+  },
+
+  importExcel: async (file: File): Promise<ImportExcelResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return await apiClient.post(`${BASE_URL}/import`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   },
 };

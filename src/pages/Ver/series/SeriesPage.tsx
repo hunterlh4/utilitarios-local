@@ -1,15 +1,18 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useGetAllSeries } from './hooks/useGetAllSeries.hook';
 import { useAddSeries } from './hooks/useAddSeries.hook';
 import { useUpdateSeriesStatus } from './hooks/useUpdateSeriesStatus.hook';
+import { useExportSeries } from './hooks/useExportSeries.hook';
+import { useImportSeries } from './hooks/useImportSeries.hook';
 import { ContentStatus } from '@/common/enums/ver.enum';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/common/components/ui/card';
 import { Spinner } from '@/common/components/ui/spinner';
-import { Search, Check, Clock } from 'lucide-react';
+import { Search, Check, Clock, Upload, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { seriesService } from './services/series.service';
+import { downloadBase64File } from '@/common/lib/download-file';
 
 export const SeriesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -17,10 +20,43 @@ export const SeriesPage = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [filterStatus, setFilterStatus] = useState<ContentStatus>(ContentStatus.Pending);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: savedSeries, isLoading: isLoadingSaved, error } = useGetAllSeries();
+  const { data: savedSeries, isLoading: isLoadingSaved, error, refetch } = useGetAllSeries();
   const addSeries = useAddSeries();
   const updateStatus = useUpdateSeriesStatus();
+  const exportSeries = useExportSeries();
+  const importSeries = useImportSeries();
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      const file = await exportSeries.mutateAsync();
+      downloadBase64File(file.base64, file.fileName || 'series.xlsx');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImportClick = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleImportExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      await importSeries.mutateAsync(file);
+      await refetch();
+    } finally {
+      event.target.value = '';
+      setIsImporting(false);
+    }
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,6 +138,13 @@ export const SeriesPage = () => {
 
         {/* Buscador */}
         <form onSubmit={handleSearch} className="flex gap-2 mb-6">
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={handleImportExcel}
+          />
           <div className="relative flex-1">
             <Input
               type="text"
@@ -129,6 +172,24 @@ export const SeriesPage = () => {
               <Clock className="h-4 w-4" />
             )}
           </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            onClick={handleImportClick}
+            disabled={isExporting || isImporting}
+          >
+            <Upload className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            onClick={handleExportExcel}
+            disabled={isExporting || isImporting}
+          >
+            <Download className="h-4 w-4" />
+          </Button>
         </form>
 
         {/* Vista de Resultados de búsqueda */}
@@ -146,7 +207,7 @@ export const SeriesPage = () => {
                 {searchResults.map((result) => (
                   <Card key={result.id} className="overflow-hidden flex flex-col border-0 shadow-none rounded-none">
                     <CardHeader className="p-0 cursor-pointer" onClick={() => handleSaveSeries(result)}>
-                      <div className="aspect-[2/3] w-full overflow-hidden bg-muted">
+                      <div className="aspect-2/3 w-full overflow-hidden bg-muted">
                         <img
                           src={result.image}
                           alt={result.title}
@@ -190,7 +251,7 @@ export const SeriesPage = () => {
                         className="p-0 cursor-pointer" 
                         onClick={() => handleToggleStatus(series.id, series.status)}
                       >
-                        <div className="aspect-[2/3] w-full overflow-hidden bg-muted">
+                        <div className="aspect-2/3 w-full overflow-hidden bg-muted">
                           <img 
                             src={series.image} 
                             alt={series.title} 
