@@ -1,24 +1,60 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useAnimeSearch } from '../anime/hooks/useAnimeSearch.hook';
 import { useGetAllHentai } from './hooks/useGetAllHentai.hook';
 import { useAddHentai } from './hooks/useAddHentai.hook';
 import { useUpdateHentaiStatus } from './hooks/useUpdateHentaiStatus.hook';
+import { useExportHentai } from './hooks/useExportHentai.hook';
+import { useImportHentai } from './hooks/useImportHentai.hook';
 import { ContentStatus } from '@/common/enums/ver.enum';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/common/components/ui/card';
 import { Spinner } from '@/common/components/ui/spinner';
-import { Search, Check, Clock } from 'lucide-react';
+import { Search, Check, Clock, Upload, Download } from 'lucide-react';
 import { toast } from 'sonner';
+import { downloadBase64File } from '@/common/lib/download-file';
 
 export const HentaiPage = () => {
   const [filterStatus, setFilterStatus] = useState<ContentStatus>(ContentStatus.Pending);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
   const { searchQuery, setSearchQuery, searchResults, isSearching, showResults, handleSearch, setShowResults } =
     useAnimeSearch({ isHentai: true });
 
-  const { data: savedHentai, isLoading: isLoadingSaved, error } = useGetAllHentai();
+  const { data: savedHentai, isLoading: isLoadingSaved, error, refetch } = useGetAllHentai();
   const addHentai = useAddHentai();
   const updateStatus = useUpdateHentaiStatus();
+  const exportHentai = useExportHentai();
+  const importHentai = useImportHentai();
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      const file = await exportHentai.mutateAsync();
+      downloadBase64File(file.base64, file.fileName || 'hentai.xlsx');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImportClick = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleImportExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      await importHentai.mutateAsync(file);
+      await refetch();
+    } finally {
+      event.target.value = '';
+      setIsImporting(false);
+    }
+  };
 
   const toggleFilter = () => {
     setShowResults(false);
@@ -63,6 +99,13 @@ export const HentaiPage = () => {
 
         {/* Buscador */}
         <form onSubmit={handleSearch} className="flex gap-2 mb-6">
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={handleImportExcel}
+          />
           <div className="relative flex-1">
             <Input
               type="text"
@@ -90,6 +133,24 @@ export const HentaiPage = () => {
               <Clock className="h-4 w-4" />
             )}
           </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            onClick={handleImportClick}
+            disabled={isExporting || isImporting}
+          >
+            <Upload className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            onClick={handleExportExcel}
+            disabled={isExporting || isImporting}
+          >
+            <Download className="h-4 w-4" />
+          </Button>
         </form>
 
         {/* Vista de Resultados de búsqueda */}
@@ -107,7 +168,7 @@ export const HentaiPage = () => {
                 {searchResults.map((anime) => (
                   <Card key={anime.mal_id} className="overflow-hidden flex flex-col border-0 shadow-none rounded-none">
                     <CardHeader className="p-0 cursor-pointer" onClick={() => handleSaveHentai(anime)}>
-                      <div className="aspect-[2/3] w-full overflow-hidden bg-muted">
+                      <div className="aspect-2/3 w-full overflow-hidden bg-muted">
                         <img
                           src={anime.images.jpg.large_image_url || anime.images.jpg.image_url}
                           alt={anime.title}
@@ -151,7 +212,7 @@ export const HentaiPage = () => {
                         className="p-0 cursor-pointer" 
                         onClick={() => handleToggleStatus(hentai.id, hentai.status)}
                       >
-                        <div className="aspect-[2/3] w-full overflow-hidden bg-muted">
+                        <div className="aspect-2/3 w-full overflow-hidden bg-muted">
                           <img 
                             src={hentai.image} 
                             alt={hentai.title} 

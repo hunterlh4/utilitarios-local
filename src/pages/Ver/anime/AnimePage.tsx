@@ -1,24 +1,60 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useAnimeSearch } from './hooks/useAnimeSearch.hook';
 import { useGetAllAnime } from './hooks/useGetAllAnime.hook';
 import { useAddAnime } from './hooks/useAddAnime.hook';
 import { useUpdateAnimeStatus } from './hooks/useUpdateAnimeStatus.hook';
+import { useExportAnime } from './hooks/useExportAnime.hook';
+import { useImportAnime } from './hooks/useImportAnime.hook';
 import { ContentStatus } from '@/common/enums/ver.enum';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/common/components/ui/card';
 import { Spinner } from '@/common/components/ui/spinner';
-import { Search, Check, Clock } from 'lucide-react';
+import { Search, Check, Clock, Upload, Download } from 'lucide-react';
 import { toast } from 'sonner';
+import { downloadBase64File } from '@/common/lib/download-file';
 
 export const AnimePage = () => {
   const [filterStatus, setFilterStatus] = useState<ContentStatus>(ContentStatus.Pending);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
   const { searchQuery, setSearchQuery, searchResults, isSearching, showResults, handleSearch, setShowResults } =
     useAnimeSearch({ isHentai: false });
 
-  const { data: savedAnimes, isLoading: isLoadingSaved, error } = useGetAllAnime();
+  const { data: savedAnimes, isLoading: isLoadingSaved, error, refetch } = useGetAllAnime();
   const addAnime = useAddAnime();
   const updateStatus = useUpdateAnimeStatus();
+  const exportAnime = useExportAnime();
+  const importAnime = useImportAnime();
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      const file = await exportAnime.mutateAsync();
+      downloadBase64File(file.base64, file.fileName || 'anime.xlsx');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImportClick = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleImportExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      await importAnime.mutateAsync(file);
+      await refetch();
+    } finally {
+      event.target.value = '';
+      setIsImporting(false);
+    }
+  };
 
   const toggleFilter = () => {
     setShowResults(false);
@@ -64,6 +100,13 @@ export const AnimePage = () => {
 
         {/* Buscador */}
         <form onSubmit={handleSearch} className="flex gap-2 mb-6">
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={handleImportExcel}
+          />
           <div className="relative flex-1">
             <Input
               type="text"
@@ -91,6 +134,24 @@ export const AnimePage = () => {
               <Clock className="h-4 w-4" />
             )}
           </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            onClick={handleImportClick}
+            disabled={isExporting || isImporting}
+          >
+            <Upload className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            onClick={handleExportExcel}
+            disabled={isExporting || isImporting}
+          >
+            <Download className="h-4 w-4" />
+          </Button>
         </form>
 
         {/* Vista de Resultados de búsqueda */}
@@ -108,7 +169,7 @@ export const AnimePage = () => {
                 {searchResults.map((anime) => (
                   <Card key={anime.mal_id} className="overflow-hidden flex flex-col border-0 shadow-none rounded-none">
                     <CardHeader className="p-0 cursor-pointer" onClick={() => handleSaveAnime(anime)}>
-                      <div className="aspect-[2/3] w-full overflow-hidden bg-muted">
+                      <div className="aspect-2/3 w-full overflow-hidden bg-muted">
                         <img
                           src={anime.images.jpg.large_image_url || anime.images.jpg.image_url}
                           alt={anime.title}
@@ -152,7 +213,7 @@ export const AnimePage = () => {
                         className="p-0 cursor-pointer" 
                         onClick={() => handleToggleStatus(anime.id, anime.status)}
                       >
-                        <div className="aspect-[2/3] w-full overflow-hidden bg-muted">
+                        <div className="aspect-2/3 w-full overflow-hidden bg-muted">
                           <img 
                             src={anime.image} 
                             alt={anime.title} 

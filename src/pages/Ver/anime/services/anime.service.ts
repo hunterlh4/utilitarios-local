@@ -1,4 +1,5 @@
 import { apiClient } from '@/config/api/api-client';
+import type { ExcelFileDto, ImportExcelResult } from '@/common/models/excel.model';
 import type { CreateAnimeDto, UpdateAnimeDto } from '../models/anime-request.dto';
 import type { Anime } from '../models/anime.model';
 
@@ -27,5 +28,20 @@ export const animeService = {
 
   updateStatus: async (id: number, status: number) => {
     return await apiClient.patch(`${BASE_URL}/${id}/status`, { status });
+  },
+
+  exportExcel: async (): Promise<ExcelFileDto> => {
+    return await apiClient.get(`${BASE_URL}/export`);
+  },
+
+  importExcel: async (file: File): Promise<ImportExcelResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return await apiClient.post(`${BASE_URL}/import`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   },
 };
