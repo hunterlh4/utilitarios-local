@@ -60,22 +60,6 @@ export const EditActressDialog = ({ open, onOpenChange, actressId, onSave }: Edi
               onChange={(e) => setName(e.target.value)}
             />
 
-            {/* Mostrar imagen actual */}
-            {actress?.image && (
-              <div>
-                <p className="text-sm font-medium mb-2">Imagen actual:</p>
-                <div className="max-w-50">
-                  <div className="relative aspect-2/3">
-                    <img
-                      src={actress.image}
-                      alt="Imagen actual"
-                      className="w-full h-full object-cover rounded"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
             {isLoadingTags ? (
               <div className="flex justify-center py-4">
                 <Spinner className="h-6 w-6" />

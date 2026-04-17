@@ -8,6 +8,7 @@ import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { Checkbox } from "@/common/components/ui/checkbox";
 import { Spinner } from "@/common/components/ui/spinner";
+import { ContentStatus } from "@/common/enums/ver.enum";
 import {
   Dialog,
   DialogContent,
@@ -84,7 +85,7 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
         ? (enlacesUrls.length < 5 ? [...enlacesUrls, ""] : enlacesUrls)
         : [""];
       setEnlaces(enlacesConExtra);
-      setVisto(editingJav.status === 2);
+      setVisto(editingJav.status === ContentStatus.Completed);
       
       // Convertir nombres de tags a IDs
       if (editingJav.tags && tags) {
@@ -216,7 +217,7 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
       image: imagen.trim(),
       links: linksDto,
       tags: [], // Se llenará desde el backend
-      status: visto ? 2 : 1,
+      status: visto ? ContentStatus.Completed : ContentStatus.Pending,
     };
 
     // Agregar actressIds y tagIds para enviar al backend
@@ -236,7 +237,7 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-250 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editingJav ? "Editar JAV" : "Agregar JAV"}</DialogTitle>
           <DialogDescription>
@@ -376,7 +377,7 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav }: JavDialogP
                     <img
                       src={imagen}
                       alt="Vista previa"
-                      className="w-full h-auto max-h-[300px] object-contain"
+                      className="w-full h-auto max-h-75 object-contain"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
                       }}

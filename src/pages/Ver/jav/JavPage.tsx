@@ -6,7 +6,6 @@ import { useAddJav } from './hooks/useAddJav.hook';
 import { useUpdateJav } from './hooks/useUpdateJav.hook';
 import { useUpdateJavStatus } from './hooks/useUpdateJavStatus.hook';
 import { useBulkAddJav } from './hooks/useBulkAddJav.hook';
-import { ContentStatus } from '@/common/enums/ver.enum';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
@@ -20,6 +19,7 @@ import { Search, Plus, Trash2, Edit, Eye, Check, Download, Info, Code } from 'lu
 import { toast } from 'sonner';
 import { JavDialog } from './components/form';
 import { ExtractCodesDialog } from './components/ExtractCodesDialog';
+import { ContentStatus } from '@/common/enums/ver.enum';
 import type { Jav } from './models/jav.model';
 import { javsPorVer } from './services/javs';
 
@@ -29,10 +29,7 @@ export const JavPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [extractCodesOpen, setExtractCodesOpen] = useState(false);
   const [editingJav, setEditingJav] = useState<Jav | null>(null);
-  const [showCompleted, setShowCompleted] = useState(() => {
-    const saved = localStorage.getItem('jav-show-completed');
-    return saved === 'true';
-  });
+  const [showCompleted, setShowCompleted] = useState(false);
   const [selectedTagFilters, setSelectedTagFilters] = useState<string[]>([]);
 
   const { data: savedJavs, isLoading, error } = useGetAllJav();
@@ -114,14 +111,14 @@ export const JavPage = () => {
 
   const handleToggleStatus = async (jav: Jav) => {
     try {
-      const newStatus = jav.status === ContentStatus.Proximamente 
-        ? ContentStatus.Completado 
-        : ContentStatus.Proximamente;
+      const newStatus = jav.status === ContentStatus.Pending
+        ? ContentStatus.Completed
+        : ContentStatus.Pending;
       
       await updateJavStatus.mutateAsync({ id: jav.id, status: newStatus });
       
       toast.success(
-        newStatus === ContentStatus.Completado 
+        newStatus === ContentStatus.Completed 
           ? 'JAV marcado como completado' 
           : 'JAV marcado como por ver'
       );
@@ -180,8 +177,8 @@ export const JavPage = () => {
 
       // Filtro de estado
       const matchesStatus = showCompleted
-        ? jav.status !== ContentStatus.Proximamente
-        : jav.status === ContentStatus.Proximamente;
+        ? jav.status !== ContentStatus.Pending
+        : jav.status === ContentStatus.Pending;
 
       // Filtro de tags
       const matchesTags = selectedTagFilters.length === 0 ||
@@ -195,7 +192,7 @@ export const JavPage = () => {
     <div className="h-full flex flex-col">
       {/* Barra de herramientas */}
       <div className="flex gap-2 mb-1 flex-wrap px-1 pt-1">
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative flex-1 min-w-50">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
@@ -207,9 +204,7 @@ export const JavPage = () => {
         </div>
         <Button
           onClick={() => {
-            const newValue = !showCompleted;
-            setShowCompleted(newValue);
-            localStorage.setItem('jav-show-completed', String(newValue));
+            setShowCompleted(!showCompleted);
           }}
           size="icon"
           className="bg-cyan-500 hover:bg-cyan-600"
@@ -307,7 +302,7 @@ export const JavPage = () => {
             {filteredJavs.map((jav) => (
               <div key={jav.id}>
                 {/* <div className="relative w-full overflow-hidden bg-muted group aspect-[4/3]"> */}
-                <div className="relative w-full overflow-hidden bg-muted group aspect-[3/2]">
+                <div className="relative w-full overflow-hidden bg-muted group aspect-3/2">
                   <img src={jav.image} alt={jav.code} className="w-full h-full object-cover" />
                   <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
                     <Button

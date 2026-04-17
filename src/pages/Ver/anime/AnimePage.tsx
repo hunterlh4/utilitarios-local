@@ -12,7 +12,7 @@ import { Search, Check, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const AnimePage = () => {
-  const [filterStatus, setFilterStatus] = useState<ContentStatus>(ContentStatus.Proximamente);
+  const [filterStatus, setFilterStatus] = useState<ContentStatus>(ContentStatus.Pending);
   const { searchQuery, setSearchQuery, searchResults, isSearching, showResults, handleSearch, setShowResults } =
     useAnimeSearch({ isHentai: false });
 
@@ -23,7 +23,7 @@ export const AnimePage = () => {
   const toggleFilter = () => {
     setShowResults(false);
     setFilterStatus(prev => 
-      prev === ContentStatus.Proximamente ? ContentStatus.Completado : ContentStatus.Proximamente
+      prev === ContentStatus.Pending ? ContentStatus.Completed : ContentStatus.Pending
     );
   };
 
@@ -34,7 +34,7 @@ export const AnimePage = () => {
         title: anime.title,
         image: anime.images.jpg.large_image_url || anime.images.jpg.image_url,
         episodes: anime.episodes || 0,
-        status: ContentStatus.Proximamente,
+        status: ContentStatus.Pending,
       });
       toast.success('Anime guardado correctamente');
     } catch (error) {
@@ -44,9 +44,9 @@ export const AnimePage = () => {
   };
 
   const handleToggleStatus = async (id: number, currentStatus: number) => {
-    const newStatus = currentStatus === ContentStatus.Proximamente 
-      ? ContentStatus.Completado 
-      : ContentStatus.Proximamente;
+    const newStatus = currentStatus === ContentStatus.Pending 
+      ? ContentStatus.Completed 
+      : ContentStatus.Pending;
     
     try {
       await updateStatus.mutateAsync({ id, status: newStatus });
@@ -85,7 +85,7 @@ export const AnimePage = () => {
             size="icon" 
             onClick={toggleFilter}
           >
-            {filterStatus === ContentStatus.Proximamente ? (
+            {filterStatus === ContentStatus.Pending ? (
               <Check className="h-4 w-4" />
             ) : (
               <Clock className="h-4 w-4" />
@@ -132,7 +132,7 @@ export const AnimePage = () => {
         {!showResults && (
           <div>
             <h2 className="text-xl font-semibold mb-4">
-              {filterStatus === ContentStatus.Proximamente ? 'Próximamente' : 'Completado'}
+              {filterStatus === ContentStatus.Pending ? 'Próximamente' : 'Completado'}
             </h2>
             {isLoadingSaved ? (
               <div className="flex justify-center py-8">
@@ -168,7 +168,7 @@ export const AnimePage = () => {
               </div>
             ) : (
               <p className="text-center text-muted-foreground py-8">
-                No tienes animes {filterStatus === ContentStatus.Proximamente ? 'próximamente' : 'completados'}
+                No tienes animes {filterStatus === ContentStatus.Pending ? 'próximamente' : 'completados'}
               </p>
             )}
           </div>

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/config/api/api-client';
+import { ContentStatus } from '@/common/enums/ver.enum';
 import { toast } from 'sonner';
 
 export const useUpdateVideoStatus = () => {
@@ -11,7 +12,7 @@ export const useUpdateVideoStatus = () => {
     onMutate: ({ status }) => ({ status }),
     onSuccess: (_, __, context) => {
       queryClient.invalidateQueries({ queryKey: ['actressAdultVideos'] });
-      toast.success(context?.status === 1 ? 'Video marcado como completado' : 'Video marcado como por ver');
+      toast.success(context?.status === ContentStatus.Completed ? 'Video marcado como completado' : 'Video marcado como por ver');
     },
     onError: () => {
       toast.error('Error al actualizar el estado');

@@ -9,6 +9,7 @@ export const useUpdateLinks = () => {
     mutationFn: ({ id, links }: { id: number; links: string[] }) =>
       actressAdultService.updateLinks(id, links),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['actressAdult'] });
       queryClient.invalidateQueries({ queryKey: ['actressAdultDetail'] });
       toast.success('Links actualizados correctamente');
     },

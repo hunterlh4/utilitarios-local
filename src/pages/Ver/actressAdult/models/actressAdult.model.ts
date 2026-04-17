@@ -3,6 +3,7 @@ export interface ActressAdult {
   name: string;
   image?: string;
   tags?: string[];
+  links?: Link[];
   createdAt?: string;
 }
 
@@ -26,7 +27,8 @@ export interface ActressAdultDetail {
 export interface Link {
   id: number;
   url: string;
-  type: string;
+  type?: number;
+  orderIndex?: number;
 }
 
 export interface VideoAdult {

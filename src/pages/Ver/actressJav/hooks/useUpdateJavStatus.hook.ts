@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { javService } from '@/pages/Ver/jav/services/jav.service';
-import { ContentStatus } from '@/common/enums/ver.enum';
 import { toast } from 'sonner';
+
+const UPCOMING_STATUS = 0;
 
 export const useUpdateJavStatus = () => {
   const queryClient = useQueryClient();
@@ -13,7 +14,7 @@ export const useUpdateJavStatus = () => {
     onSuccess: (_, __, context) => {
       queryClient.invalidateQueries({ queryKey: ['actress-javs'] });
       toast.success(
-        context?.status === ContentStatus.Completado
+        context?.status !== UPCOMING_STATUS
           ? 'JAV marcado como completado'
           : 'JAV marcado como por ver'
       );
