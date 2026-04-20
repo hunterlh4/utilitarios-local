@@ -19,7 +19,19 @@ export const AnimePage = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
-  const { searchQuery, setSearchQuery, searchResults, isSearching, showResults, handleSearch, setShowResults } =
+  const {
+    searchQuery,
+    setSearchQuery,
+    searchResults,
+    isSearching,
+    showResults,
+    handleSearch,
+    setShowResults,
+    currentPage,
+    hasNextPage,
+    goToNextPage,
+    goToPrevPage,
+  } =
     useAnimeSearch({ isHentai: false });
 
   const { data: savedAnimes, isLoading: isLoadingSaved, error, refetch } = useGetAllAnime();
@@ -164,23 +176,46 @@ export const AnimePage = () => {
                 <Spinner className="h-8 w-8" />
               </div>
             ) : searchResults.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-0">
-                {searchResults.map((anime) => (
-                  <Card key={anime.mal_id} className="overflow-hidden flex flex-col border-0 shadow-none rounded-none">
-                    <CardHeader className="p-0 cursor-pointer" onClick={() => handleSaveAnime(anime)}>
-                      <div className="aspect-2/3 w-full overflow-hidden bg-muted">
-                        <img
-                          src={anime.images.jpg.large_image_url || anime.images.jpg.image_url}
-                          alt={anime.title}
-                          className="w-full h-full object-cover hover:opacity-80 transition-opacity"
-                        />
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-2">
-                      <CardTitle className="text-sm line-clamp-2 text-center">{anime.title}</CardTitle>
-                    </CardContent>
-                  </Card>
-                ))}
+              <div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-0">
+                  {searchResults.map((anime) => (
+                    <Card key={anime.mal_id} className="overflow-hidden flex flex-col border-0 shadow-none rounded-none">
+                      <CardHeader className="p-0 cursor-pointer" onClick={() => handleSaveAnime(anime)}>
+                        <div className="aspect-2/3 w-full overflow-hidden bg-muted">
+                          <img
+                            src={anime.images.jpg.large_image_url || anime.images.jpg.image_url}
+                            alt={anime.title}
+                            className="w-full h-full object-cover hover:opacity-80 transition-opacity"
+                          />
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-2">
+                        <CardTitle className="text-sm line-clamp-2 text-center">{anime.title}</CardTitle>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={goToPrevPage}
+                    disabled={isSearching || currentPage <= 1}
+                  >
+                    Anterior
+                  </Button>
+                  <span className="text-sm text-muted-foreground">Página {currentPage}</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={goToNextPage}
+                    disabled={isSearching || !hasNextPage}
+                  >
+                    Siguiente
+                  </Button>
+                </div>
               </div>
             ) : (
               <p className="text-center text-muted-foreground py-8">No se encontraron resultados</p>

@@ -21,7 +21,9 @@ import { toast } from 'sonner';
 import { downloadBase64File } from '@/common/lib/download-file';
 
 export const HentaiPage = () => {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
   const [searchMode, setSearchMode] = useState<'saved' | 'remote'>('saved');
+  const [remoteTypeFilter, setRemoteTypeFilter] = useState<'all' | 'ova'>('all');
   const [filterStatus, setFilterStatus] = useState<ContentStatus>(ContentStatus.Pending);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
@@ -31,9 +33,23 @@ export const HentaiPage = () => {
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [hentaiForTagEdit, setHentaiForTagEdit] = useState<Hentai | null>(null);
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
+  const [selectedLetterFilter, setSelectedLetterFilter] = useState<string>('');
   const importInputRef = useRef<HTMLInputElement>(null);
-  const { searchQuery, setSearchQuery, searchResults, isSearching, showResults, handleSearch, setShowResults, clearSearch } =
-    useAnimeSearch({ isHentai: true });
+  const {
+    searchQuery,
+    setSearchQuery,
+    searchResults,
+    isSearching,
+    showResults,
+    handleSearch,
+    setShowResults,
+    currentPage,
+    hasNextPage,
+    goToNextPage,
+    goToPrevPage,
+    clearSearch,
+  } =
+    useAnimeSearch({ isHentai: true, type: remoteTypeFilter === 'ova' ? 'ova' : undefined });
 
   const { data: savedHentai, isLoading: isLoadingSaved, error, refetch } = useGetAllHentai();
   const addHentai = useAddHentai();
@@ -122,12 +138,6 @@ export const HentaiPage = () => {
       return;
     }
 
-    const query = searchQuery.trim();
-    if (!query) {
-      setShowResults(false);
-      return;
-    }
-
     const timeout = window.setTimeout(() => {
       void handleSearch();
     }, 2500);
@@ -145,6 +155,8 @@ export const HentaiPage = () => {
   const toggleSearchMode = () => {
     setSearchMode(prev => (prev === 'saved' ? 'remote' : 'saved'));
     setSelectedTagFilters([]);
+    setSelectedLetterFilter('');
+    setRemoteTypeFilter('all');
     clearSearch();
   };
 
@@ -159,12 +171,14 @@ export const HentaiPage = () => {
 
   const filteredSavedHentai = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
+    const letter = selectedLetterFilter.toLowerCase();
     return (savedHentai ?? []).filter((hentai) =>
       hentai.status === filterStatus
       && (!query || hentai.title.toLowerCase().includes(query))
+      && (!letter || hentai.title.toLowerCase().startsWith(letter))
       && (selectedTagFilters.length === 0 || selectedTagFilters.every((filterTag) => hentai.tags?.includes(filterTag)))
     );
-  }, [filterStatus, savedHentai, searchQuery, selectedTagFilters]);
+  }, [filterStatus, savedHentai, searchQuery, selectedLetterFilter, selectedTagFilters]);
 
   const toggleTagFilter = (tagName: string) => {
     setSelectedTagFilters((prev) => (
@@ -174,8 +188,12 @@ export const HentaiPage = () => {
     ));
   };
 
+  const isRemoteAllMode = searchMode === 'remote' && !searchQuery.trim();
+
   const handleClearFilters = () => {
     setSelectedTagFilters([]);
+    setSelectedLetterFilter('');
+    setRemoteTypeFilter('all');
     setSearchQuery('');
   };
 
@@ -320,31 +338,83 @@ export const HentaiPage = () => {
 
         {searchMode === 'remote' && showResults && (
           <div>
+            <div className="bg-muted/30 rounded-md p-1.5 mb-2">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <p className="text-xs font-medium mr-1">Tipo:</p>
+                <Button
+                  type="button"
+                  variant={remoteTypeFilter === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  className="h-6 rounded-full px-2 text-xs"
+                  onClick={() => setRemoteTypeFilter('all')}
+                >
+                  Todos
+                </Button>
+                <Button
+                  type="button"
+                  variant={remoteTypeFilter === 'ova' ? 'default' : 'outline'}
+                  size="sm"
+                  className="h-6 rounded-full px-2 text-xs"
+                  onClick={() => setRemoteTypeFilter((prev) => (prev === 'ova' ? 'all' : 'ova'))}
+                >
+                  OVA
+                </Button>
+              </div>
+            </div>
             <h2 className="text-xl font-semibold mb-4">
-              Resultados de búsqueda ({searchResults.length})
+              {isRemoteAllMode ? `Catálogo hentai (${searchResults.length})` : `Resultados de búsqueda (${searchResults.length})`}
             </h2>
             {isSearching ? (
               <div className="flex justify-center py-8">
                 <Spinner className="h-8 w-8" />
               </div>
             ) : searchResults.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-0">
-                {searchResults.map((anime) => (
-                  <Card key={anime.mal_id} className="overflow-hidden flex flex-col border-0 shadow-none rounded-none">
-                    <CardHeader className="p-0 cursor-pointer" onClick={() => handleSaveHentai(anime)}>
-                      <div className="aspect-2/3 w-full overflow-hidden bg-muted">
-                        <img
-                          src={anime.images.jpg.large_image_url || anime.images.jpg.image_url}
-                          alt={anime.title}
-                          className="w-full h-full object-cover hover:opacity-80 transition-opacity"
-                        />
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-2">
-                      <CardTitle className="text-sm line-clamp-2 text-center">{anime.title}</CardTitle>
-                    </CardContent>
-                  </Card>
-                ))}
+              <div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-0">
+                  {searchResults.map((anime) => (
+                    <Card key={anime.mal_id} className="overflow-hidden flex flex-col border-0 shadow-none rounded-none">
+                      <CardHeader className="p-0 cursor-pointer" onClick={() => handleSaveHentai(anime)}>
+                        <div className="aspect-2/3 w-full overflow-hidden bg-muted">
+                          <img
+                            src={anime.images.jpg.large_image_url || anime.images.jpg.image_url}
+                            alt={anime.title}
+                            className="w-full h-full object-cover hover:opacity-80 transition-opacity"
+                          />
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-2">
+                        <CardTitle className="text-sm line-clamp-2 text-center">{anime.title}</CardTitle>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+                {!isRemoteAllMode ? (
+                  <div className="mt-4 flex items-center justify-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={goToPrevPage}
+                      disabled={isSearching || currentPage <= 1}
+                    >
+                      Anterior
+                    </Button>
+                    <span className="text-sm text-muted-foreground">Página {currentPage}</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={goToNextPage}
+                      disabled={isSearching || !hasNextPage}
+                    >
+                      Siguiente
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="mt-4 text-center text-sm text-muted-foreground">
+                    Se cargó todo el catálogo disponible para este filtro.
+                  </p>
+                )}
               </div>
             ) : (
               <p className="text-center text-muted-foreground py-8">No se encontraron resultados</p>
@@ -354,12 +424,43 @@ export const HentaiPage = () => {
 
         {searchMode === 'remote' && !showResults && (
           <p className="text-center text-muted-foreground py-8">
-            Escribe para buscar en la API y espera 2.5 segundos sin teclear.
+            Escribe para buscar en la API y espera 2.5 segundos sin teclear. Si dejas el campo vacío, se carga todo el catálogo hentai disponible para el filtro.
           </p>
         )}
 
         {searchMode === 'saved' && (
           <div>
+            <div className="bg-muted/30 rounded-md p-1.5 mb-2">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <p className="text-xs font-medium mr-1">Letra:</p>
+                {alphabet.map((letter) => {
+                  const isActive = selectedLetterFilter === letter;
+                  return (
+                    <Button
+                      key={letter}
+                      type="button"
+                      variant={isActive ? 'default' : 'outline'}
+                      size="sm"
+                      className="h-6 rounded-full px-2 text-xs"
+                      onClick={() => setSelectedLetterFilter((prev) => (prev === letter ? '' : letter))}
+                    >
+                      {letter}
+                    </Button>
+                  );
+                })}
+                {selectedLetterFilter && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={() => setSelectedLetterFilter('')}
+                  >
+                    Quitar letra
+                  </Button>
+                )}
+              </div>
+            </div>
             {availableTags.length > 0 && (
               <div className="bg-muted/30 rounded-md p-1.5 mb-2">
                 <div className="flex flex-wrap items-center gap-1.5">
