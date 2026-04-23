@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Trash2, Sparkles } from "lucide-react";
+import { Trash2, Sparkles, Search, Plus } from "lucide-react";
 import { useMetadata } from "../hooks/use-metadata";
 import { useGetTags } from "../hooks/useGetTags.hook";
 import { useGetAllActressJav } from "../hooks/useGetAllActressJav.hook";
@@ -41,6 +41,8 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav, preselectedA
   const [codeExists, setCodeExists] = useState(false);
   const [quickAddActressOpen, setQuickAddActressOpen] = useState(false);
   const [quickActressName, setQuickActressName] = useState("");
+  const [actressSearch, setActressSearch] = useState("");
+  const [tagSearch, setTagSearch] = useState("");
   const { fetchMetadata, loading } = useMetadata();
   const { data: tags, isLoading: isLoadingTags } = useGetTags(7); // 7 = Jav
   const { data: actressesJav, isLoading: isLoadingActressesJav, refetch: refetchActresses } = useGetAllActressJav();
@@ -281,20 +283,19 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav, preselectedA
               ) : actressesJav && actressesJav.length > 0 ? (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label>Actrices <span className="text-red-500">* (mínimo 1)</span></Label>
+                    <Label>Actrices <span className="text-red-500">*</span></Label>
                     <Button
                       type="button"
-                      size="sm"
-                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 bg-green-600 hover:bg-green-700"
                       onClick={() => setQuickAddActressOpen(!quickAddActressOpen)}
-                      className="h-7"
                     >
-                      {quickAddActressOpen ? 'Cancelar' : '+ Agregar Actriz'}
+                      <Plus className="h-4 w-4" />
                     </Button>
                   </div>
                   
                   {quickAddActressOpen && (
-                    <div className="flex gap-2 p-2 bg-muted/50 rounded">
+                    <div className="flex gap-1 rounded">
                       <Input
                         placeholder="Nombre de la actriz"
                         value={quickActressName}
@@ -317,8 +318,17 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav, preselectedA
                     </div>
                   )}
                   
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar actriz..."
+                      value={actressSearch}
+                      onChange={(e) => setActressSearch(e.target.value)}
+                      className="pl-8 h-8 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    />
+                  </div>
                   <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto border rounded p-2">
-                    {actressesJav.map((actress) => (
+                    {actressesJav.filter(a => a.name.toLowerCase().includes(actressSearch.toLowerCase())).map((actress) => (
                       <div
                         key={actress.id}
                         onClick={() => toggleActress(actress.id)}
@@ -342,8 +352,17 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav, preselectedA
               ) : tags && tags.length > 0 ? (
                 <div className="space-y-2">
                   <Label>Tags</Label>
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar tag..."
+                      value={tagSearch}
+                      onChange={(e) => setTagSearch(e.target.value)}
+                      className="pl-8 h-8 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    />
+                  </div>
                   <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded p-2">
-                    {tags.map((tag) => (
+                    {tags.filter(t => t.name.toLowerCase().includes(tagSearch.toLowerCase())).map((tag) => (
                       <div
                         key={tag.id}
                         onClick={() => toggleTag(tag.id)}
@@ -395,7 +414,7 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav, preselectedA
 
               <div className="space-y-2">
                 <Label>
-                  Enlaces <span className="text-red-500">* (mínimo 1)</span>
+                  Enlaces <span className="text-red-500">*</span>
                 </Label>
                 {enlaces.map((enlace, index) => (
                   <div key={index} className="flex gap-2">

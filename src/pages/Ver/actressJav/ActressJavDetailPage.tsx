@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGetJavsByActress } from './hooks/useGetJavsByActress.hook';
 import { useGetAllActresses } from './hooks/useGetAllActresses.hook';
@@ -8,10 +8,13 @@ import { useUpdateActress } from './hooks/useUpdateActress.hook';
 import { useUpdateActressLinks } from './hooks/useUpdateActressLinks.hook';
 import { useAddJav } from '../jav/hooks/useAddJav.hook';
 import { useUpdateJav } from '../jav/hooks/useUpdateJav.hook';
+import { useUploadJavImage } from '../jav/hooks/useUploadJavImage.hook';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/common/components/ui/dialog';
 import { ContentStatus } from '@/common/enums/ver.enum';
+import { toast } from 'sonner';
 import { Search, ArrowLeft, Eye, Check, Edit, Trash2, Link as LinkIcon, Plus } from 'lucide-react';
 import { ActressDialog } from './components/form';
 import { ActressLinksDialog } from './components/ActressLinksDialog';
@@ -36,6 +39,8 @@ export const ActressJavDetailPage = () => {
   const [linksDialogOpen, setLinksDialogOpen] = useState(false);
   const [editingActress, setEditingActress] = useState<ActressJav | null>(null);
   const [selectedTagFilters, setSelectedTagFilters] = useState<string[]>([]);
+  const [hoveredJavId, setHoveredJavId] = useState<number | null>(null);
+  const [pendingReplace, setPendingReplace] = useState<{ file: File; refId: number } | null>(null);
 
   const { data: javs, isLoading, error } = useGetJavsByActress(actressId);
   const { data: actresses } = useGetAllActresses();
@@ -45,6 +50,37 @@ export const ActressJavDetailPage = () => {
   const updateJav = useUpdateJav();
   const updateActress = useUpdateActress();
   const updateActressLinks = useUpdateActressLinks();
+  const uploadJavImage = useUploadJavImage();
+
+  const uploadPastedImage = useCallback(async (file: File, refId: number) => {
+    try {
+      await uploadJavImage.mutateAsync({ file, refId });
+      toast.success('Imagen actualizada correctamente');
+    } catch {
+      toast.error('Error al subir la imagen');
+    }
+  }, [uploadJavImage]);
+
+  const handlePaste = useCallback(async (e: ClipboardEvent) => {
+    if (!hoveredJavId) return;
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        e.preventDefault();
+        const blob = items[i].getAsFile();
+        if (!blob) continue;
+        setPendingReplace({ file: blob, refId: hoveredJavId });
+        break;
+      }
+    }
+  }, [hoveredJavId]);
+
+  useEffect(() => {
+    const listener = (e: Event) => void handlePaste(e as ClipboardEvent);
+    document.addEventListener('paste', listener);
+    return () => document.removeEventListener('paste', listener);
+  }, [handlePaste]);
 
   const actress = actresses?.find(a => a.id === actressId);
 
@@ -298,7 +334,10 @@ export const ActressJavDetailPage = () => {
         ) : (
           <div className="grid grid-cols-4 gap-x-0 gap-y-1">
             {filteredJavs.map((jav: JavSummary) => (
-              <div key={jav.id}>
+              <div key={jav.id}
+                onMouseEnter={() => setHoveredJavId(jav.id)}
+                onMouseLeave={() => setHoveredJavId(null)}
+              >
                 <div className="relative w-full overflow-hidden bg-muted group aspect-3/2">
                   <img src={jav.image} alt={jav.code} className="w-full h-full object-cover" />
                   <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
@@ -414,6 +453,23 @@ export const ActressJavDetailPage = () => {
         actress={actress ?? null}
         onSave={handleSaveLinks}
       />
+
+      <Dialog open={!!pendingReplace} onOpenChange={(open) => !open && setPendingReplace(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Reemplazar imagen</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">Este JAV ya tiene imagen. ¿Deseas reemplazarla?</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingReplace(null)}>Cancelar</Button>
+            <Button onClick={async () => {
+              if (!pendingReplace) return;
+              await uploadPastedImage(pendingReplace.file, pendingReplace.refId);
+              setPendingReplace(null);
+            }}>
+              Reemplazar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

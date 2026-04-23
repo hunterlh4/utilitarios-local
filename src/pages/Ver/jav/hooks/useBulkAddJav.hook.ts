@@ -1,28 +1,43 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { javService } from '../services/jav.service';
-import type { CreateJavDto } from '../models/jav-request.dto';
+import type { Jav } from '../services/javs';
+
+const timestampToDate = (ts?: number): string | undefined => {
+  if (!ts) return undefined;
+  return new Date(ts).toISOString();
+};
 
 export const useBulkAddJav = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (javs: CreateJavDto[]) => {
-      const results = [];
-      
-      // Enviar los JAVs uno por uno secuencialmente
+    mutationFn: async (javs: Jav[]) => {
+      let created = 0;
+      let skipped = 0;
+      let failed = 0;
+
       for (const jav of javs) {
         try {
-          const result = await javService.create(jav);
-          results.push({ success: true, data: result });
-        } catch (error) {
-          results.push({ success: false, error, code: jav.code });
+          await javService.bulkCreate({
+            code: jav.nombre,
+            actresses: jav.actriz
+              ? [{ name: jav.actriz, url: jav.actrizUrl }]
+              : [],
+            image: jav.imagen,
+            links: jav.enlaces,
+            createdAt: timestampToDate(jav.timestamp),
+          });
+          created++;
+        } catch {
+          skipped++;
         }
       }
-      
-      return results;
+
+      return { created, skipped, failed };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['jav'] });
+      queryClient.invalidateQueries({ queryKey: ['actresses'] });
     },
   });
 };

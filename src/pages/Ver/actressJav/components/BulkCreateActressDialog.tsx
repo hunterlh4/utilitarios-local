@@ -20,8 +20,9 @@ export const BulkCreateActressDialog = ({
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleCreate = async () => {
+    // Divide por salto de línea O por coma, limpia espacios y filtra vacíos
     const names = namesText
-      .split('\n')
+      .split(/[\n,]/)
       .map(name => name.trim())
       .filter(name => name.length > 0);
 
@@ -53,16 +54,16 @@ export const BulkCreateActressDialog = ({
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">
-              Ingresa los nombres (uno por linea)
+              Ingresa los nombres (uno por línea o separados por coma)
             </label>
             <Textarea
-              placeholder={`Matsuri Kiritani\nKaho Shibuya\nMaria Ozawa\nAi Sayama`}
+              placeholder={`Matsuri Kiritani\nKaho Shibuya, Maria Ozawa\nAi Sayama`}
               value={namesText}
               onChange={(e) => setNamesText(e.target.value)}
               className="min-h-32"
             />
             <p className="text-xs text-muted-foreground mt-2">
-              {namesText.split('\n').filter(n => n.trim()).length} nombre(s) listo(s) para crear
+              {namesText.split(/[\n,]/).filter(n => n.trim()).length} nombre(s) listo(s) para crear
             </p>
             {validationError && <p className="text-xs text-red-500 mt-1">{validationError}</p>}
           </div>

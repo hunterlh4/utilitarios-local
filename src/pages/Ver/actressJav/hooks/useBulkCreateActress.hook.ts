@@ -23,7 +23,7 @@ export const useBulkCreateActress = () => {
     },
     onSuccess: ({ created, failed }) => {
       queryClient.invalidateQueries({ queryKey: ['actresses'] });
-      toast.success(`Creacion en lote completada. Creadas: ${created}, Fallidas: ${failed}`);
+      toast.success(`Creación en lote completada. Creadas: ${created}, Fallidas: ${failed}`);
     },
     onError: () => {
       toast.error('Error al crear las actrices');

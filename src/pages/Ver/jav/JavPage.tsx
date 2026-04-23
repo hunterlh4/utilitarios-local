@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGetAllJav } from './hooks/useGetAllJav.hook';
 import { useDeleteJav } from './hooks/useDeleteJav.hook';
@@ -6,9 +6,11 @@ import { useAddJav } from './hooks/useAddJav.hook';
 import { useUpdateJav } from './hooks/useUpdateJav.hook';
 import { useUpdateJavStatus } from './hooks/useUpdateJavStatus.hook';
 import { useBulkAddJav } from './hooks/useBulkAddJav.hook';
+import { useUploadJavImage } from './hooks/useUploadJavImage.hook';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/common/components/ui/dialog';
 import {
   Tooltip,
   TooltipContent,
@@ -31,6 +33,8 @@ export const JavPage = () => {
   const [editingJav, setEditingJav] = useState<Jav | null>(null);
   const [showCompleted, setShowCompleted] = useState(false);
   const [selectedTagFilters, setSelectedTagFilters] = useState<string[]>([]);
+  const [hoveredJavId, setHoveredJavId] = useState<number | null>(null);
+  const [pendingReplace, setPendingReplace] = useState<{ file: File; refId: number } | null>(null);
 
   const { data: savedJavs, isLoading, error } = useGetAllJav();
   const deleteJav = useDeleteJav();
@@ -38,32 +42,49 @@ export const JavPage = () => {
   const updateJav = useUpdateJav();
   const updateJavStatus = useUpdateJavStatus();
   const bulkAddJav = useBulkAddJav();
+  const uploadJavImage = useUploadJavImage();
+
+  const uploadPastedImage = useCallback(async (file: File, refId: number) => {
+    try {
+      await uploadJavImage.mutateAsync({ file, refId });
+      toast.success('Imagen actualizada correctamente');
+    } catch {
+      toast.error('Error al subir la imagen');
+    }
+  }, [uploadJavImage]);
+
+  const handlePaste = useCallback(async (e: ClipboardEvent) => {
+    if (!hoveredJavId) return;
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        e.preventDefault();
+        const blob = items[i].getAsFile();
+        if (!blob) continue;
+        setPendingReplace({ file: blob, refId: hoveredJavId });
+        break;
+      }
+    }
+  }, [hoveredJavId]);
+
+  useEffect(() => {
+    const listener = (e: Event) => void handlePaste(e as ClipboardEvent);
+    document.addEventListener('paste', listener);
+    return () => document.removeEventListener('paste', listener);
+  }, [handlePaste]);
 
   const handlePullLocalData = async () => {
     try {
-      // Convertir los JAVs locales al formato del backend
-      const javsToAdd = javsPorVer.map((jav) => ({
-        code: jav.nombre,
-        actressName: jav.actriz,
-        actressUrl: jav.actrizUrl,
-        image: jav.imagen,
-        links: jav.enlaces,
-      }));
-
-      const results = await bulkAddJav.mutateAsync(javsToAdd);
-      
-      // Contar éxitos y fallos
-      const successful = results.filter((r) => r.success).length;
-      const failed = results.filter((r) => !r.success).length;
-      
+      const results = await bulkAddJav.mutateAsync(javsPorVer);
+      const { created, skipped, failed } = results;
       if (failed === 0) {
-        toast.success(`${successful} JAVs agregados correctamente`);
+        toast.success(`${created} JAVs importados${skipped > 0 ? `, ${skipped} ya existían` : ''}`);
       } else {
-        toast.warning(`${successful} JAVs agregados, ${failed} fallaron`);
+        toast.warning(`${created} importados, ${skipped} ya existían, ${failed} fallaron`);
       }
     } catch (error) {
-      console.error('Error al importar JAVs:', error);
-      toast.error('Error al importar los JAVs locales');
+      toast.error('Error al importar los JAVs');
     }
   };
 
@@ -240,17 +261,15 @@ export const JavPage = () => {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        {/* Botón oculto para bulk import */}
-        {false && (
-          <Button
-            onClick={handlePullLocalData}
-            disabled={bulkAddJav.isPending}
-            size="icon"
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            <Download className="h-4 w-4" />
-          </Button>
-        )}
+        {/* Botón para bulk import */}
+        <Button
+          onClick={handlePullLocalData}
+          disabled={bulkAddJav.isPending}
+          size="icon"
+          className="bg-purple-600 hover:bg-purple-700"
+        >
+          <Download className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* Filtros de tags */}
@@ -300,7 +319,10 @@ export const JavPage = () => {
         ) : filteredJavs && filteredJavs.length > 0 ? (
           <div className="grid grid-cols-4 gap-x-0 gap-y-1">
             {filteredJavs.map((jav) => (
-              <div key={jav.id}>
+              <div key={jav.id}
+                onMouseEnter={() => setHoveredJavId(jav.id)}
+                onMouseLeave={() => setHoveredJavId(null)}
+              >
                 {/* <div className="relative w-full overflow-hidden bg-muted group aspect-[4/3]"> */}
                 <div className="relative w-full overflow-hidden bg-muted group aspect-3/2">
                   <img src={jav.image} alt={jav.code} className="w-full h-full object-cover" />
@@ -438,6 +460,23 @@ export const JavPage = () => {
         open={extractCodesOpen}
         onOpenChange={setExtractCodesOpen}
       />
+
+      <Dialog open={!!pendingReplace} onOpenChange={(open) => !open && setPendingReplace(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Reemplazar imagen</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">Este JAV ya tiene imagen. ¿Deseas reemplazarla?</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingReplace(null)}>Cancelar</Button>
+            <Button onClick={async () => {
+              if (!pendingReplace) return;
+              await uploadPastedImage(pendingReplace.file, pendingReplace.refId);
+              setPendingReplace(null);
+            }}>
+              Reemplazar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

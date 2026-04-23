@@ -32,4 +32,22 @@ export const javService = {
   updateStatus: async (id: number, status: number) => {
     return await apiClient.patch(`${BASE_URL}/${id}/status`, { status });
   },
+
+  uploadImage: async (file: File, refId: number) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    return await apiClient.post(`${BASE_URL}/${refId}/image`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  bulkCreate: async (data: {
+    code: string;
+    actresses: { name: string; url?: string }[];
+    image?: string;
+    links: string[];
+    createdAt?: string;
+  }) => {
+    return await apiClient.post(`${BASE_URL}/bulk`, data);
+  },
 };
