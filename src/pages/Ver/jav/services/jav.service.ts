@@ -33,6 +33,14 @@ export const javService = {
     return await apiClient.patch(`${BASE_URL}/${id}/status`, { status });
   },
 
+  importExcel: async (file: File): Promise<{ javsCreated: number; actressesCreated: number; skipped: number; invalid: number }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return await apiClient.post(`${BASE_URL}/import`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
   uploadImage: async (file: File, refId: number) => {
     const formData = new FormData();
     formData.append('image', file);

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGetAllJav } from './hooks/useGetAllJav.hook';
 import { useDeleteJav } from './hooks/useDeleteJav.hook';
@@ -7,6 +7,7 @@ import { useUpdateJav } from './hooks/useUpdateJav.hook';
 import { useUpdateJavStatus } from './hooks/useUpdateJavStatus.hook';
 import { useBulkAddJav } from './hooks/useBulkAddJav.hook';
 import { useUploadJavImage } from './hooks/useUploadJavImage.hook';
+import { useImportJavExcel } from './hooks/useImportJavExcel.hook';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
@@ -17,7 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/common/components/ui/tooltip';
-import { Search, Plus, Trash2, Edit, Eye, Check, Download, Info, Code } from 'lucide-react';
+import { Search, Plus, Trash2, Edit, Eye, Check, Download, Info, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { JavDialog } from './components/form';
 import { ExtractCodesDialog } from './components/ExtractCodesDialog';
@@ -43,6 +44,8 @@ export const JavPage = () => {
   const updateJavStatus = useUpdateJavStatus();
   const bulkAddJav = useBulkAddJav();
   const uploadJavImage = useUploadJavImage();
+  const importJavExcel = useImportJavExcel();
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const uploadPastedImage = useCallback(async (file: File, refId: number) => {
     try {
@@ -235,13 +238,13 @@ export const JavPage = () => {
         <Button onClick={handleOpenDialog} size="icon" className="bg-green-600 hover:bg-green-700">
           <Plus className="h-4 w-4" />
         </Button>
-        <Button 
+        {/* <Button 
           onClick={() => setExtractCodesOpen(true)} 
           size="icon" 
           className="bg-purple-600 hover:bg-purple-700"
         >
           <Code className="h-4 w-4" />
-        </Button>
+        </Button> */}
         <TooltipProvider delayDuration={200}>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -270,6 +273,28 @@ export const JavPage = () => {
         >
           <Download className="h-4 w-4" />
         </Button>
+        {/* Botón para importar Excel */}
+        <Button
+          onClick={() => importInputRef.current?.click()}
+          disabled={importJavExcel.isPending}
+          size="icon"
+          className="bg-orange-600 hover:bg-orange-700"
+          title="Importar en lote desde Excel"
+        >
+          <Upload className="h-4 w-4" />
+        </Button>
+        <input
+          ref={importInputRef}
+          type="file"
+          accept=".xlsx,.xls"
+          className="hidden"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            await importJavExcel.mutateAsync(file);
+            e.target.value = '';
+          }}
+        />
       </div>
 
       {/* Filtros de tags */}
