@@ -31,6 +31,7 @@ import { TaskPage } from '@/pages/Utilitarios/task/TaskPage';
 import { EventPage } from '@/pages/Utilitarios/event/EventPage';
 import { OGamePage } from '@/pages/Utilitarios/ogame/OGamePage';
 import { TagPage } from '@/pages/Utilitarios/tag/TagPage';
+import { ComicPage } from '@/pages/Ver/comic/ComicPage';
 
 export const router = createBrowserRouter([
   {
@@ -77,6 +78,10 @@ export const router = createBrowserRouter([
       {
         path: 'ver/youtube',
         element: <YouTubePage />,
+      },
+      {
+        path: 'ver/comic',
+        element: <ComicPage />,
       },
       // Galería
       {

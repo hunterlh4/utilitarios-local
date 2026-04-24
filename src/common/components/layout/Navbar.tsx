@@ -26,6 +26,7 @@ export const Navbar = () => {
         { label: 'Actrices AV', path: '/ver/actress-jav' },
         { label: 'Actrices', path: '/ver/actress-adult' },
         { label: 'YouTube', path: '/ver/youtube' },
+        { label: 'Comic', path: '/ver/comic' },
       ],
     },
     {
