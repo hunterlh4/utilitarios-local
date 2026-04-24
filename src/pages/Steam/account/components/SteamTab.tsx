@@ -40,16 +40,16 @@ export const SteamTab = ({ search = '', isActive = true }: { search?: string; is
         <FilterChip label="Dota 2" icon="/svg/dota2.svg" active={filters.dota2} onChange={() => toggle('dota2')} />
         <FilterChip label="CS2" icon="/svg/cs2.svg" active={filters.cs2} onChange={() => toggle('cs2')} />
         <FilterChip label="Mobile" icon="/svg/device.svg" active={filters.mobile} onChange={() => toggle('mobile')} />
-        <FilterChip label="Ilimitada" icon="/svg/facebook.svg" active={filters.unlimited} onChange={() => toggle('unlimited')} />
+        <FilterChip label="Ilimitada" icon="/svg/steam-svgrepo-com.svg" active={filters.unlimited} onChange={() => toggle('unlimited')} />
           <FilterChip label="Banned" icon="/svg/prohibido.svg" active={filters.banned} onChange={() => toggle('banned')} />
       </div>
       {isLoading ? <div className="flex justify-center py-8"><Spinner className="h-8 w-8" /></div> : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {filtered?.map((s) => (
             <AccountCard
               key={s.id}
               title={s.username}
-              icon="/svg/steam-svgrepo-com.svg"
+              
               password={s.password}
               profileUrl={s.profileUrl}
               fields={[
@@ -60,7 +60,7 @@ export const SteamTab = ({ search = '', isActive = true }: { search?: string; is
                 <div className="flex gap-2 flex-wrap pt-0.5 items-center">
                   {s.hasDota2 && <img src="/svg/dota2.svg" alt="Dota 2" className="w-5 h-5" title="Dota 2" />}
                   {s.hasCS2 && <img src="/svg/cs2.svg" alt="CS2" className="w-5 h-5" title="CS2" />}
-                  {s.isUnlimited && <img src="/svg/facebook.svg" alt="Ilimitada" className="w-5 h-5" title="Ilimitada" />}
+                  {s.isUnlimited && <img src="/svg/steam-svgrepo-com.svg" alt="Ilimitada" className="w-5 h-5" title="Ilimitada" />}
                   {s.hasSteamMobile && <img src="/svg/device.svg" alt="Mobile" className="w-5 h-5" title="Steam Mobile" />}
                   {s.isVacBanned && <img src="/svg/prohibido.svg" alt="isVacBanned" className="w-5 h-5" title="Steam isVacBanned" />}
                 </div>
