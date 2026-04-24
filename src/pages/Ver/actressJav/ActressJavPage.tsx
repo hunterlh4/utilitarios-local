@@ -275,13 +275,13 @@ export const ActressJavPage = () => {
               <Button
                 variant="default"
                 disabled={isExporting || isImporting}
-                className="rounded-none border-0 border-l border-primary-foreground/25 px-2 bg-green-600 hover:bg-green-700"
+                className="rounded-none border-0 border-l border-primary-foreground/25 px-2 bg-green-600 hover:bg-green-700 focus-visible:ring-0 focus-visible:ring-offset-0"
                 title="Importar/Exportar Excel"
               >
                 {isExporting || isImporting ? <Spinner className="h-4 w-4" /> : <ChevronDown className="w-4 h-4" />}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44 p-1.5 bg-primary">
+            <DropdownMenuContent align="end" sideOffset={0} className="w-44 p-1.5 bg-primary border-primary">
               <DropdownMenuItem
                 onClick={handleExportExcel}
                 className="h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"

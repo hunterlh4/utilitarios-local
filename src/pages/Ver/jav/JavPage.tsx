@@ -7,10 +7,12 @@ import { useUpdateJav } from './hooks/useUpdateJav.hook';
 import { useUpdateJavStatus } from './hooks/useUpdateJavStatus.hook';
 import { useBulkAddJav } from './hooks/useBulkAddJav.hook';
 import { useUploadJavImage } from './hooks/useUploadJavImage.hook';
-import { useImportJavExcel } from './hooks/useImportJavExcel.hook';
+import { useImportJavExcel, useImportJavExcelTemporal } from './hooks/useImportJavExcel.hook';
+import { useExportJavExcel } from './hooks/useExportJavExcel.hook';
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Spinner } from '@/common/components/ui/spinner';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/common/components/ui/dialog';
 import {
   Tooltip,
@@ -18,7 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/common/components/ui/tooltip';
-import { Search, Plus, Trash2, Edit, Eye, Check, Download, Info, Upload } from 'lucide-react';
+import { Search, Plus, Trash2, Edit, Eye, Check, Download, Info, Upload, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { JavDialog } from './components/form';
 import { ExtractCodesDialog } from './components/ExtractCodesDialog';
@@ -45,7 +47,10 @@ export const JavPage = () => {
   const bulkAddJav = useBulkAddJav();
   const uploadJavImage = useUploadJavImage();
   const importJavExcel = useImportJavExcel();
+  const importJavExcelTemporal = useImportJavExcelTemporal();
+  const exportJavExcel = useExportJavExcel();
   const importInputRef = useRef<HTMLInputElement>(null);
+  const importSimpleInputRef = useRef<HTMLInputElement>(null);
 
   const uploadPastedImage = useCallback(async (file: File, refId: number) => {
     try {
@@ -86,9 +91,21 @@ export const JavPage = () => {
       } else {
         toast.warning(`${created} importados, ${skipped} ya existían, ${failed} fallaron`);
       }
-    } catch (error) {
+    } catch {
       toast.error('Error al importar los JAVs');
     }
+  };
+
+  const handleExportExcel = async () => {
+    await exportJavExcel.mutateAsync();
+  };
+
+  const handleImportClick = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleImportSimpleClick = () => {
+    importSimpleInputRef.current?.click();
   };
 
   const handleSave = async (jav: Jav) => {
@@ -235,9 +252,58 @@ export const JavPage = () => {
         >
           {showCompleted ? <Check className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </Button>
-        <Button onClick={handleOpenDialog} size="icon" className="bg-green-600 hover:bg-green-700">
-          <Plus className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center overflow-hidden rounded-md">
+          <Button onClick={handleOpenDialog} className="rounded-none border-0 bg-green-600 hover:bg-green-700">
+            <Plus className="h-4 w-4 mr-2" />
+            Crear
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="default"
+                disabled={
+                  exportJavExcel.isPending ||
+                  importJavExcel.isPending ||
+                  importJavExcelTemporal.isPending ||
+                  bulkAddJav.isPending
+                }
+                className="rounded-none border-0 border-l border-primary-foreground/25 px-2 bg-green-600 hover:bg-green-700 focus-visible:ring-0 focus-visible:ring-offset-0"
+                title="Acciones de carga"
+              >
+                {exportJavExcel.isPending || importJavExcel.isPending || importJavExcelTemporal.isPending || bulkAddJav.isPending
+                  ? <Spinner className="h-4 w-4" />
+                  : <ChevronDown className="w-4 h-4" />}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" sideOffset={0} className="w-52 p-1.5 bg-primary border-primary">
+              <DropdownMenuItem
+                onClick={handleExportExcel}
+                className="h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
+              >
+                <Download className="mr-2 h-4 w-4" /> Exportar
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleImportClick}
+                className="mt-1 h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
+              >
+                <Upload className="mr-2 h-4 w-4" /> Importar
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleImportSimpleClick}
+                className="mt-1 h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
+              >
+                <Upload className="mr-2 h-4 w-4" /> Importar simple
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handlePullLocalData}
+                className="mt-1 h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
+              >
+                <Plus className="mr-2 h-4 w-4" /> Cargar data (bulk)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
         {/* <Button 
           onClick={() => setExtractCodesOpen(true)} 
           size="icon" 
@@ -264,25 +330,6 @@ export const JavPage = () => {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        {/* Botón para bulk import */}
-        <Button
-          onClick={handlePullLocalData}
-          disabled={bulkAddJav.isPending}
-          size="icon"
-          className="bg-purple-600 hover:bg-purple-700"
-        >
-          <Download className="h-4 w-4" />
-        </Button>
-        {/* Botón para importar Excel */}
-        <Button
-          onClick={() => importInputRef.current?.click()}
-          disabled={importJavExcel.isPending}
-          size="icon"
-          className="bg-orange-600 hover:bg-orange-700"
-          title="Importar en lote desde Excel"
-        >
-          <Upload className="h-4 w-4" />
-        </Button>
         <input
           ref={importInputRef}
           type="file"
@@ -292,6 +339,18 @@ export const JavPage = () => {
             const file = e.target.files?.[0];
             if (!file) return;
             await importJavExcel.mutateAsync(file);
+            e.target.value = '';
+          }}
+        />
+        <input
+          ref={importSimpleInputRef}
+          type="file"
+          accept=".xlsx,.xls"
+          className="hidden"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            await importJavExcelTemporal.mutateAsync(file);
             e.target.value = '';
           }}
         />

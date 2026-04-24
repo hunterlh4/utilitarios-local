@@ -1,6 +1,7 @@
 import { apiClient } from '@/config/api/api-client';
 import type { CreateJavDto, UpdateJavDto } from '../models/jav-request.dto';
 import type { Jav } from '../models/jav.model';
+import type { ExcelFileDto } from '@/common/models/excel.model';
 
 const BASE_URL = '/jav';
 
@@ -33,12 +34,24 @@ export const javService = {
     return await apiClient.patch(`${BASE_URL}/${id}/status`, { status });
   },
 
+  importExcelTemporal: async (file: File): Promise<{ javsCreated: number; actressesCreated: number; skipped: number; invalid: number }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return await apiClient.post(`${BASE_URL}/import-temporal`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
   importExcel: async (file: File): Promise<{ javsCreated: number; actressesCreated: number; skipped: number; invalid: number }> => {
     const formData = new FormData();
     formData.append('file', file);
     return await apiClient.post(`${BASE_URL}/import`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+  },
+
+  exportExcel: async (): Promise<ExcelFileDto> => {
+    return await apiClient.get(`${BASE_URL}/export`);
   },
 
   uploadImage: async (file: File, refId: number) => {
