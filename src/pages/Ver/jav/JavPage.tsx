@@ -299,7 +299,7 @@ export const JavPage = () => {
                 onClick={handlePullLocalData}
                 className="mt-1 h-9 cursor-pointer rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground"
               >
-                <Plus className="mr-2 h-4 w-4" /> Cargar data (bulk)
+                <Plus className="mr-2 h-4 w-4" /> Cargar (bulk)
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
