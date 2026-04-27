@@ -4,6 +4,7 @@ export interface CreateProjectDto {
   url?: string;
   tagIds?: number[];
   links?: string[];
+  imageUrls?: string[];
 }
 
 export interface UpdateProjectDto {

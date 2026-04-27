@@ -166,6 +166,10 @@ export const router = createBrowserRouter([
         element: <ProjectPage />,
       },
       {
+        path: 'utilitarios/project/:id',
+        element: <ProjectPage />,
+      },
+      {
         path: 'utilitarios/post',
         element: <PostPage />,
       },

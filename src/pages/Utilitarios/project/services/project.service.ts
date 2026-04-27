@@ -24,4 +24,20 @@ export const projectService = {
   delete: async (id: number): Promise<void> => {
     return await apiClient.delete(`${BASE_URL}/${id}`);
   },
+
+  addImageUrl: async (id: number, url: string): Promise<number> => {
+    return await apiClient.post(`${BASE_URL}/${id}/images/url`, { url });
+  },
+
+  uploadImages: async (id: number, files: File[]): Promise<void> => {
+    const formData = new FormData();
+    files.forEach((f) => formData.append('images', f));
+    return await apiClient.post(`${BASE_URL}/${id}/images`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  deleteMedia: async (mediaId: number): Promise<void> => {
+    return await apiClient.delete(`${BASE_URL}/media/${mediaId}`);
+  },
 };
