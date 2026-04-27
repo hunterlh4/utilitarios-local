@@ -36,6 +36,8 @@ import { TaskPage } from '@/pages/Utilitarios/task/TaskPage';
 import { EventPage } from '@/pages/Utilitarios/event/EventPage';
 import { OGamePage } from '@/pages/Utilitarios/ogame/OGamePage';
 import { TagPage } from '@/pages/Utilitarios/tag/TagPage';
+import { TagTypePage } from '@/pages/Utilitarios/tag/TagTypePage';
+import { TAG_TABS } from '@/pages/Utilitarios/tag/models/tag.model';
 import { ComicPage } from '@/pages/Ver/comic/ComicPage';
 
 export const router = createBrowserRouter([
@@ -188,6 +190,17 @@ export const router = createBrowserRouter([
       {
         path: 'utilitarios/tag',
         element: <TagPage />,
+        children: [
+          { index: true, element: <Navigate to={TAG_TABS[0].path} replace /> },
+          { path: 'actress-jav', element: <TagTypePage type={TAG_TABS[0].type} /> },
+          { path: 'project', element: <TagTypePage type={TAG_TABS[1].type} /> },
+          { path: 'post', element: <TagTypePage type={TAG_TABS[2].type} /> },
+          { path: 'other', element: <TagTypePage type={TAG_TABS[3].type} /> },
+          { path: 'actress-adult', element: <TagTypePage type={TAG_TABS[4].type} /> },
+          { path: 'hentai', element: <TagTypePage type={TAG_TABS[5].type} /> },
+          { path: 'jav', element: <TagTypePage type={TAG_TABS[6].type} /> },
+          { path: 'video-adult', element: <TagTypePage type={TAG_TABS[7].type} /> },
+        ],
       },
     ],
   },

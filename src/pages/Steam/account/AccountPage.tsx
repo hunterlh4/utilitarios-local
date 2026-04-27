@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
 import { useNavigate, useLocation, Outlet, Navigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
 import { Tabs, TabsList, TabsTrigger } from '@/common/components/ui/tabs';
 import { Input } from '@/common/components/ui/input';
 import { Button } from '@/common/components/ui/button';
@@ -9,14 +8,13 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/common/components/ui/dropdown-menu';
 import { Search, Plus, ChevronDown, Download, Upload } from 'lucide-react';
-import { toast } from 'sonner';
-import { accountService } from './services/account.service';
-import { downloadBase64File } from '@/common/lib/download-file';
 import { EmailFormDialog } from './components/EmailFormDialog';
 import { SteamFormDialog } from './components/SteamFormDialog';
 import { GitHubFormDialog } from './components/GitHubFormDialog';
 import { GeneralFormDialog } from './components/GeneralFormDialog';
 import { KiroFormDialog } from './components/KiroFormDialog';
+import { useExportAccountExcel } from './hooks/useExportAccountExcel.hook';
+import { useImportAccountExcel } from './hooks/useImportAccountExcel.hook';
 
 const TABS = [
   { value: 'email',   label: 'Email',   path: '/steam/account/email' },
@@ -33,8 +31,9 @@ export const AccountPage = () => {
   const { pathname } = useLocation();
   const [search, setSearch] = useState('');
   const [addOpen, setAddOpen] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
+  const exportAccountExcel = useExportAccountExcel();
+  const importAccountExcel = useImportAccountExcel();
 
   const activeTab = TABS.find((t) => pathname.startsWith(t.path))?.value ?? '';
 
@@ -45,47 +44,34 @@ export const AccountPage = () => {
     setSearch('');
   };
 
-  const exportMutation = useMutation({
-    mutationFn: () => accountService.exportExcel(),
-    onSuccess: (file) => {
-      downloadBase64File(file.base64, file.fileName || 'accounts.xlsx');
-      toast.success('Exportación completada');
-    },
-    onError: () => toast.error('Error al exportar'),
-  });
-
-  const importMutation = useMutation({
-    mutationFn: (file: File) => accountService.importExcel(file),
-    onSuccess: (result) => {
-      toast.success(`Importación lista. Creados: ${result.created}, Actualizados: ${result.updated}, Sin cambios: ${result.skipped}, Inválidos: ${result.invalid}`);
-    },
-    onError: () => toast.error('Error al importar'),
-  });
-
   const handleExport = async () => {
-    setIsExporting(true);
-    try { await exportMutation.mutateAsync(); }
-    finally { setIsExporting(false); }
+    await exportAccountExcel.mutateAsync();
   };
 
   const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    await importMutation.mutateAsync(file);
+    await importAccountExcel.mutateAsync(file);
     e.target.value = '';
   };
 
-  const isBusy = isExporting || importMutation.isPending;
+  const isBusy = exportAccountExcel.isPending || importAccountExcel.isPending;
 
   return (
     <div className="max-w-5xl mx-auto space-y-4 pt-4">
-      <h1 className="text-3xl font-bold">Cuentas</h1>
+      {/* <h1 className="text-3xl font-bold">Cuentas</h1> */}
       <input ref={importInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleImportFile} />
       <div className="flex items-center gap-2">
         <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <TabsList>
+          <TabsList className="bg-primary/0 p-1 rounded-lg h-auto gap-1">
             {TABS.map((t) => (
-              <TabsTrigger key={t.value} value={t.value}>{t.label}</TabsTrigger>
+              <TabsTrigger
+                key={t.value}
+                value={t.value}
+                className="px-3 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                {t.label}
+              </TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
