@@ -83,7 +83,7 @@ export function useAnimeSearch({ isHentai = false, type }: UseAnimeSearchOptions
         setSearchResults(uniqueResults);
       }
     } catch (error) {
-      console.error('Error al buscar anime:', error);
+      // console.error('Error al buscar anime:', error);
       setSearchResults([]);
       setHasNextPage(false);
     } finally {

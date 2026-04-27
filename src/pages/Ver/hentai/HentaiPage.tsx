@@ -5,6 +5,7 @@ import { useAddHentai } from './hooks/useAddHentai.hook';
 import { useUpdateHentaiStatus } from './hooks/useUpdateHentaiStatus.hook';
 import { useUpdateHentaiTags } from './hooks/useUpdateHentaiTags.hook';
 import { useUploadImage } from './hooks/useUploadImage.hook';
+import { useDeleteHentai } from './hooks/useDeleteHentai.hook';
 import { useExportHentai } from './hooks/useExportHentai.hook';
 import { useImportHentai } from './hooks/useImportHentai.hook';
 import type { Hentai } from './models/hentai.model';
@@ -56,6 +57,7 @@ export const HentaiPage = () => {
   const updateStatus = useUpdateHentaiStatus();
   const updateHentaiTags = useUpdateHentaiTags();
   const uploadImage = useUploadImage();
+  const deleteHentai = useDeleteHentai();
   const exportHentai = useExportHentai();
   const importHentai = useImportHentai();
   const { data: tags, isLoading: isLoadingTags } = useGetTags(TagType.Hentai);
@@ -98,6 +100,15 @@ export const HentaiPage = () => {
   }, [refetch, uploadImage]);
 
   const handlePaste = useCallback(async (e: ClipboardEvent) => {
+    const activeElement = document.activeElement as HTMLElement | null;
+    const isTypingTarget = activeElement
+      && (
+        activeElement.tagName === 'INPUT'
+        || activeElement.tagName === 'TEXTAREA'
+        || activeElement.isContentEditable
+      );
+
+    if (isTypingTarget) return;
     if (!hoveredHentaiId) return;
 
     const hoveredHentai = savedHentai?.find((hentai) => hentai.id === hoveredHentaiId);
@@ -180,6 +191,15 @@ export const HentaiPage = () => {
     );
   }, [filterStatus, savedHentai, searchQuery, selectedLetterFilter, selectedTagFilters]);
 
+  useEffect(() => {
+    if (!hoveredHentaiId) return;
+
+    const stillVisible = filteredSavedHentai.some((hentai) => hentai.id === hoveredHentaiId);
+    if (!stillVisible) {
+      setHoveredHentaiId(null);
+    }
+  }, [filteredSavedHentai, hoveredHentaiId]);
+
   const toggleTagFilter = (tagName: string) => {
     setSelectedTagFilters((prev) => (
       prev.includes(tagName)
@@ -251,7 +271,6 @@ export const HentaiPage = () => {
       toast.success('Hentai guardado correctamente');
     } catch (error) {
       console.error('Error al guardar:', error);
-      toast.error('Error al guardar el hentai');
     }
   };
 
@@ -276,6 +295,38 @@ export const HentaiPage = () => {
       toast.error('Error al actualizar el estado');
     }
   };
+
+  const handleDeleteHentai = useCallback(async (hentai: Hentai) => {
+    try {
+      await deleteHentai.mutateAsync(hentai.id);
+      toast.success('Hentai eliminado correctamente');
+    } catch (error) {
+      console.error('Error al eliminar hentai:', error);
+    }
+  }, [deleteHentai]);
+
+  const handleDeleteKeyDown = useCallback((event: KeyboardEvent) => {
+    const activeElement = document.activeElement as HTMLElement | null;
+    const isTypingTarget = activeElement
+      && (
+        activeElement.tagName === 'INPUT'
+        || activeElement.tagName === 'TEXTAREA'
+        || activeElement.isContentEditable
+      );
+
+    if (isTypingTarget || event.key !== 'Delete' || !hoveredHentaiId) return;
+
+    const hoveredHentai = savedHentai?.find((hentai) => hentai.id === hoveredHentaiId);
+    if (!hoveredHentai) return;
+
+    event.preventDefault();
+    void handleDeleteHentai(hoveredHentai);
+  }, [handleDeleteHentai, hoveredHentaiId, savedHentai]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleDeleteKeyDown);
+    return () => document.removeEventListener('keydown', handleDeleteKeyDown);
+  }, [handleDeleteKeyDown]);
   return (
     <div className="space-y-6">
       <div>

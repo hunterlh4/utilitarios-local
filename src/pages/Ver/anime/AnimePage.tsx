@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAnimeSearch } from './hooks/useAnimeSearch.hook';
 import { useGetAllAnime } from './hooks/useGetAllAnime.hook';
 import { useAddAnime } from './hooks/useAddAnime.hook';
+import { useDeleteAnime } from './hooks/useDeleteAnime.hook';
 import { useUpdateAnimeStatus } from './hooks/useUpdateAnimeStatus.hook';
 import { useExportAnime } from './hooks/useExportAnime.hook';
 import { useImportAnime } from './hooks/useImportAnime.hook';
@@ -16,9 +17,12 @@ import { downloadBase64File } from '@/common/lib/download-file';
 
 export const AnimePage = () => {
   const [filterStatus, setFilterStatus] = useState<ContentStatus>(ContentStatus.Pending);
+  const [isApiSearchMode, setIsApiSearchMode] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [hoveredSavedAnimeId, setHoveredSavedAnimeId] = useState<number | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
+  const rightClickGuardRef = useRef<{ animeId: number; expiresAt: number } | null>(null);
   const {
     searchQuery,
     setSearchQuery,
@@ -36,9 +40,20 @@ export const AnimePage = () => {
 
   const { data: savedAnimes, isLoading: isLoadingSaved, error, refetch } = useGetAllAnime();
   const addAnime = useAddAnime();
+  const deleteAnime = useDeleteAnime();
   const updateStatus = useUpdateAnimeStatus();
   const exportAnime = useExportAnime();
   const importAnime = useImportAnime();
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const filteredSavedAnimes = (savedAnimes ?? [])
+    .filter((anime) => anime.status === filterStatus)
+    .filter((anime) => {
+      if (isApiSearchMode || !normalizedSearchQuery) return true;
+      return (
+        anime.title.toLowerCase().includes(normalizedSearchQuery) ||
+        anime.apiId.toString().includes(normalizedSearchQuery)
+      );
+    });
 
   const handleExportExcel = async () => {
     setIsExporting(true);
@@ -75,20 +90,62 @@ export const AnimePage = () => {
     );
   };
 
-  const handleSaveAnime = async (anime: (typeof searchResults)[0]) => {
-    try {
+  const toggleSearchMode = () => {
+    setIsApiSearchMode((prev) => {
+      const next = !prev;
+      if (!next) {
+        setShowResults(false);
+      }
+      return next;
+    });
+  };
+
+  const handleSearchInputChange = (value: string) => {
+    setSearchQuery(value);
+    if (!isApiSearchMode) {
+      setShowResults(false);
+    }
+  };
+
+  const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!isApiSearchMode) {
+      setShowResults(false);
+      return;
+    }
+
+    if (!searchQuery.trim()) {
+      return;
+    }
+
+    await handleSearch();
+  };
+
+  const isRightClickGuardActive = (animeId: number) => {
+    const guard = rightClickGuardRef.current;
+
+    if (!guard) return false;
+
+    if (Date.now() > guard.expiresAt) {
+      rightClickGuardRef.current = null;
+      return false;
+    }
+
+    return guard.animeId === animeId;
+  };
+
+  const handleSaveAnime = async (anime: (typeof searchResults)[0], status: ContentStatus) => {
+  
       await addAnime.mutateAsync({
         apiId: anime.mal_id.toString(),
         title: anime.title,
         image: anime.images.jpg.large_image_url || anime.images.jpg.image_url,
         episodes: anime.episodes || 0,
-        status: ContentStatus.Pending,
+        status,
       });
-      toast.success('Anime guardado correctamente');
-    } catch (error) {
-      console.error('Error al guardar:', error);
-      toast.error('Error al guardar el anime');
-    }
+    
+   
   };
 
   const handleToggleStatus = async (id: number, currentStatus: number) => {
@@ -105,12 +162,45 @@ export const AnimePage = () => {
     }
   };
 
+  const handleDeleteAnime = useCallback(async (id: number) => {
+    try {
+      await deleteAnime.mutateAsync(id);
+      toast.success('Anime eliminado correctamente');
+    } catch (error) {
+      console.error('Error al eliminar anime:', error);
+    }
+  }, [deleteAnime]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Delete') return;
+      if (event.repeat) return;
+      if (showResults) return;
+      if (hoveredSavedAnimeId === null) return;
+
+      const target = event.target as HTMLElement | null;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target?.isContentEditable
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      void handleDeleteAnime(hoveredSavedAnimeId);
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [handleDeleteAnime, hoveredSavedAnimeId, showResults]);
+
   return (
     <div className="space-y-6">
       <div>
 
         {/* Buscador */}
-        <form onSubmit={handleSearch} className="flex gap-2 mb-6">
+        <form onSubmit={handleSearchSubmit} className="flex gap-2 mb-6">
           <input
             ref={importInputRef}
             type="file"
@@ -123,14 +213,17 @@ export const AnimePage = () => {
               type="text"
               placeholder="Buscar anime..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchInputChange(e.target.value)}
               className="pr-10 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
           <Button
-            type="submit"
+            type="button"
             size="icon"
-            disabled={isSearching || !searchQuery.trim()}
+            onClick={toggleSearchMode}
+            disabled={isSearching}
+            className={isApiSearchMode ? 'bg-orange-600 hover:bg-orange-700 text-white' : undefined}
+            title={isApiSearchMode ? 'Búsqueda por API activa' : 'Filtro local activo'}
           >
             {isSearching ? <Spinner className="h-4 w-4" /> : <Search className="h-4 w-4" />}
           </Button>
@@ -180,7 +273,21 @@ export const AnimePage = () => {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-0">
                   {searchResults.map((anime) => (
                     <Card key={anime.mal_id} className="overflow-hidden flex flex-col border-0 shadow-none rounded-none">
-                      <CardHeader className="p-0 cursor-pointer" onClick={() => handleSaveAnime(anime)}>
+                      <CardHeader
+                        className="p-0 cursor-pointer"
+                        onClick={() => {
+                          if (isRightClickGuardActive(anime.mal_id)) return;
+                          void handleSaveAnime(anime, ContentStatus.Pending);
+                        }}
+                        onContextMenu={(event) => {
+                          event.preventDefault();
+                          rightClickGuardRef.current = {
+                            animeId: anime.mal_id,
+                            expiresAt: Date.now() + 500,
+                          };
+                          void handleSaveAnime(anime, ContentStatus.Completed);
+                        }}
+                      >
                         <div className="aspect-2/3 w-full overflow-hidden bg-muted">
                           <img
                             src={anime.images.jpg.large_image_url || anime.images.jpg.image_url}
@@ -237,12 +344,15 @@ export const AnimePage = () => {
               <div className="text-center py-8">
                 <p className="text-red-500 mb-2">Error al cargar los animes</p>
               </div>
-            ) : savedAnimes && savedAnimes.filter(a => a.status === filterStatus).length > 0 ? (
+            ) : filteredSavedAnimes.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-0">
-                {savedAnimes
-                  .filter(anime => anime.status === filterStatus)
-                  .map((anime) => (
-                    <Card key={anime.id} className="overflow-hidden flex flex-col border-0 shadow-none rounded-none">
+                {filteredSavedAnimes.map((anime) => (
+                    <Card
+                      key={anime.id}
+                      className="overflow-hidden flex flex-col border-0 shadow-none rounded-none"
+                      onMouseEnter={() => setHoveredSavedAnimeId(anime.id)}
+                      onMouseLeave={() => setHoveredSavedAnimeId((prev) => (prev === anime.id ? null : prev))}
+                    >
                       <CardHeader 
                         className="p-0 cursor-pointer" 
                         onClick={() => handleToggleStatus(anime.id, anime.status)}
@@ -263,7 +373,9 @@ export const AnimePage = () => {
               </div>
             ) : (
               <p className="text-center text-muted-foreground py-8">
-                No tienes animes {filterStatus === ContentStatus.Pending ? 'próximamente' : 'completados'}
+                {normalizedSearchQuery && !isApiSearchMode
+                  ? 'No se encontraron animes con ese filtro'
+                  : `No tienes animes ${filterStatus === ContentStatus.Pending ? 'próximamente' : 'completados'}`}
               </p>
             )}
           </div>
