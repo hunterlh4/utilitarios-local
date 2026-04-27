@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { Layout } from '@/common/components/layout/Layout';
 import { HomePage } from '@/pages/Home/HomePage';
 import { AnimePage } from '@/pages/Ver/anime/AnimePage';
@@ -15,6 +15,11 @@ import { AnimeGaleryDetailPage } from '@/pages/Galeria/anime/AnimeGaleryDetailPa
 import { GirlGaleryPage } from '@/pages/Galeria/girl/GirlGaleryPage';
 import { GirlGaleryDetailPage } from '@/pages/Galeria/girl/GirlGaleryDetailPage';
 import { AccountPage } from '@/pages/Steam/account/AccountPage';
+import { EmailPage } from '@/pages/Steam/account/EmailPage';
+import { SteamAccountPage } from '@/pages/Steam/account/SteamAccountPage';
+import { GitHubPage } from '@/pages/Steam/account/GitHubPage';
+import { GeneralPage } from '@/pages/Steam/account/GeneralPage';
+import { KiroPage } from '@/pages/Steam/account/KiroPage';
 import { SearchPage } from '@/pages/Steam/search/SearchPage';
 import { DropsPage } from '@/pages/Steam/drops/DropsPage';
 import { PurchasePage } from '@/pages/Steam/purchase/PurchasePage';
@@ -104,6 +109,14 @@ export const router = createBrowserRouter([
       {
         path: 'steam/account',
         element: <AccountPage />,
+        children: [
+          { index: true, element: <Navigate to="email" replace /> },
+          { path: 'email',   element: <EmailPage /> },
+          { path: 'steam',   element: <SteamAccountPage /> },
+          { path: 'github',  element: <GitHubPage /> },
+          { path: 'general', element: <GeneralPage /> },
+          { path: 'kiro',    element: <KiroPage /> },
+        ],
       },
       {
         path: 'steam/search',

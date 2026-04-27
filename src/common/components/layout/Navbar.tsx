@@ -65,7 +65,7 @@ export const Navbar = () => {
     {
       label: 'Utilitarios',
       items: [
-        { label: 'Proyectos', path: '/utilitarios/project' },
+        { label: 'Projectos', path: '/utilitarios/project' },
         { label: 'Posts', path: '/utilitarios/post' },
         { label: 'Tareas', path: '/utilitarios/task' },
         { label: 'Eventos', path: '/utilitarios/event' },

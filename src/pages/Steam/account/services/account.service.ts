@@ -1,4 +1,5 @@
 import { apiClient } from '@/config/api/api-client';
+import type { ExcelFileDto, ImportExcelResult } from '@/common/models/excel.model';
 import type {
   AccountEmail, AccountSteam, AccountGitHub, AccountGeneral, AccountKiro,
 } from '../models/account.model';
@@ -86,5 +87,17 @@ export const accountService = {
   },
   resetKiro: async (): Promise<number> => {
     return await apiClient.post(`${BASE_URL}/kiro/reset`, {});
+  },
+
+  exportExcel: async (): Promise<ExcelFileDto> => {
+    return await apiClient.get(`${BASE_URL}/export`);
+  },
+
+  importExcel: async (file: File): Promise<ImportExcelResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return await apiClient.post(`${BASE_URL}/import`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
   },
 };

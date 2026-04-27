@@ -1,10 +1,10 @@
-import type { Proyect } from './project.model';
+import type { Project } from './project.model';
 
-export interface GetAllProyectsResponse {
-  data: Proyect[];
+export interface GetAllProjectsResponse {
+  data: Project[];
   total: number;
 }
 
-export interface GetProyectByIdResponse {
-  data: Proyect;
+export interface GetProjectByIdResponse {
+  data: Project;
 }

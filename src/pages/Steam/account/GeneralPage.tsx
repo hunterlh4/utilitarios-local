@@ -1,25 +1,29 @@
 import { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Spinner } from '@/common/components/ui/spinner';
-import { useGetGenerals } from '../hooks/useGetGenerals.hook';
-import { useDeleteGeneral } from '../hooks/useDeleteGeneral.hook';
-import { AccountCard } from './AccountCard';
-import { GeneralFormDialog } from './GeneralFormDialog';
-import { FilterChip } from './FilterChip';
-import { GeneralPlatform, GeneralPlatformLabels } from '../models/account.model';
-import type { AccountGeneral } from '../models/account.model';
+import { useGetGenerals } from './hooks/useGetGenerals.hook';
+import { useDeleteGeneral } from './hooks/useDeleteGeneral.hook';
+import { AccountCard } from './components/AccountCard';
+import { GeneralFormDialog } from './components/GeneralFormDialog';
+import { FilterChip } from './components/FilterChip';
+import { GeneralPlatform, GeneralPlatformLabels } from './models/account.model';
+import type { AccountOutletContext } from './AccountPage';
+import type { AccountGeneral } from './models/account.model';
 
 const platformIcons: Partial<Record<GeneralPlatform, string>> = {
   [GeneralPlatform.Facebook]: '/svg/facebook.svg',
 };
 
-export const GeneralTab = ({ search = '', isActive = true }: { search?: string; isActive?: boolean }) => {
-  const { data, isLoading } = useGetGenerals(isActive);
-  const deleteMutation = useDeleteGeneral();
+export const GeneralPage = () => {
+  const { search } = useOutletContext<AccountOutletContext>();
   const [modal, setModal] = useState<{ item?: AccountGeneral } | null>(null);
   const [activeFilters, setActiveFilters] = useState<Set<GeneralPlatform>>(
     new Set(Object.values(GeneralPlatform).filter((v) => typeof v === 'number') as GeneralPlatform[])
   );
+
+  const { data, isLoading } = useGetGenerals();
+  const deleteMutation = useDeleteGeneral();
 
   const toggleFilter = (p: GeneralPlatform) => {
     setActiveFilters((prev) => {
@@ -30,14 +34,15 @@ export const GeneralTab = ({ search = '', isActive = true }: { search?: string; 
   };
 
   const filtered = data?.filter((g) => {
-    const matchSearch = g.username.toLowerCase().includes(search.toLowerCase()) ||
+    const matchSearch =
+      g.username.toLowerCase().includes(search.toLowerCase()) ||
       GeneralPlatformLabels[g.platform].toLowerCase().includes(search.toLowerCase());
     const matchFilter = activeFilters.size === 0 || activeFilters.has(g.platform);
     return matchSearch && matchFilter;
   });
 
   return (
-    <div className="space-y-3 pt-4">
+    <div className="space-y-3">
       <div className="flex gap-2 flex-wrap">
         {(Object.values(GeneralPlatform).filter((v) => typeof v === 'number') as GeneralPlatform[]).map((p) => (
           <FilterChip
@@ -49,7 +54,9 @@ export const GeneralTab = ({ search = '', isActive = true }: { search?: string; 
           />
         ))}
       </div>
-      {isLoading ? <div className="flex justify-center py-8"><Spinner className="h-8 w-8" /></div> : (
+      {isLoading ? (
+        <div className="flex justify-center py-8"><Spinner className="h-8 w-8" /></div>
+      ) : (
         <div className="grid grid-cols-3 gap-3">
           {filtered?.map((g) => (
             <AccountCard

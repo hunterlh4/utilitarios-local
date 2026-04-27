@@ -17,7 +17,7 @@ export const TAG_TYPES = {
 
 export const TAG_TYPE_LABELS: Record<number, string> = {
   [TAG_TYPES.ACTRESS_JAV]: 'Actriz JAV',
-  [TAG_TYPES.PROJECT]: 'Proyecto',
+  [TAG_TYPES.PROJECT]: 'Projecto',
   [TAG_TYPES.POST]: 'Post',
   [TAG_TYPES.OTHER]: 'Otro',
   [TAG_TYPES.ACTRESS_ADULT]: 'Actriz Adult',

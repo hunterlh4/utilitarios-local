@@ -11,7 +11,7 @@ export enum TagType {
 
 export const TagTypeLabels: Record<TagType, string> = {
   [TagType.ActressJav]: 'Actriz JAV',
-  [TagType.Project]: 'Proyecto',
+  [TagType.Project]: 'Projecto',
   [TagType.Post]: 'Post',
   [TagType.Other]: 'Otro',
   [TagType.ActressAdult]: 'Actriz Adult',

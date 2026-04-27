@@ -1,14 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { proyectService } from '../services/project.service';
-import type { CreateProyectDto } from '../models/project-request.dto';
+import { projectService } from '../services/project.service';
+import type { CreateProjectDto } from '../models/project-request.dto';
 
-export const useAddProyect = () => {
+export const useAddProject = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (data: CreateProyectDto) => proyectService.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['proyects'] });
-    },
+    mutationFn: (data: CreateProjectDto) => projectService.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
   });
 };

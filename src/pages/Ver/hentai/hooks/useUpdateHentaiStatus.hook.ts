@@ -9,6 +9,7 @@ export const useUpdateHentaiStatus = () => {
       hentaiService.updateStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hentai'] });
+         toast.success('Estado actualizado correctamente');
     },
   });
 };

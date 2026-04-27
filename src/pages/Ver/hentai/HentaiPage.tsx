@@ -22,7 +22,7 @@ import { toast } from 'sonner';
 import { downloadBase64File } from '@/common/lib/download-file';
 
 export const HentaiPage = () => {
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  const alphabet = ['#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')];
   const [searchMode, setSearchMode] = useState<'saved' | 'remote'>('saved');
   const [remoteTypeFilter, setRemoteTypeFilter] = useState<'all' | 'ova'>('all');
   const [filterStatus, setFilterStatus] = useState<ContentStatus>(ContentStatus.Pending);
@@ -186,7 +186,11 @@ export const HentaiPage = () => {
     return (savedHentai ?? []).filter((hentai) =>
       hentai.status === filterStatus
       && (!query || hentai.title.toLowerCase().includes(query))
-      && (!letter || hentai.title.toLowerCase().startsWith(letter))
+      && (!letter || (
+        letter === '#'
+          ? !/^[a-z]/.test(hentai.title.toLowerCase())
+          : hentai.title.toLowerCase().startsWith(letter)
+      ))
       && (selectedTagFilters.length === 0 || selectedTagFilters.every((filterTag) => hentai.tags?.includes(filterTag)))
     );
   }, [filterStatus, savedHentai, searchQuery, selectedLetterFilter, selectedTagFilters]);
@@ -260,7 +264,7 @@ export const HentaiPage = () => {
   };
 
   const handleSaveHentai = async (anime: (typeof searchResults)[0]) => {
-    try {
+
       await addHentai.mutateAsync({
         apiId: anime.mal_id.toString(),
         title: anime.title,
@@ -268,10 +272,6 @@ export const HentaiPage = () => {
         episodes: anime.episodes || 0,
         status: ContentStatus.Pending,
       });
-      toast.success('Hentai guardado correctamente');
-    } catch (error) {
-      console.error('Error al guardar:', error);
-    }
   };
 
   const handleSearchSubmit = async (event: React.FormEvent) => {
@@ -286,14 +286,8 @@ export const HentaiPage = () => {
     const newStatus = hentai.status === ContentStatus.Pending
       ? ContentStatus.Completed
       : ContentStatus.Pending;
-
-    try {
       await updateStatus.mutateAsync({ id: hentai.id, status: newStatus });
-      toast.success('Estado actualizado correctamente');
-    } catch (error) {
-      console.error('Error al actualizar estado:', error);
-      toast.error('Error al actualizar el estado');
-    }
+
   };
 
   const handleDeleteHentai = useCallback(async (hentai: Hentai) => {

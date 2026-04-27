@@ -1,22 +1,26 @@
 import { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { toast } from 'sonner';
 import { RotateCcw, RefreshCw } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/common/components/ui/button';
 import { Spinner } from '@/common/components/ui/spinner';
-import { useGetKiro } from '../hooks/useGetKiro.hook';
-import { useUseKiro } from '../hooks/useUseKiro.hook';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { accountService } from '../services/account.service';
-import { KiroFormDialog } from './KiroFormDialog';
-import { AccountCard } from './AccountCard';
-import { FilterChip } from './FilterChip';
-import { LinkedAccountType } from '../models/account.model';
+import { useGetKiro } from './hooks/useGetKiro.hook';
+import { useUseKiro } from './hooks/useUseKiro.hook';
+import { accountService } from './services/account.service';
+import { AccountCard } from './components/AccountCard';
+import { KiroFormDialog } from './components/KiroFormDialog';
+import { FilterChip } from './components/FilterChip';
+import { LinkedAccountType } from './models/account.model';
+import type { AccountOutletContext } from './AccountPage';
 
-export const KiroTab = ({ search = '', isActive = true }: { search?: string; isActive?: boolean }) => {
-  const { data: kiro, isLoading } = useGetKiro(isActive);
-  const useKiroMutation = useUseKiro();
+export const KiroPage = () => {
+  const { search } = useOutletContext<AccountOutletContext>();
   const [editOpen, setEditOpen] = useState(false);
   const [filters, setFilters] = useState({ email: true, github: true });
+
+  const { data: kiro, isLoading } = useGetKiro();
+  const useKiroMutation = useUseKiro();
   const qc = useQueryClient();
 
   const toggle = (key: keyof typeof filters) => setFilters((f) => ({ ...f, [key]: !f[key] }));
@@ -30,13 +34,13 @@ export const KiroTab = ({ search = '', isActive = true }: { search?: string; isA
     onError: () => toast.error('Error al resetear'),
   });
 
-  const visible = kiro && (
-    (kiro.linkedType === LinkedAccountType.Email && filters.email) ||
-    (kiro.linkedType === LinkedAccountType.GitHub && filters.github)
-  ) && (kiro.linkedDisplay.toLowerCase().includes(search.toLowerCase()));
+  const visible = kiro &&
+    ((kiro.linkedType === LinkedAccountType.Email && filters.email) ||
+     (kiro.linkedType === LinkedAccountType.GitHub && filters.github)) &&
+    kiro.linkedDisplay.toLowerCase().includes(search.toLowerCase());
 
   return (
-    <div className="space-y-3 pt-4">
+    <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <div className="flex gap-1">
           <FilterChip label="Gmail" icon="/svg/gmail.svg" active={filters.email} onChange={() => toggle('email')} />
@@ -52,7 +56,7 @@ export const KiroTab = ({ search = '', isActive = true }: { search?: string; isA
       {isLoading ? (
         <div className="flex justify-center py-8"><Spinner className="h-8 w-8" /></div>
       ) : !kiro ? (
-        <p className="text-sm text-muted-foreground">No hay cuenta Kiro configurada. Usa el botón Nuevo para configurarla.</p>
+        <p className="text-sm text-muted-foreground">No hay cuenta Kiro configurada.</p>
       ) : visible ? (
         <AccountCard
           title={kiro.linkedDisplay}

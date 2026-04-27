@@ -1,32 +1,27 @@
 import { apiClient } from '@/config/api/api-client';
-import type { CreateProyectDto, UpdateProyectDto } from '../models/project-request.dto';
-import type { GetAllProyectsResponse, GetProyectByIdResponse } from '../models/project-response.dto';
+import type { CreateProjectDto, UpdateProjectDto } from '../models/project-request.dto';
+import type { Project, ProjectDetail } from '../models/project.model';
 
-const BASE_URL = '/proyect';
+const BASE_URL = '/project';
 
-export const proyectService = {
-  getAll: async () => {
-    const response = await apiClient.get<GetAllProyectsResponse>(BASE_URL);
-    return response.data;
+export const projectService = {
+  getAll: async (): Promise<Project[]> => {
+    return await apiClient.get(BASE_URL);
   },
 
-  getById: async (id: number) => {
-    const response = await apiClient.get<GetProyectByIdResponse>(`${BASE_URL}/${id}`);
-    return response.data;
+  getById: async (id: number): Promise<ProjectDetail> => {
+    return await apiClient.get(`${BASE_URL}/${id}`);
   },
 
-  create: async (data: CreateProyectDto) => {
-    const response = await apiClient.post(BASE_URL, data);
-    return response.data;
+  create: async (data: CreateProjectDto): Promise<number> => {
+    return await apiClient.post(BASE_URL, data);
   },
 
-  update: async (id: number, data: UpdateProyectDto) => {
-    const response = await apiClient.put(`${BASE_URL}/${id}`, data);
-    return response.data;
+  update: async (id: number, data: UpdateProjectDto): Promise<void> => {
+    return await apiClient.put(`${BASE_URL}/${id}`, data);
   },
 
-  delete: async (id: number) => {
-    const response = await apiClient.delete(`${BASE_URL}/${id}`);
-    return response.data;
+  delete: async (id: number): Promise<void> => {
+    return await apiClient.delete(`${BASE_URL}/${id}`);
   },
 };

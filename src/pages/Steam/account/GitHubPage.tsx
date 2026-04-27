@@ -1,23 +1,28 @@
 import { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Spinner } from '@/common/components/ui/spinner';
-import { useGetGitHubs } from '../hooks/useGetGitHubs.hook';
-import { useDeleteGitHub } from '../hooks/useDeleteGitHub.hook';
-import { AccountCard } from './AccountCard';
-import { GitHubFormDialog } from './GitHubFormDialog';
-import { FilterChip } from './FilterChip';
-import type { AccountGitHub } from '../models/account.model';
+import { useGetGitHubs } from './hooks/useGetGitHubs.hook';
+import { useDeleteGitHub } from './hooks/useDeleteGitHub.hook';
+import { AccountCard } from './components/AccountCard';
+import { GitHubFormDialog } from './components/GitHubFormDialog';
+import { FilterChip } from './components/FilterChip';
+import type { AccountOutletContext } from './AccountPage';
+import type { AccountGitHub } from './models/account.model';
 
-export const GitHubTab = ({ search = '', isActive = true }: { search?: string; isActive?: boolean }) => {
-  const { data, isLoading } = useGetGitHubs(isActive);
-  const deleteMutation = useDeleteGitHub();
+export const GitHubPage = () => {
+  const { search } = useOutletContext<AccountOutletContext>();
   const [modal, setModal] = useState<{ item?: AccountGitHub } | null>(null);
   const [filters, setFilters] = useState({ withEmail: true, withoutEmail: true });
+
+  const { data, isLoading } = useGetGitHubs();
+  const deleteMutation = useDeleteGitHub();
 
   const toggle = (key: keyof typeof filters) => setFilters((f) => ({ ...f, [key]: !f[key] }));
 
   const filtered = data?.filter((g) => {
-    const matchSearch = g.username.toLowerCase().includes(search.toLowerCase()) ||
+    const matchSearch =
+      g.username.toLowerCase().includes(search.toLowerCase()) ||
       (g.emailAddress ?? '').toLowerCase().includes(search.toLowerCase());
     const allActive = Object.values(filters).every(Boolean);
     if (allActive) return matchSearch;
@@ -26,12 +31,14 @@ export const GitHubTab = ({ search = '', isActive = true }: { search?: string; i
   });
 
   return (
-    <div className="space-y-3 pt-4">
+    <div className="space-y-3">
       <div className="flex gap-2 flex-wrap">
         <FilterChip label="Con correo" icon="/svg/gmail.svg" active={filters.withEmail} onChange={() => toggle('withEmail')} />
         <FilterChip label="Sin correo" active={filters.withoutEmail} onChange={() => toggle('withoutEmail')} />
       </div>
-      {isLoading ? <div className="flex justify-center py-8"><Spinner className="h-8 w-8" /></div> : (
+      {isLoading ? (
+        <div className="flex justify-center py-8"><Spinner className="h-8 w-8" /></div>
+      ) : (
         <div className="grid grid-cols-3 gap-3">
           {filtered?.map((g) => (
             <AccountCard

@@ -1,13 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { proyectService } from '../services/project.service';
+import { projectService } from '../services/project.service';
 
-export const useDeleteProyect = () => {
+export const useDeleteProject = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (id: number) => proyectService.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['proyects'] });
-    },
+    mutationFn: (id: number) => projectService.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
   });
 };
