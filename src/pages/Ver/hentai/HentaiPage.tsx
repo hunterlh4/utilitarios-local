@@ -9,7 +9,6 @@ import { useDeleteHentai } from './hooks/useDeleteHentai.hook';
 import { useExportHentai } from './hooks/useExportHentai.hook';
 import { useImportHentai } from './hooks/useImportHentai.hook';
 import type { Hentai } from './models/hentai.model';
-import { useGetTags } from '@/common/hooks/useGetTags.hook';
 import { TagType } from '@/common/enums/tag-type.enum';
 import { ContentStatus } from '@/common/enums/ver.enum';
 import { Button } from '@/common/components/ui/button';
@@ -20,6 +19,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Search, Check, Clock, Upload, Download, Database, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { downloadBase64File } from '@/common/lib/download-file';
+import { useGetTagsByType } from '@/pages/Utilitarios/tag/hooks/useGetTagsByType.hook';
 
 export const HentaiPage = () => {
   const alphabet = ['#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')];
@@ -61,7 +61,7 @@ export const HentaiPage = () => {
   const deleteHentai = useDeleteHentai();
   const exportHentai = useExportHentai();
   const importHentai = useImportHentai();
-  const { data: tags, isLoading: isLoadingTags } = useGetTags(TagType.Hentai);
+  const { data: tags, isLoading: isLoadingTags } = useGetTagsByType(TagType.Hentai);
 
   const handleExportExcel = async () => {
     setIsExporting(true);

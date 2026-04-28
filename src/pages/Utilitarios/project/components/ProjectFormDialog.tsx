@@ -5,13 +5,13 @@ import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/common/components/ui/dialog';
 import { Spinner } from '@/common/components/ui/spinner';
-import { useGetTags } from '@/common/hooks/useGetTags.hook';
 import { TagType } from '@/common/enums/tag-type.enum';
 import { useUploadProjectImages } from '../hooks/useUploadProjectImages.hook';
 import { useDeleteProjectMedia } from '../hooks/useDeleteProjectMedia.hook';
 import { useAddProjectImageUrl } from '../hooks/useAddProjectImageUrl.hook';
 import type { Project, ProjectDetail } from '../models/project.model';
 import type { CreateProjectDto, UpdateProjectDto } from '../models/project-request.dto';
+import { useGetTagsByType } from '../../tag/hooks/useGetTagsByType.hook';
 
 interface Props {
   open: boolean;
@@ -33,7 +33,7 @@ export const ProjectFormDialog = ({ open, onOpenChange, editing, detail, onSave,
   const [newImageUrl, setNewImageUrl] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { data: tags, isLoading: isLoadingTags } = useGetTags(TagType.Project);
+  const { data: tags, isLoading: isLoadingTags } = useGetTagsByType(TagType.Project);
   const uploadImages = useUploadProjectImages();
   const deleteMedia = useDeleteProjectMedia();
   const addImageUrl = useAddProjectImageUrl();

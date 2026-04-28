@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Trash2, Sparkles, Search, Plus } from "lucide-react";
 import { useMetadata } from "../hooks/use-metadata";
-import { useGetTags } from "../hooks/useGetTags.hook";
 import { useGetAllActressJav } from "../hooks/useGetAllActressJav.hook";
 import { Button } from "@/common/components/ui/button";
 import { Input } from "@/common/components/ui/input";
@@ -19,6 +18,7 @@ import {
 import type { Jav } from "../models/jav.model";
 import { javService } from "../services/jav.service";
 import { toast } from "sonner";
+import { useGetTagsByType } from "@/pages/Utilitarios/tag/hooks/useGetTagsByType.hook";
 
 type JavWithIds = Jav & { actressIds?: number[]; tagIds?: number[] };
 
@@ -44,7 +44,7 @@ export function JavDialog({ open, onOpenChange, onSave, editingJav, preselectedA
   const [actressSearch, setActressSearch] = useState("");
   const [tagSearch, setTagSearch] = useState("");
   const { fetchMetadata, loading } = useMetadata();
-  const { data: tags, isLoading: isLoadingTags } = useGetTags(7); // 7 = Jav
+  const { data: tags, isLoading: isLoadingTags } = useGetTagsByType(7); // 7 = Jav
   const { data: actressesJav, isLoading: isLoadingActressesJav, refetch: refetchActresses } = useGetAllActressJav();
 
   // Validar código automáticamente cuando tenga 7+ caracteres
