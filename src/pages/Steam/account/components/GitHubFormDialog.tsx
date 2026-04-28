@@ -4,11 +4,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/common/compo
 import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Label } from '@/common/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select';
 import { useAddGitHub } from '../hooks/useAddGitHub.hook';
 import { useUpdateGitHub } from '../hooks/useUpdateGitHub.hook';
 import { useGetEmails } from '../hooks/useGetEmails.hook';
 import type { AccountGitHub } from '../models/account.model';
+import { SearchableSelect } from './SearchableSelect';
 
 interface Props {
   item?: AccountGitHub;
@@ -61,12 +61,14 @@ export const GitHubFormDialog = ({ item, onClose }: Props) => {
         <div className="space-y-3">
           <div className="space-y-1">
             <Label>Correo asociado</Label>
-            <Select value={form.emailId} onValueChange={(v) => f('emailId', v)}>
-              <SelectTrigger className="focus-visible:ring-0"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
-              <SelectContent>
-                {emails?.map((e) => <SelectItem key={e.id} value={String(e.id)}>{e.email}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={form.emailId}
+              onValueChange={(v) => f('emailId', v)}
+              placeholder="Seleccionar correo..."
+              searchPlaceholder="Buscar correo..."
+              emptyText="No hay correos que coincidan"
+              options={(emails ?? []).map((e) => ({ value: String(e.id), label: e.email }))}
+            />
           </div>
           <div className="space-y-1">
             <Label>Usuario</Label>

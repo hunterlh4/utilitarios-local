@@ -58,10 +58,10 @@ export const AccountPage = () => {
   const isBusy = exportAccountExcel.isPending || importAccountExcel.isPending;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-4 pt-4">
+    <div className="mx-auto flex h-full min-h-0 max-w-7xl flex-col gap-4 pt-4">
       {/* <h1 className="text-3xl font-bold">Cuentas</h1> */}
       <input ref={importInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleImportFile} />
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="bg-primary/0 p-1 rounded-lg h-auto gap-1">
             {TABS.map((t) => (
@@ -118,7 +118,9 @@ export const AccountPage = () => {
         </div>
       </div>
 
-      <Outlet context={{ search } satisfies AccountOutletContext} />
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <Outlet context={{ search } satisfies AccountOutletContext} />
+      </div>
 
       {addOpen && activeTab === 'email'   && <EmailFormDialog   onClose={() => setAddOpen(false)} />}
       {addOpen && activeTab === 'steam'   && <SteamFormDialog   onClose={() => setAddOpen(false)} />}

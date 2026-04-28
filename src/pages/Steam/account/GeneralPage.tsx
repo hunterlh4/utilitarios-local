@@ -42,8 +42,8 @@ export const GeneralPage = () => {
   });
 
   return (
-    <div className="space-y-3">
-      <div className="flex gap-2 flex-wrap">
+    <div className="flex h-full min-h-0 flex-col gap-3">
+      <div className="flex shrink-0 gap-2 flex-wrap">
         {(Object.values(GeneralPlatform).filter((v) => typeof v === 'number') as GeneralPlatform[]).map((p) => (
           <FilterChip
             key={p}
@@ -54,24 +54,30 @@ export const GeneralPage = () => {
           />
         ))}
       </div>
-      {isLoading ? (
-        <div className="flex justify-center py-8"><Spinner className="h-8 w-8" /></div>
-      ) : (
-        <div className="grid grid-cols-3 gap-3">
-          {filtered?.map((g) => (
-            <AccountCard
-              key={g.id}
-              title={`${GeneralPlatformLabels[g.platform]} — ${g.username}`}
-              icon={platformIcons[g.platform]}
-              password={g.password}
-              profileUrl={g.profileUrl}
-              fields={[{ label: 'Correo', value: g.emailAddress }]}
-              onEdit={() => setModal({ item: g })}
-              onDelete={() => deleteMutation.mutate(g.id, { onSuccess: () => toast.success('Eliminado') })}
-            />
-          ))}
-        </div>
-      )}
+      <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+        {isLoading ? (
+          <div className="flex justify-center py-8"><Spinner className="h-8 w-8" /></div>
+        ) : filtered?.length ? (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {filtered.map((g) => (
+              <AccountCard
+                key={g.id}
+                title={`${GeneralPlatformLabels[g.platform]} — ${g.username}`}
+                icon={platformIcons[g.platform]}
+                password={g.password}
+                profileUrl={g.profileUrl}
+                fields={[{ label: 'Correo', value: g.emailAddress }]}
+                onEdit={() => setModal({ item: g })}
+                onDelete={() => deleteMutation.mutate(g.id, { onSuccess: () => toast.success('Eliminado') })}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            {search ? 'No hay cuentas generales que coincidan con la búsqueda.' : 'No hay cuentas generales cargadas.'}
+          </p>
+        )}
+      </div>
       {modal && <GeneralFormDialog item={modal.item} onClose={() => setModal(null)} />}
     </div>
   );

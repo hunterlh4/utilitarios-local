@@ -9,6 +9,7 @@ import { useAddEmail } from '../hooks/useAddEmail.hook';
 import { useUpdateEmail } from '../hooks/useUpdateEmail.hook';
 import { useGetEmails } from '../hooks/useGetEmails.hook';
 import type { AccountEmail } from '../models/account.model';
+import { SearchableSelect } from './SearchableSelect';
 
 interface Props {
   item?: AccountEmail;
@@ -92,14 +93,16 @@ export const EmailFormDialog = ({ item, onClose }: Props) => {
           </div>
           <div className="space-y-1">
             <Label>Recovery email</Label>
-            <Select value={form.recoveryEmailId} onValueChange={(v) => f('recoveryEmailId', v)}>
-              <SelectTrigger className="focus-visible:ring-0"><SelectValue placeholder="Ninguno" /></SelectTrigger>
-              <SelectContent>
-                {emails?.filter((e) => e.id !== item?.id).map((e) => (
-                  <SelectItem key={e.id} value={String(e.id)}>{e.email}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={form.recoveryEmailId}
+              onValueChange={(v) => f('recoveryEmailId', v)}
+              placeholder="Ninguno"
+              searchPlaceholder="Buscar correo..."
+              emptyText="No hay correos que coincidan"
+              options={(emails ?? [])
+                .filter((e) => e.id !== item?.id)
+                .map((e) => ({ value: String(e.id), label: e.email }))}
+            />
           </div>
           <div className="flex justify-end gap-2 pt-1">
             <Button variant="outline" onClick={onClose}>Cancelar</Button>

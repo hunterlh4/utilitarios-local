@@ -11,6 +11,7 @@ import { useGetEmails } from '../hooks/useGetEmails.hook';
 import { useGetGitHubs } from '../hooks/useGetGitHubs.hook';
 import { LinkedAccountType } from '../models/account.model';
 import type { AccountKiro } from '../models/account.model';
+import { SearchableSelect } from './SearchableSelect';
 
 interface Props {
   item?: AccountKiro | null;
@@ -81,15 +82,23 @@ export const KiroFormDialog = ({ item, onClose }: Props) => {
           </div>
           <div className="space-y-1">
             <Label>{linkedType === LinkedAccountType.Email ? 'Correo' : 'GitHub'}</Label>
-            <Select value={form.refId} onValueChange={(v) => f('refId', v)}>
-              <SelectTrigger className="focus-visible:ring-0"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
-              <SelectContent>
-                {linkedType === LinkedAccountType.Email
-                  ? emails?.map((e) => <SelectItem key={e.id} value={String(e.id)}>{e.email}</SelectItem>)
-                  : gitHubs?.map((g) => <SelectItem key={g.id} value={String(g.id)}>{g.username}</SelectItem>)
-                }
-              </SelectContent>
-            </Select>
+            {linkedType === LinkedAccountType.Email ? (
+              <SearchableSelect
+                value={form.refId}
+                onValueChange={(v) => f('refId', v)}
+                placeholder="Seleccionar correo..."
+                searchPlaceholder="Buscar correo..."
+                emptyText="No hay correos que coincidan"
+                options={(emails ?? []).map((e) => ({ value: String(e.id), label: e.email }))}
+              />
+            ) : (
+              <Select value={form.refId} onValueChange={(v) => f('refId', v)}>
+                <SelectTrigger className="focus-visible:ring-0"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                <SelectContent>
+                  {gitHubs?.map((g) => <SelectItem key={g.id} value={String(g.id)}>{g.username}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
           </div>
           <div className="space-y-1">
             <Label>Estado</Label>

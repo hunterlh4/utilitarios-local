@@ -8,6 +8,7 @@ interface AccountCardProps {
   password: string;
   icon?: string;
   profileUrl?: string | null;
+  imageUrl?: string | null;
   badges?: React.ReactNode;
   extraActions?: React.ReactNode;
   hideDelete?: boolean;
@@ -15,12 +16,16 @@ interface AccountCardProps {
   onDelete: () => void;
 }
 
-export const AccountCard = ({ title, fields, password, icon, profileUrl, badges, extraActions, hideDelete, onEdit, onDelete }: AccountCardProps) => {
+export const AccountCard = ({ title, fields, password, icon, profileUrl, imageUrl, badges, extraActions, hideDelete, onEdit, onDelete }: AccountCardProps) => {
   const [showPw, setShowPw] = useState(false);
 
   return (
     <div className="flex items-start gap-3 p-3 rounded-xl border group hover:bg-muted/20 transition-colors">
-      {icon && <img src={icon} alt="" className="w-8 h-8 object-contain flex-shrink-0 mt-0.5" />}
+      {imageUrl ? (
+        <img src={imageUrl} alt={title} className="w-32 h-32 rounded-none object-cover shrink-0" />
+      ) : icon ? (
+        <img src={icon} alt="" className="w-8 h-8 object-contain shrink-0 mt-0.5" />
+      ) : null}
       <div className="flex-1 min-w-0 space-y-0.5">
         <p className="font-medium text-sm">{title}</p>
         {fields.map(({ label, value }) =>
@@ -42,7 +47,7 @@ export const AccountCard = ({ title, fields, password, icon, profileUrl, badges,
         )}
         {badges}
       </div>
-      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
         {extraActions}
         {profileUrl && (
           <Button size="icon" variant="ghost" className="h-7 w-7" asChild>

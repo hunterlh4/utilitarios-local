@@ -15,6 +15,7 @@ export interface CreateSteamDto {
   password: string;
   phone?: string;
   profileUrl?: string;
+  imageUrl?: string;
   hasDota2: boolean;
   hasCS2: boolean;
   isUnlimited: boolean;

@@ -40,8 +40,8 @@ export const KiroPage = () => {
     kiro.linkedDisplay.toLowerCase().includes(search.toLowerCase());
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
+    <div className="flex h-full min-h-0 flex-col gap-3">
+      <div className="flex shrink-0 items-center justify-between gap-2">
         <div className="flex gap-1">
           <FilterChip label="Gmail" icon="/svg/gmail.svg" active={filters.email} onChange={() => toggle('email')} />
           <FilterChip label="GitHub" icon="/svg/github.svg" active={filters.github} onChange={() => toggle('github')} />
@@ -53,34 +53,36 @@ export const KiroPage = () => {
           </Button>
         )}
       </div>
-      {isLoading ? (
-        <div className="flex justify-center py-8"><Spinner className="h-8 w-8" /></div>
-      ) : !kiro ? (
-        <p className="text-sm text-muted-foreground">No hay cuenta Kiro configurada.</p>
-      ) : visible ? (
-        <AccountCard
-          title={kiro.linkedDisplay}
-          icon={kiro.linkedType === LinkedAccountType.Email ? '/svg/gmail.svg' : '/svg/google.svg'}
-          password=""
-          fields={[
-            { label: 'Tipo', value: kiro.linkedType === LinkedAccountType.Email ? 'Email' : 'GitHub' },
-            { label: 'Último uso', value: kiro.lastUsed ? new Date(kiro.lastUsed).toLocaleDateString('es-PE') : 'Nunca' },
-          ]}
-          badges={
-            <span className={`text-xs px-1.5 py-0.5 rounded inline-block font-medium ${!kiro.lastUsed ? 'bg-green-500/10 text-green-600' : 'bg-destructive/10 text-destructive'}`}>
-              {!kiro.lastUsed ? 'Disponible' : 'No disponible'}
-            </span>
-          }
-          extraActions={
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => useKiroMutation.mutate(kiro.id, { onSuccess: () => toast.success('Uso registrado') })}>
-              <RefreshCw className="w-3.5 h-3.5" />
-            </Button>
-          }
-          onEdit={() => setEditOpen(true)}
-          onDelete={() => {}}
-          hideDelete
-        />
-      ) : null}
+      <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+        {isLoading ? (
+          <div className="flex justify-center py-8"><Spinner className="h-8 w-8" /></div>
+        ) : !kiro ? (
+          <p className="text-sm text-muted-foreground">No hay cuenta Kiro configurada.</p>
+        ) : visible ? (
+          <AccountCard
+            title={kiro.linkedDisplay}
+            icon={kiro.linkedType === LinkedAccountType.Email ? '/svg/gmail.svg' : '/svg/google.svg'}
+            password=""
+            fields={[
+              { label: 'Tipo', value: kiro.linkedType === LinkedAccountType.Email ? 'Email' : 'GitHub' },
+              { label: 'Último uso', value: kiro.lastUsed ? new Date(kiro.lastUsed).toLocaleDateString('es-PE') : 'Nunca' },
+            ]}
+            badges={
+              <span className={`text-xs px-1.5 py-0.5 rounded inline-block font-medium ${!kiro.lastUsed ? 'bg-green-500/10 text-green-600' : 'bg-destructive/10 text-destructive'}`}>
+                {!kiro.lastUsed ? 'Disponible' : 'No disponible'}
+              </span>
+            }
+            extraActions={
+              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => useKiroMutation.mutate(kiro.id, { onSuccess: () => toast.success('Uso registrado') })}>
+                <RefreshCw className="w-3.5 h-3.5" />
+              </Button>
+            }
+            onEdit={() => setEditOpen(true)}
+            onDelete={() => {}}
+            hideDelete
+          />
+        ) : null}
+      </div>
       {editOpen && <KiroFormDialog item={kiro} onClose={() => setEditOpen(false)} />}
     </div>
   );
