@@ -5,8 +5,8 @@ export const useUpdateHentaiTags = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, tagIds }: { id: number; tagIds: number[] }) =>
-      hentaiService.updateTags(id, tagIds),
+    mutationFn: ({ id, tagIds, name }: { id: number; tagIds: number[]; name?: string }) =>
+      hentaiService.updateTags(id, tagIds, name),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hentai'] });
     },

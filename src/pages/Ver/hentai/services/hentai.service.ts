@@ -26,8 +26,8 @@ export const hentaiService = {
     return await apiClient.delete(`${BASE_URL}/${id}`);
   },
 
-  updateTags: async (id: number, tagIds: number[]) => {
-    return await apiClient.put(`${BASE_URL}/${id}/tags`, tagIds);
+  updateTags: async (id: number, tagIds: number[], name?: string) => {
+    return await apiClient.put(`${BASE_URL}/${id}/tags`, { tagIds, name });
   },
 
   uploadImage: async (file: File, refId: number) => {

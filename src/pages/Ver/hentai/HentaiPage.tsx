@@ -34,6 +34,7 @@ export const HentaiPage = () => {
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [hentaiForTagEdit, setHentaiForTagEdit] = useState<Hentai | null>(null);
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
+  const [editingHentaiName, setEditingHentaiName] = useState<string>('');
   const [selectedLetterFilter, setSelectedLetterFilter] = useState<string>('');
   const importInputRef = useRef<HTMLInputElement>(null);
   const {
@@ -232,12 +233,14 @@ export const HentaiPage = () => {
 
   const handleOpenTagsDialog = (hentai: Hentai) => {
     setHentaiForTagEdit(hentai);
+    setEditingHentaiName(hentai.title);
     setSelectedTagIds(mapTagNamesToIds(hentai.tags));
     setTagDialogOpen(true);
   };
 
   useEffect(() => {
     if (!tagDialogOpen || !hentaiForTagEdit) return;
+    setEditingHentaiName(hentaiForTagEdit.title);
     setSelectedTagIds(mapTagNamesToIds(hentaiForTagEdit.tags));
   }, [hentaiForTagEdit, mapTagNamesToIds, tagDialogOpen]);
 
@@ -253,10 +256,15 @@ export const HentaiPage = () => {
     if (!hentaiForTagEdit) return;
 
     try {
-      await updateHentaiTags.mutateAsync({ id: hentaiForTagEdit.id, tagIds: selectedTagIds });
+      await updateHentaiTags.mutateAsync({ 
+        id: hentaiForTagEdit.id, 
+        tagIds: selectedTagIds,
+        name: editingHentaiName 
+      });
       toast.success('Tags actualizados correctamente');
       setTagDialogOpen(false);
       setHentaiForTagEdit(null);
+      setEditingHentaiName('');
     } catch (error) {
       console.error('Error al actualizar tags:', error);
       toast.error('Error al actualizar tags');
@@ -634,10 +642,16 @@ export const HentaiPage = () => {
                 <Spinner className="h-6 w-6" />
               </div>
             ) : tags && tags.length > 0 ? (
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  {hentaiForTagEdit?.title}
-                </p>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Nombre del hentai</label>
+                  <Input
+                    type="text"
+                    value={editingHentaiName}
+                    onChange={(e) => setEditingHentaiName(e.target.value)}
+                    className="focus-visible:ring-0 focus-visible:ring-offset-0"
+                  />
+                </div>
                 <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto border rounded p-2">
                   {tags.map((tag) => (
                     <div
