@@ -3,7 +3,7 @@ import { useGetAllComics } from './hooks/useGetAllComics.hook';
 import { useCreateComic } from './hooks/useCreateComic.hook';
 import { useUpdateComic } from './hooks/useUpdateComic.hook';
 import { useDeleteComic } from './hooks/useDeleteComic.hook';
-import { useUploadComicImage } from './hooks/useUploadComicImage.hook';
+import { useUploadImage } from './hooks/useUploadImage.hook';
 import { useExportComic } from './hooks/useExportComic.hook';
 import { useImportComic } from './hooks/useImportComic.hook';
 import type { Comic } from './models/comic.model';
@@ -107,7 +107,7 @@ export const ComicPage = () => {
   const createComic = useCreateComic();
   const updateComic = useUpdateComic();
   const deleteComic = useDeleteComic();
-  const uploadImage = useUploadComicImage();
+  const uploadImage = useUploadImage();
   const exportComic = useExportComic();
   const importComic = useImportComic();
 
@@ -309,7 +309,25 @@ export const ComicPage = () => {
                       <img
                         src={comic.image}
                         alt={comic.name}
+                        referrerPolicy="no-referrer"
+                        crossOrigin="anonymous"
                         className="w-full h-full object-cover hover:opacity-80 transition-opacity"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            const placeholder = document.createElement('div');
+                            placeholder.className = 'w-full h-full flex flex-col items-center justify-center bg-muted gap-2 p-4';
+                            placeholder.innerHTML = `
+                              <svg class="h-12 w-12 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              <span class="text-xs text-muted-foreground text-center">Imagen no disponible</span>
+                            `;
+                            parent.appendChild(placeholder);
+                          }
+                        }}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-muted">
@@ -348,7 +366,31 @@ export const ComicPage = () => {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent
+          onPaste={async (e) => {
+            if (!editingComic) return;
+            const items = e.clipboardData?.items;
+            if (!items) return;
+            for (let i = 0; i < items.length; i++) {
+              if (items[i].type.indexOf('image') !== -1) {
+                e.preventDefault();
+                const blob = items[i].getAsFile();
+                if (!blob) continue;
+                try {
+                  await uploadImage.mutateAsync({ file: blob, refId: editingComic.id });
+                  await refetch();
+                  const updatedComic = comics?.find((c) => c.id === editingComic.id);
+                  if (updatedComic) {
+                    setForm((f) => ({ ...f, image: updatedComic.image }));
+                  }
+                } catch {
+                  toast.error('Error al subir la imagen');
+                }
+                break;
+              }
+            }
+          }}
+        >
           <DialogHeader>
             <DialogTitle>{editingComic ? 'Editar comic' : 'Nuevo comic'}</DialogTitle>
           </DialogHeader>
@@ -358,11 +400,18 @@ export const ComicPage = () => {
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             />
-            <Input
-              placeholder="URL de imagen"
-              value={form.image}
-              onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))}
-            />
+            <div className="space-y-1">
+              <Input
+                placeholder="URL de imagen"
+                value={form.image}
+                onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))}
+              />
+              {editingComic && (
+                <p className="text-xs text-muted-foreground">
+                  Tip: Pega una imagen (Ctrl+V) para subirla a imgbb
+                </p>
+              )}
+            </div>
             <Input
               placeholder="URL del comic"
               value={form.url}
