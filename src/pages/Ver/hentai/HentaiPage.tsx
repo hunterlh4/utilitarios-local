@@ -144,19 +144,6 @@ export const HentaiPage = () => {
     };
   }, [handlePaste]);
 
-  useEffect(() => {
-    if (searchMode !== 'remote') {
-      setShowResults(false);
-      return;
-    }
-
-    const timeout = window.setTimeout(() => {
-      void handleSearch();
-    }, 2500);
-
-    return () => window.clearTimeout(timeout);
-  }, [handleSearch, searchMode, searchQuery, setShowResults]);
-
   const toggleFilter = () => {
     setShowResults(false);
     setFilterStatus(prev => 
