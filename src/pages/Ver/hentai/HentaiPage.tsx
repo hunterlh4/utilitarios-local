@@ -168,6 +168,10 @@ export const HentaiPage = () => {
     return Array.from(tagSet).sort();
   }, [savedHentai]);
 
+  const savedHentaiApiIds = useMemo(() => {
+    return new Set((savedHentai ?? []).map((hentai) => String(hentai.apiId)));
+  }, [savedHentai]);
+
   const filteredSavedHentai = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     const letter = selectedLetterFilter.toLowerCase();
@@ -411,14 +415,20 @@ export const HentaiPage = () => {
             ) : searchResults.length > 0 ? (
               <div>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-0">
-                  {searchResults.map((anime) => (
-                    <Card key={anime.mal_id} className="overflow-hidden flex flex-col border-0 shadow-none rounded-none">
+                  {searchResults.map((anime) => {
+                    const isAlreadyInHList = savedHentaiApiIds.has(String(anime.mal_id));
+
+                    return (
+                    <Card
+                      key={anime.mal_id}
+                      className="overflow-hidden flex flex-col border-0 shadow-none rounded-none"
+                    >
                       <CardHeader className="p-0 cursor-pointer" onClick={() => handleSaveHentai(anime)}>
                         <div className="aspect-2/3 w-full overflow-hidden bg-muted">
                           <img
                             src={anime.images.jpg.large_image_url || anime.images.jpg.image_url}
                             alt={anime.title}
-                            className="w-full h-full object-cover hover:opacity-80 transition-opacity"
+                            className={`w-full h-full object-cover transition-opacity ${isAlreadyInHList ? 'grayscale' : 'hover:opacity-80'}`}
                           />
                         </div>
                       </CardHeader>
@@ -426,7 +436,8 @@ export const HentaiPage = () => {
                         <CardTitle className="text-sm line-clamp-2 text-center">{anime.title}</CardTitle>
                       </CardContent>
                     </Card>
-                  ))}
+                    );
+                  })}
                 </div>
                 {!isRemoteAllMode ? (
                   <div className="mt-4 flex items-center justify-center gap-2">

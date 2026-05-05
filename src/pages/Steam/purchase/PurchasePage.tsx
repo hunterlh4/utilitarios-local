@@ -29,6 +29,7 @@ interface PurchaseGroup {
   steamItemId: number;
   itemName: string;
   itemImage: string;
+  itemMarketUrl: string;
   itemGame: 1 | 2;
   items: SteamItemPurchase[];
   totalPurchase: number;
@@ -50,6 +51,7 @@ const groupPurchases = (list: SteamItemPurchase[]): PurchaseGroup[] => {
         steamItemId: p.item.id,
         itemName: p.item.name,
         itemImage: p.item.image,
+        itemMarketUrl: p.item.marketUrl,
         itemGame: p.item.game ?? 1,
         items: [],
         totalPurchase: 0,
@@ -230,11 +232,26 @@ export const PurchasePage = () => {
                           ? (isOpen ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />)
                           : <span className="w-3.5" />
                         }
-                        <span className="truncate max-w-55 font-medium">{g.itemName}</span>
+                        <a
+                          href={g.itemMarketUrl || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => { e.stopPropagation(); }}
+                          className="truncate max-w-55 font-medium hover:underline"
+                        >
+                          {g.itemName}
+                        </a>
                       </div>
                     </td>
                     <td className="px-4 py-2 text-center">
-                      <img src={g.itemImage} alt={g.itemName} className="w-36 h-36 object-contain mx-auto" />
+                      <a
+                        href={g.itemMarketUrl || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => { e.stopPropagation(); }}
+                      >
+                        <img src={g.itemImage} alt={g.itemName} className="w-36 h-36 object-contain mx-auto" />
+                      </a>
                     </td>
                     <td className="px-4 py-2 text-center font-semibold">{g.items.length}</td>
                     <td className="px-4 py-2 text-right text-muted-foreground">S/. {g.totalPurchase.toFixed(2)}</td>

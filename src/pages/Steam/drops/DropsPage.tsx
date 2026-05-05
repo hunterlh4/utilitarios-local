@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Plus, Trash2, Search, ChevronDown, Upload, Download } from 'lucide-react';
 import { Button } from '@/common/components/ui/button';
@@ -111,7 +111,8 @@ export const DropsPage = () => {
     return parseFloat((qty * sale).toFixed(2));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
     const payload = {
       steamItemId: Number(form.steamItemId),
       quantity: Number(form.quantity),
@@ -225,11 +226,40 @@ export const DropsPage = () => {
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <span className="truncate max-w-55 font-medium">{drop.item.name}</span>
+                        {
+                          (() => {
+                            const itemMarketUrl = steamItems?.find((i) => i.id === drop.item.id)?.marketUrl;
+                            return (
+                              <a
+                                href={itemMarketUrl || '#'}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => { e.stopPropagation(); }}
+                                className="truncate max-w-55 font-medium hover:underline"
+                              >
+                                {drop.item.name}
+                              </a>
+                            );
+                          })()
+                        }
                       </div>
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <img src={drop.item.image} alt={drop.item.name} className="w-36 h-36 object-contain mx-auto" />
+                      {
+                        (() => {
+                          const itemMarketUrl = steamItems?.find((i) => i.id === drop.item.id)?.marketUrl;
+                          return (
+                            <a
+                              href={itemMarketUrl || '#'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => { e.stopPropagation(); }}
+                            >
+                              <img src={drop.item.image} alt={drop.item.name} className="w-36 h-36 object-contain mx-auto" />
+                            </a>
+                          );
+                        })()
+                      }
                     </td>
                     <td className="px-4 py-3 text-center text-muted-foreground">{drop.quantity}</td>
                     <td className="px-4 py-3 text-center text-muted-foreground">S/. {drop.price}</td>
@@ -265,7 +295,7 @@ export const DropsPage = () => {
           <DialogHeader>
             <DialogTitle>{editing ? 'Editar drop' : 'Agregar drop'}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Grid de items */}
             <div className="grid grid-cols-5 gap-2 max-h-105 overflow-y-auto">
               {steamItems?.map((item) => {
@@ -329,13 +359,13 @@ export const DropsPage = () => {
             <div className="flex justify-end gap-2 pt-1">
               <Button variant="outline" onClick={() => setModalOpen(false)}>Cancelar</Button>
               <Button
-                onClick={handleSubmit}
+                type="submit"
                 disabled={!form.steamItemId || addMutation.isPending || updateMutation.isPending}
               >
                 {addMutation.isPending || updateMutation.isPending ? 'Guardando...' : editing ? 'Actualizar' : 'Guardar'}
               </Button>
             </div>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
