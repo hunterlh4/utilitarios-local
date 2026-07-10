@@ -566,7 +566,10 @@ export const HentaiPage = () => {
                   >
                     <CardHeader
                       className="p-0 cursor-pointer"
-                      onClick={() => handleToggleStatus(hentai)}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        handleToggleStatus(hentai);
+                      }}
                     >
                       <div className="aspect-2/3 w-full overflow-hidden bg-muted relative">
                         {hentai.image ? (
