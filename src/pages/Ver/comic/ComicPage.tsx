@@ -20,6 +20,7 @@ import {
 import { ChevronDown, Download, Image as ImageIcon, Plus, Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { downloadBase64File } from '@/common/lib/download-file';
+import { storageHelper } from '@/common/lib/storage.helper';
 
 const EMPTY_FORM = { name: '', image: '', url: '', category: '' };
 
@@ -95,6 +96,7 @@ export const ComicPage = () => {
   const [pendingReplace, setPendingReplace] = useState<{ file: File; refId: number } | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [hideTitles] = useState(() => storageHelper.getHideTitles());
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingComic, setEditingComic] = useState<Comic | null>(null);
@@ -349,14 +351,16 @@ export const ComicPage = () => {
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="p-2">
-                <CardTitle
-                  className="text-sm line-clamp-2 text-center cursor-pointer hover:underline"
-                  onClick={() => openEdit(comic)}
-                >
-                  {comic.name}
-                </CardTitle>
-              </CardContent>
+              {!hideTitles && (
+                <CardContent className="p-2">
+                  <CardTitle
+                    className="text-sm line-clamp-2 text-center cursor-pointer hover:underline"
+                    onClick={() => openEdit(comic)}
+                  >
+                    {comic.name}
+                  </CardTitle>
+                </CardContent>
+              )}
             </Card>
           ))}
         </div>

@@ -16,10 +16,11 @@ import { Input } from '@/common/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/common/components/ui/card';
 import { Spinner } from '@/common/components/ui/spinner';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/common/components/ui/dialog';
-import { Search, Check, Clock, Upload, Download, Database, Image as ImageIcon } from 'lucide-react';
+import { Search, Check, Clock, Upload, Download, Database, Image as ImageIcon, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { downloadBase64File } from '@/common/lib/download-file';
 import { useGetTagsByType } from '@/pages/Utilitarios/tag/hooks/useGetTagsByType.hook';
+import { storageHelper } from '@/common/lib/storage.helper';
 
 export const HentaiPage = () => {
   const alphabet = ['#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')];
@@ -36,6 +37,7 @@ export const HentaiPage = () => {
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [editingHentaiName, setEditingHentaiName] = useState<string>('');
   const [selectedLetterFilter, setSelectedLetterFilter] = useState<string>('');
+  const [hideTitles, setHideTitles] = useState(() => storageHelper.getHideTitles());
   const importInputRef = useRef<HTMLInputElement>(null);
   const {
     searchQuery,
@@ -378,6 +380,18 @@ export const HentaiPage = () => {
           >
             <Download className="h-4 w-4" />
           </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            onClick={() => {
+              const newValue = storageHelper.toggleHideTitles();
+              setHideTitles(newValue);
+            }}
+            title={hideTitles ? 'Mostrar títulos' : 'Ocultar títulos'}
+          >
+            {hideTitles ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </Button>
         </form>
 
         {searchMode === 'remote' && showResults && (
@@ -432,9 +446,11 @@ export const HentaiPage = () => {
                           />
                         </div>
                       </CardHeader>
-                      <CardContent className="p-2">
-                        <CardTitle className="text-sm line-clamp-2 text-center">{anime.title}</CardTitle>
-                      </CardContent>
+                      {!hideTitles && (
+                        <CardContent className="p-2">
+                          <CardTitle className="text-sm line-clamp-2 text-center">{anime.title}</CardTitle>
+                        </CardContent>
+                      )}
                     </Card>
                     );
                   })}
@@ -585,9 +601,10 @@ export const HentaiPage = () => {
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="p-2">
-                      <CardTitle
-                        className="text-sm line-clamp-2 text-center cursor-pointer hover:underline"
+                    {!hideTitles && (
+                      <CardContent className="p-2">
+                        <CardTitle
+                          className="text-sm line-clamp-2 text-center cursor-pointer hover:underline"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleOpenTagsDialog(hentai);
@@ -596,6 +613,7 @@ export const HentaiPage = () => {
                         {hentai.title}
                       </CardTitle>
                     </CardContent>
+                    )}
                   </Card>
                 ))}
               </div>
