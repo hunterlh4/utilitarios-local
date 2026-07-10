@@ -9,10 +9,11 @@ import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/common/components/ui/card';
 import { Spinner } from '@/common/components/ui/spinner';
-import { Search, Check, Clock, Upload, Download } from 'lucide-react';
+import { Search, Check, Clock, Upload, Download, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { seriesService } from './services/series.service';
 import { downloadBase64File } from '@/common/lib/download-file';
+import { storageHelper } from '@/common/lib/storage.helper';
 
 export const SeriesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,6 +23,7 @@ export const SeriesPage = () => {
   const [filterStatus, setFilterStatus] = useState<ContentStatus>(ContentStatus.Pending);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [hideTitles, setHideTitles] = useState(() => storageHelper.getHideTitles());
   const importInputRef = useRef<HTMLInputElement>(null);
 
   const { data: savedSeries, isLoading: isLoadingSaved, error, refetch } = useGetAllSeries();
@@ -190,6 +192,18 @@ export const SeriesPage = () => {
           >
             <Download className="h-4 w-4" />
           </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            onClick={() => {
+              const newValue = storageHelper.toggleHideTitles();
+              setHideTitles(newValue);
+            }}
+            title={hideTitles ? 'Mostrar títulos' : 'Ocultar títulos'}
+          >
+            {hideTitles ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </Button>
         </form>
 
         {/* Vista de Resultados de búsqueda */}
@@ -215,9 +229,11 @@ export const SeriesPage = () => {
                         />
                       </div>
                     </CardHeader>
-                    <CardContent className="p-2">
-                      <CardTitle className="text-sm line-clamp-2 text-center">{result.title}</CardTitle>
-                    </CardContent>
+                    {!hideTitles && (
+                      <CardContent className="p-2">
+                        <CardTitle className="text-sm line-clamp-2 text-center">{result.title}</CardTitle>
+                      </CardContent>
+                    )}
                   </Card>
                 ))}
               </div>
@@ -259,9 +275,11 @@ export const SeriesPage = () => {
                           />
                         </div>
                       </CardHeader>
-                      <CardContent className="p-2">
-                        <CardTitle className="text-sm line-clamp-2 text-center">{series.title}</CardTitle>
-                      </CardContent>
+                      {!hideTitles && (
+                        <CardContent className="p-2">
+                          <CardTitle className="text-sm line-clamp-2 text-center">{series.title}</CardTitle>
+                        </CardContent>
+                      )}
                     </Card>
                   ))}
               </div>

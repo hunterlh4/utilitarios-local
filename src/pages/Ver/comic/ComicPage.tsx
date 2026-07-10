@@ -17,7 +17,7 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/common/components/ui/dropdown-menu';
-import { ChevronDown, Download, Image as ImageIcon, Plus, Trash2, Upload } from 'lucide-react';
+import { ChevronDown, Download, Image as ImageIcon, Plus, Trash2, Upload, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { downloadBase64File } from '@/common/lib/download-file';
 import { storageHelper } from '@/common/lib/storage.helper';
@@ -96,7 +96,7 @@ export const ComicPage = () => {
   const [pendingReplace, setPendingReplace] = useState<{ file: File; refId: number } | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
-  const [hideTitles] = useState(() => storageHelper.getHideTitles());
+  const [hideTitles, setHideTitles] = useState(() => storageHelper.getHideTitles());
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingComic, setEditingComic] = useState<Comic | null>(null);
@@ -255,6 +255,18 @@ export const ComicPage = () => {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <Button
+          type="button"
+          size="icon"
+          variant="outline"
+          onClick={() => {
+            const newValue = storageHelper.toggleHideTitles();
+            setHideTitles(newValue);
+          }}
+          title={hideTitles ? 'Mostrar títulos' : 'Ocultar títulos'}
+        >
+          {hideTitles ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </Button>
       </div>
 
       {/* Category filter */}

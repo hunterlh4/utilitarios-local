@@ -11,15 +11,17 @@ import { Button } from '@/common/components/ui/button';
 import { Input } from '@/common/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/common/components/ui/card';
 import { Spinner } from '@/common/components/ui/spinner';
-import { Search, Check, Clock, Upload, Download } from 'lucide-react';
+import { Search, Check, Clock, Upload, Download, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { downloadBase64File } from '@/common/lib/download-file';
+import { storageHelper } from '@/common/lib/storage.helper';
 
 export const AnimePage = () => {
   const [filterStatus, setFilterStatus] = useState<ContentStatus>(ContentStatus.Pending);
   const [isApiSearchMode, setIsApiSearchMode] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [hideTitles, setHideTitles] = useState(() => storageHelper.getHideTitles());
   const [hoveredSavedAnimeId, setHoveredSavedAnimeId] = useState<number | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
   const rightClickGuardRef = useRef<{ animeId: number; expiresAt: number } | null>(null);
@@ -256,6 +258,18 @@ export const AnimePage = () => {
           >
             <Download className="h-4 w-4" />
           </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            onClick={() => {
+              const newValue = storageHelper.toggleHideTitles();
+              setHideTitles(newValue);
+            }}
+            title={hideTitles ? 'Mostrar títulos' : 'Ocultar títulos'}
+          >
+            {hideTitles ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </Button>
         </form>
 
         {/* Vista de Resultados de búsqueda */}
@@ -296,9 +310,11 @@ export const AnimePage = () => {
                           />
                         </div>
                       </CardHeader>
-                      <CardContent className="p-2">
-                        <CardTitle className="text-sm line-clamp-2 text-center">{anime.title}</CardTitle>
-                      </CardContent>
+                      {!hideTitles && (
+                        <CardContent className="p-2">
+                          <CardTitle className="text-sm line-clamp-2 text-center">{anime.title}</CardTitle>
+                        </CardContent>
+                      )}
                     </Card>
                   ))}
                 </div>
@@ -365,9 +381,11 @@ export const AnimePage = () => {
                           />
                         </div>
                       </CardHeader>
-                      <CardContent className="p-2">
-                        <CardTitle className="text-sm line-clamp-2 text-center">{anime.title}</CardTitle>
-                      </CardContent>
+                      {!hideTitles && (
+                        <CardContent className="p-2">
+                          <CardTitle className="text-sm line-clamp-2 text-center">{anime.title}</CardTitle>
+                        </CardContent>
+                      )}
                     </Card>
                   ))}
               </div>
