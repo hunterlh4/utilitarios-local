@@ -37,6 +37,7 @@ export interface AccountSteam {
   isVacBanned: boolean; 
   hasSteamMobile: boolean;
   lastPurchaseDate?: string;
+  lastPlay?: string;
   isNew: boolean; 
   lastUsed?: string; 
   createdAt: string;

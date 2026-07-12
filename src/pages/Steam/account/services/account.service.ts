@@ -42,6 +42,18 @@ export const accountService = {
     return await apiClient.delete(`${BASE_URL}/steam/${id}`);
   },
 
+  updateSteamLastPlay: async (id: number): Promise<void> => {
+    return await apiClient.patch(`${BASE_URL}/steam/${id}/lastplay`, {});
+  },
+
+  clearSteamLastPlay: async (id: number): Promise<void> => {
+    return await apiClient.delete(`${BASE_URL}/steam/${id}/lastplay`);
+  },
+
+  clearWeeklyLastPlay: async (): Promise<void> => {
+    return await apiClient.delete(`${BASE_URL}/steam/lastplay`);
+  },
+
   // GitHub
   getGitHubs: async (): Promise<AccountGitHub[]> => {
     return await apiClient.get(`${BASE_URL}/github`);
