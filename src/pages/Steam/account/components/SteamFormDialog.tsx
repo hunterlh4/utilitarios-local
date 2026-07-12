@@ -66,7 +66,9 @@ export const SteamFormDialog = ({ item, onClose }: Props) => {
 
   const f = (key: string, value: any) => setForm((p) => ({ ...p, [key]: value }));
 
-  const handleSubmit = () => {
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    
     const lastPurchaseDateValue = form.lastPurchaseDate ? toIsoDate(form.lastPurchaseDate) : undefined;
     
     const payload = {
@@ -108,7 +110,7 @@ export const SteamFormDialog = ({ item, onClose }: Props) => {
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader><DialogTitle>{isEdit ? 'Editar Steam' : 'Agregar Steam'}</DialogTitle></DialogHeader>
-        <div className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div className="space-y-1">
             <Label>Correo asociado</Label>
             <SearchableSelect
@@ -156,12 +158,12 @@ export const SteamFormDialog = ({ item, onClose }: Props) => {
             {check('Steam Mobile', 'hasSteamMobile')}
           </div>
           <div className="flex justify-end gap-2 pt-1">
-            <Button variant="outline" onClick={onClose}>Cancelar</Button>
-            <Button onClick={handleSubmit} disabled={!form.username || !form.password || addMutation.isPending || updateMutation.isPending}>
+            <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
+            <Button type="submit" disabled={!form.username || !form.password || addMutation.isPending || updateMutation.isPending}>
               {isEdit ? 'Actualizar' : 'Guardar'}
             </Button>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

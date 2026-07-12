@@ -357,7 +357,7 @@ export const DropsPage = () => {
               Total: <span className="font-semibold text-foreground">S/. {calcTotal()}</span>
             </div>
             <div className="flex justify-end gap-2 pt-1">
-              <Button variant="outline" onClick={() => setModalOpen(false)}>Cancelar</Button>
+              <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>Cancelar</Button>
               <Button
                 type="submit"
                 disabled={!form.steamItemId || addMutation.isPending || updateMutation.isPending}
