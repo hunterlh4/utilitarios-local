@@ -67,7 +67,6 @@ export const javService = {
     actresses: { name: string; url?: string }[];
     image?: string;
     links: string[];
-    createdAt?: string;
   }) => {
     return await apiClient.post(`${BASE_URL}/bulk`, data);
   },
